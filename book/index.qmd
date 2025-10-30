@@ -1,0 +1,21 @@
+# Prefácio {.unnumbered}
+
+Este livro é resultado de minha jornada explorando o universo dos agentes de Inteligência Artificial (IA) desde descobertas pessoais durante meus estudos até aplicações práticas em projetos reais. Com o avanço acelerado da tecnologia, os agentes de IA estão se tornando cada vez mais presentes em nossas vidas, desde assistentes virtuais até sistemas autônomos complexos. Este livro visa fornecer uma compreensão abrangente sobre o funcionamento, desenvolvimento e aplicação desses agentes, capacitando os leitores a dominar essa tecnologia.
+
+Meu objetivo não é te convencer a adotar agentes de IA, mas sim oferecer uma base sólida para que os leitores possam tomar decisões informadas sobre seu real uso e implementação, considerando tanto os benefícios quanto os desafios associados.
+
+## Público alvo
+
+Este livro é destinado a profissionais de tecnologia, desenvolvedores de software e entusiastas de IA que desejam aprofundar seus conhecimentos sobre agentes inteligentes e suas aplicações práticas.
+
+## O que esperar deste livro
+
+Os leitores podem esperar uma abordagem prática e orientada a projetos, com exemplos e estudos de caso que ilustram como construir e implementar agentes de IA em diferentes contextos. Além disso, o livro abordará questões éticas e de segurança relacionadas ao uso de IA.
+
+## Agradecimentos
+
+Agradeço a comunidade de software, que compartilha conhecimento e experiências, tornando possível a criação deste livro.
+
+---
+
+Produzido com <https://quarto.org/docs/books>.

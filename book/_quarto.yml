@@ -1,0 +1,21 @@
+project:
+  type: book
+
+book:
+  title: "Dominando Agentes de IA"
+  author: "William Oliveira"
+  date: ""
+  chapters:
+    - index.qmd
+    - chapters/intro.qmd
+    - chapters/references.qmd
+
+bibliography: references.bib
+
+format:
+  html:
+    theme:
+      - cosmo
+      - brand
+  pdf:
+    documentclass: scrreprt
