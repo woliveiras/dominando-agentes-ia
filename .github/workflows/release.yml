@@ -41,14 +41,30 @@ jobs:
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
 
+      - name: Install Calibre for MOBI conversion
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y calibre
+
       - name: Render book to PDF
         run: |
           quarto render book/ --to pdf
 
+      - name: Render book to EPUB
+        run: |
+          quarto render book/ --to epub
+
+      - name: Convert EPUB to MOBI
+        run: |
+          ebook-convert book/_book/Dominando-Agentes-de-IA.epub book/_book/Dominando-Agentes-de-IA.mobi
+
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
-          files: book/_book/Dominando-Agentes-de-IA.pdf
+          files: |
+            book/_book/Dominando-Agentes-de-IA.pdf
+            book/_book/Dominando-Agentes-de-IA.epub
+            book/_book/Dominando-Agentes-de-IA.mobi
           draft: false
           prerelease: false
           generate_release_notes: true
