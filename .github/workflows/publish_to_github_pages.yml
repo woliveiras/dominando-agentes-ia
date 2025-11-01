@@ -14,8 +14,10 @@ jobs:
 
       - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          version: 'latest'
+          tinytex: true
 
       - name: Install dependencies
         run: |
@@ -43,6 +45,6 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          github_token: ${{ secrets.AUTH_GITHUB_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: book/_book
           publish_branch: gh-pages
