@@ -12,6 +12,7 @@ book:
     - chapters/99-references.qmd
 
 bibliography: references.bib
+lang: "pt-BR"
 
 format:
   html:
