@@ -413,10 +413,287 @@ A decisão final depende de suas necessidades empresariais específicas: escolha
 
 ## Taxonomia de Agentes
 
-  - Agentes reativos (stimulus-response)
-  - Agentes deliberativos (goal-driven)
-  - Agentes híbridos
-  - Agentes de aprendizado
+Assim como organizamos o mundo natural em categorias para melhor compreendê-lo, classificar agentes de IA em tipos distintos nos ajuda a entender suas capacidades, limitações e aplicações apropriadas. A taxonomia de agentes evoluiu ao longo das décadas, refletindo tanto avanços teóricos quanto necessidades práticas.
+
+Existem múltiplas formas de categorizar agentes — por sua arquitetura interna, capacidades cognitivas, ou estratégias de tomada de decisão. Nesta seção, exploraremos as principais classificações, começando com a taxonomia clássica de Russell e Norvig e expandindo para abordagens arquiteturais modernas.
+
+### Classificação Clássica de Russell e Norvig
+
+Russell e Norvig (2003) agruparam agentes em cinco classes baseadas em seu grau de inteligência percebida e capacidade [@russellandnorvig2003; @wikipedia2024agents]. Esta classificação permanece fundamental para compreender a evolução da complexidade em agentes.
+
+**1. Agentes Reflexivos Simples (*Simple Reflex Agents*)**
+
+Agentes reflexivos simples agem apenas com base na percepção atual, ignorando o resto do histórico de percepções [@russellandnorvig2003]. A função do agente é baseada em regras *condition-action*: "se condição, então ação" [@wikipedia2024agents].
+
+**Características:**
+- Respondem a estímulos específicos em seu ambiente sem manter estado interno
+- Tipicamente usados para tarefas simples onde respostas imediatas são necessárias [@medium2024taxonomy]
+- Rápidos e computacionalmente eficientes [@medium2024taxonomy]
+- Sem memória ou capacidade de aprendizado [@medium2024taxonomy]
+
+**Limitações:**
+Esta função de agente só tem sucesso quando o ambiente é totalmente observável [@russellandnorvig2003]. Em ambientes parcialmente observáveis, agentes reflexivos simples podem falhar ou comportar-se de forma subótima.
+
+**Exemplo prático:** Um termostato simples que liga o aquecedor quando a temperatura cai abaixo de um limiar e o desliga quando excede outro.
+
+**2. Agentes Reflexivos Baseados em Modelo (*Model-Based Reflex Agents*)**
+
+Um agente reflexivo baseado em modelo deve manter algum tipo de modelo interno que depende do histórico de percepções e, portanto, reflete pelo menos alguns dos aspectos não observados do estado atual [@russellandnorvig2003]. Um agente baseado em modelo pode lidar com ambientes parcialmente observáveis [@wikipedia2024agents].
+
+**Avanços sobre agentes simples:**
+- Mantêm representação interna do mundo
+- Rastreiam aspectos do ambiente não diretamente observáveis
+- Atualizam seu modelo baseado em percepções e ações anteriores
+- Podem funcionar em ambientes parcialmente observáveis
+
+**Exemplo prático:** Um robô de limpeza que mantém um mapa interno do ambiente, rastreando áreas já limpas mesmo quando não estão atualmente visíveis.
+
+**3. Agentes Baseados em Objetivos (*Goal-Based Agents*)**
+
+Agentes baseados em objetivos expandem ainda mais as capacidades dos agentes baseados em modelo, usando informação de "objetivo" [@russellandnorvig2003]. Informação de objetivo descreve situações que são desejáveis. Isso fornece ao agente uma forma de escolher entre múltiplas possibilidades, selecionando aquela que alcança um estado de objetivo [@wikipedia2024agents].
+
+**Capacidades distintivas:**
+- Representam explicitamente estados desejáveis do mundo
+- Avaliam sequências de ações para alcançar objetivos
+- Podem planejar caminhos para alcançar múltiplos objetivos
+- Tomam decisões baseadas em quão bem ações contribuem para objetivos
+
+**Diferença fundamental:** Enquanto agentes reflexivos reagem ao presente, agentes baseados em objetivos antecipam o futuro, considerando "O que acontecerá se eu fizer X?" e "Isso me levará mais perto do meu objetivo?"
+
+**Exemplo prático:** Um agente de navegação que planeja rotas considerando múltiplos objetivos como minimizar tempo, evitar pedágios e passar por um posto de gasolina.
+
+**4. Agentes Baseados em Utilidade (*Utility-Based Agents*)**
+
+Agentes baseados em utilidade tomam decisões baseadas em seus objetivos e avaliam múltiplos cenários para maximizar sua função de utilidade esperada [@professionalai2024types]. Seu foco não é apenas alcançar objetivos, mas encontrar a melhor alternativa/caminho para alcançar aquele objetivo particular [@professionalai2024types].
+
+**Sofisticação adicional:**
+- Usam uma função de utilidade para classificar cenários possíveis [@professionalai2024types]
+- Empregam medida geral de desempenho para compará-los [@professionalai2024types]
+- Lidam com trade-offs entre objetivos conflitantes
+- Otimizam não apenas para sucesso, mas para qualidade do sucesso
+
+**Quando são necessários:**
+- Objetivos podem estar em conflito (rapidez vs. segurança)
+- Múltiplos objetivos com diferentes prioridades
+- Incerteza sobre alcançar objetivos (maximizar probabilidade)
+- Necessidade de equilibrar objetivos de curto e longo prazo
+
+**Exemplo prático:** Um assistente de investimentos que não apenas busca lucro (objetivo), mas otimiza para o melhor equilíbrio entre retorno esperado, risco, liquidez e horizonte temporal.
+
+**5. Agentes de Aprendizado (*Learning Agents*)**
+
+Agentes de aprendizado podem aprender e melhorar através de interações com o ambiente [@professionalai2024types]. Esses agentes podem adaptar e melhorar seu desempenho ao longo do tempo baseado em experiência [@wikipedia2024agents].
+
+**Componentes de um agente de aprendizado:**
+
+- **Elemento de aprendizado**: Responsável por melhorias baseadas em experiência
+- **Elemento de desempenho**: Seleciona ações externas (pode ser qualquer tipo de agente acima)
+- **Crítico**: Fornece *feedback* sobre como o agente está indo
+- **Gerador de problemas**: Sugere ações exploratórias para novas experiências
+
+**Capacidades transformadoras:**
+
+- Começam com conhecimento básico e melhoram com experiência
+- Adaptam-se a ambientes em mudança
+- Descobrem padrões não antecipados por designers
+- Podem operar em domínios onde programação explícita é impraticável
+
+**Exemplo prático:** Um agente de recomendação que inicialmente usa regras gerais, mas aprende preferências individuais dos usuários ao longo do tempo, melhorando continuamente suas sugestões.
+
+### Agentes reativos (*stimulus-response*)
+
+Expandindo a classificação de Russell e Norvig, a taxonomia arquitetural identifica agentes reativos como aqueles que operam baseados no princípio *condition-action*, reagindo a entradas imediatas e suas percepções atuais de acordo com regras predefinidas [@medium2024taxonomy].
+
+**Princípios de Operação**
+
+Agentes reativos analisam entradas de seu ambiente e produzem saídas imediatas sem engajar em processos mais profundos de raciocínio ou aprendizado [@medium2024taxonomy]. Eles não mantêm uma compreensão profunda do mundo além da situação atual e tipicamente não consideram ações passadas ou consequências futuras [@medium2024taxonomy].
+
+**Arquitetura Subsumption**
+
+Uma abordagem influente para agentes reativos é a *arquitetura de subsunção* de Rodney Brooks, que organiza comportamentos em camadas hierárquicas. Camadas superiores podem "subsumir" (sobrescrever) camadas inferiores, permitindo comportamentos complexos emergirem de regras simples.
+
+**Vantagens:**
+
+- Respostas extremamente rápidas (latência mínima)
+- Computacionalmente eficientes
+- Previsíveis e debugáveis
+- Robustos em ambientes bem definidos
+
+**Limitações:**
+
+- Incapazes de planejar ou antecipar
+- Não aprendem com experiência
+- Lutam com ambientes complexos ou novos
+- Podem ficar presos em loops comportamentais
+
+**Aplicações modernas:**
+
+- Sistemas de controle em tempo real
+- Comportamentos básicos em robótica (evitar obstáculos)
+- Sistemas embarcados com recursos limitados
+- Componentes de baixo nível em arquiteturas híbridas
+
+### Agentes deliberativos (*goal-driven*)
+
+Agentes deliberativos engajam em raciocínio e planejamento para alcançar objetivos específicos [@medium2024taxonomy]. Eles frequentemente mantêm um modelo interno de seu ambiente para avaliar ações potenciais e suas consequências antes de agir [@medium2024taxonomy].
+
+**Características Fundamentais**
+
+Esses agentes mantêm um modelo interno do mundo e podem planejar suas ações baseadas nesse modelo [@medium2024taxonomy]. São mais complexos e podem lidar com tarefas que requerem previsão e estratégia [@medium2024taxonomy].
+
+**Processo de Deliberação**
+
+1. **Modelagem**: Construir e manter representação do mundo
+2. **Planejamento**: Gerar sequências de ações para alcançar objetivos
+3. **Raciocínio**: Avaliar consequências de diferentes planos
+4. **Seleção**: Escolher o plano mais promissor
+5. **Execução**: Implementar ações sequencialmente
+6. **Monitoramento**: Verificar se plano está funcionando
+
+**Técnicas de Planejamento:**
+
+- Busca em espaço de estados (A*, busca heurística)
+- Planejamento hierárquico (decomposição de tarefas)
+- Planejamento temporal (considerando tempo e recursos)
+- Planejamento contingente (planos com ramificações)
+
+**Vantagens:**
+
+- Podem resolver problemas complexos
+- Otimizam para eficiência e qualidade
+- Lidam bem com objetivos de longo prazo
+- Adaptam planos quando o mundo muda
+
+**Limitações:**
+
+- Computacionalmente custosos
+- Requerem tempo para deliberação
+- Dependem da qualidade do modelo do mundo
+- Podem falhar se modelo for impreciso
+
+**Aplicações práticas:**
+
+- Encontrados em veículos autônomos onde gerenciam navegação e tomada de decisão [@medium2024taxonomy]
+- Robótica inteligente, realizando tarefas intricadas enquanto adaptam-se ao ambiente [@medium2024taxonomy]
+- Sistemas de planejamento logístico
+- Assistentes pessoais que organizam agendas complexas
+
+### Agentes híbridos
+
+Agentes de IA híbridos são sistemas que integram elementos tanto reativos quanto deliberativos [@medium2024taxonomy]. Esses agentes usam uma mistura de ações baseadas em regras para tarefas imediatas e processos avançados de tomada de decisão para desafios mais complexos [@medium2024taxonomy].
+
+**Motivação para Arquiteturas Híbridas**
+
+O mundo real demanda tanto velocidade quanto inteligência:
+- Situações de emergência requerem reação imediata (reatividade)
+- Problemas complexos requerem planejamento cuidadoso (deliberação)
+- Contextos dinâmicos beneficiam-se de ambos
+
+**Arquiteturas Híbridas Comuns**
+
+**1. Arquitetura em Camadas Horizontais**
+
+- Camada reativa lida com comportamentos de baixo nível
+- Camada deliberativa faz planejamento de alto nível
+- Mediador coordena entre camadas
+
+**2. Arquitetura em Camadas Verticais**
+
+- Múltiplas camadas processam entrada simultaneamente
+- Cada camada pode sugerir ações
+- Árbitro decide qual camada controla saída
+
+**3. Arquitetura BDI Híbrida**
+
+- Combina crenças-desejos-intenções com comportamentos reativos
+- Biblioteca de planos predefinidos para eficiência
+- Deliberação apenas quando necessário
+
+**Vantagens:**
+
+- Flexibilidade para alternar entre ações reativas e deliberativas baseado em contexto [@medium2024taxonomy]
+- Reduzem falha ao retornar a comportamento mais simples se planejamento falhar [@medium2024taxonomy]
+- Equilibram velocidade de resposta com qualidade de decisão
+- Otimizam uso de recursos computacionais
+
+**Desafios de Design:**
+
+- Determinar quando usar qual modo
+- Evitar conflitos entre camadas
+- Garantir transições suaves
+- Balancear complexidade com desempenho
+
+**Aplicações práticas:**
+
+- Robôs autônomos em ambientes dinâmicos
+- Veículos autônomos (reação rápida + planejamento de rota)
+- Jogos de estratégia em tempo real
+- Sistemas de controle industrial
+
+### Agentes de aprendizado
+
+Agentes de aprendizado e adaptativos podem aprender de dados, interações e *feedback* e melhorar seu desempenho ao longo do tempo [@medium2024taxonomy]. Eles podem refinar suas respostas, adaptar-se a novos cenários e continuamente aprimorar suas capacidades [@medium2024taxonomy].
+
+**Quando Ocorre o Aprendizado**
+
+O aprendizado pode ocorrer durante o desenvolvimento (por exemplo, modelos ajustados finamente) ou durante a operação (por exemplo, aprendizado por reforço ou aprendizado contínuo) [@medium2024taxonomy].
+
+**Paradigmas de Aprendizado**
+
+**1. Aprendizado Supervisionado**
+
+- Aprende de exemplos rotulados
+- Usado para classificação e predição
+- Exemplo: Agente aprende a categorizar emails como spam
+
+**2. Aprendizado por Reforço**
+
+- Aprende através de tentativa e erro
+- Maximiza recompensas acumuladas
+- Exemplo: Agente aprende a jogar xadrez através de auto-jogo
+
+**3. Aprendizado Não Supervisionado**
+
+- Descobre padrões em dados não rotulados
+- Usado para clustering e descoberta
+- Exemplo: Agente identifica segmentos de clientes
+
+**4. Aprendizado por Transferência**
+
+- Aplica conhecimento de um domínio a outro
+- Acelera aprendizado em novas tarefas
+- Exemplo: Agente usa conhecimento de um idioma para aprender outro
+
+**5. Aprendizado Meta (Meta-Learning)**
+
+- Aprende como aprender mais eficientemente
+- Adapta-se rapidamente a novas tarefas
+- Exemplo: Few-shot learning em *LLMs*
+
+**Ciclo de Aprendizado Contínuo**
+
+1. **Experiência**: Agente interage com ambiente
+2. **Feedback**: Recebe sinais de sucesso/falha
+3. **Análise**: Identifica padrões e causas
+4. **Atualização**: Modifica políticas ou modelos
+5. **Aplicação**: Usa conhecimento melhorado
+
+**Desafios:**
+
+- Balancear exploração (novas ações) vs. exploração (ações conhecidas)
+- Evitar *overfitting* a experiências recentes
+- Lidar com *concept drift* (mundo mudando)
+- Garantir segurança durante aprendizado
+
+**Aplicações transformadoras:**
+
+- Sistemas de recomendação personalizados
+- Assistentes virtuais adaptativos
+- Robôs que aprendem novas habilidades
+- Sistemas de detecção de fraude evolutivos
+- Agentes de *trading* que adaptam a mercados
+
+**Agentes *LLM*-based modernos** combinam múltiplas categorias: são agentes de aprendizado (treinados em vastos dados), podem ser deliberativos (planejamento via *chain-of-thought*), reativos (respostas diretas), e híbridos (combinando modos conforme contexto).
 
 ## O Ciclo Percepção-Ação
 
