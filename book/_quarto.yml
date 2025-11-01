@@ -7,8 +7,9 @@ book:
   date: ""
   chapters:
     - index.qmd
-    - chapters/intro.qmd
-    - chapters/references.qmd
+    - chapters/00-visao-geral.qmd
+    - chapters/01-intro.qmd
+    - chapters/99-references.qmd
 
 bibliography: references.bib
 

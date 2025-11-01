@@ -1,0 +1,125 @@
+# Visão Geral do Livro {.unnumbered}
+
+Neste capítulo introdutório, apresentamos uma visão geral do livro "Dominando Agentes de IA". Você encontrará informações sobre o autor, os objetivos do livro, o público-alvo, os pré-requisitos técnicos necessários para melhor aproveitar o conteúdo e a estrutura do livro.
+
+Lembrando que os pré-requisitos técnicos não são limitantes para o aprendizado dos conceitos apresentados, mas ajudam a contextualizar o leitor e facilitar a compreensão dos temas abordados.
+
+## Sobre o autor
+
+William Oliveira é um engenheiro de Software com vasta experiência em desenvolvimento de aplicações empresariais de larga escala, autor dos livros "[O Universo da Programação](https://www.casadocodigo.com.br/products/livro-universo-programacao)", "[Navegando no universo da programação](https://www.casadocodigo.com.br/products/livro-navegando-universo)" e "[Carreira técnica no universo da programação](https://www.casadocodigo.com.br/products/livro-carreira-tecnica)", mentor e voluntário em diversos projetos e comunidades de tecnologia focadas em inclusão social. Apaixonado por desenvolvimento de software e Inteligência Artificial, tem se dedicado a estudar e aplicar técnicas de IA em projetos práticos e produtivos, com ênfase em agentes inteligentes.
+
+Você pode saber mais sobre o autor visitando seu site pessoal [em português](https://woliveiras.com.br), [em inglês](https://woliveiras.github.io/) ou seguindo-o no [LinkedIn](https://www.linkedin.com/in/william-oliveira/). Se quiser saber mais sobre agentes de IA, o site em inglês será sua melhor fonte de informações.
+
+## Como este livro funciona
+
+### Objetivos e público-alvo
+
+O objetivo central deste livro é fornecer uma compreensão abrangente sobre agentes de IA, capacitando os leitores a desenvolver e implementar seus próprios agentes inteligentes em diversas aplicações. Mas, não somente isso, o livro também busca deixar claro as oportunidades e desafios envolvidos no desenvolvimento de agentes de IA, preparando os leitores para enfrentar as complexidades do campo e saber quando cabe implementar um agente de IA ou não em seus projetos.
+
+Especificamente, o livro visa:
+
+  - Introduzir conceitos fundamentais sobre agentes de IA
+  - Capacitar desenvolvedores a criar e implementar agentes inteligentes
+  - Explorar casos de uso práticos e aplicações reais de agentes de IA
+  - Discutir desafios éticos e técnicos relacionados ao desenvolvimento de agentes de IA
+  - Propor diretrizes e melhores práticas para a implementação de agentes de IA
+
+Este livro é ideal para desenvolvedores de software, engenheiros de dados, cientistas de dados, pesquisadores e entusiastas de IA que desejam aprofundar seus conhecimentos em agentes inteligentes.
+
+### Pré-requisitos técnicos
+
+Para aproveitar ao máximo este livro, é recomendável que os leitores tenham:
+
+  - Conhecimento de programação (preferencialmente na linguagem Python, que será utilizada nos exemplos do livro)
+  - Familiaridade com conceitos de inteligência artificial e aprendizado de máquina (conhecimento básico é suficiente para compreender os fundamentos e limitações de *LLMs* e *VLMs*)
+  - Conhecimento básico de Git e GitHub para baixar os códigos de exemplo e acompanhar os exercícios práticos
+
+## Estrutura do livro e como navegar pelos capítulos
+
+### Divisão em partes e capítulos
+
+Este livro está organizado em **três partes principais**, cada uma com um propósito específico na sua jornada de aprendizado:
+
+**Parte I: Fundamentos e Componentes Base (Capítulos 1-4)**
+
+  - Estabelece a base teórica e prática necessária
+  - Foco em entender *LLMs*, *prompting* e *embeddings*
+  - **Leia sequencialmente** - cada capítulo constrói sobre o anterior
+  - Essencial mesmo se você já tem experiência com IA, para entender a abordagem do autor
+
+**Parte II: Construindo Sistemas de Agentes (Capítulos 5-8)**
+
+  - Aplica os fundamentos em construção de agentes
+  - Introduz *RAG*, *tools*, *workflows* e *comunicação entre agentes*
+  - **Recomendação**: Pratique cada conceito antes de avançar
+  - Os exemplos de código aqui são a essência do livro
+
+**Parte III: Arquitetura e Produção (Capítulos 9-13)**
+
+  - Prepara seus agentes para ambientes de produção
+  - Aborda arquitetura, segurança, qualidade e operações
+  - **Pode ser consultada conforme necessário** depois de dominar a Parte II
+  - Referência contínua para projetos reais
+
+**Apêndices**
+
+  - Material de referência e recursos complementares
+  - Consulte quando precisar de comparações, *datasets* ou aprofundamento
+
+### Como aproveitar ao máximo o conteúdo
+
+#### Se você é iniciante em IA:
+
+- Leia linearmente do Capítulo 1 ao 13
+- Dedique tempo extra aos capítulos 3 e 6 (prompting e tools)
+- Pratique **todos** os exemplos de código
+
+#### Se você já trabalha com *LLMs*
+
+- Revise rapidamente os Capítulos 1-2
+- Foque na Parte II (especialmente Capítulos 6-8)
+- Use a Parte III como referência para produção
+
+#### Se você quer construir um projeto específico
+
+- Leia os Capítulos 1-4 para fundamentos
+- Vá direto para o capítulo relevante ao seu caso:
+  - **RAG system** → Capítulos 4, 5
+  - **Multi-agente** → Capítulos 7, 8, 9
+  - **Deploy em produção** → Capítulos 10-13
+
+### Recursos de Aprendizado
+
+- **Código de exemplo**: Todo código está disponível no repositório GitHub do livro
+- **Exercícios práticos**: Cada capítulo inclui exercícios hands-on
+- **Projeto integrado**: Os capítulos constroem um sistema real incrementalmente
+- **Referências cruzadas**: Links internos conectam conceitos relacionados
+
+### Importante
+
+- **Não pule a Parte I** mesmo se você já usa *LLMs*, ela estabelece terminologia e conceitos específicos de agentes
+- **Pratique antes de avançar** - agentes de IA requerem experimentação para domínio real (entender os limites, falhas e melhores práticas)
+- **Volte aos fundamentos** quando necessário, revisitando os capítulos iniciais
+- **Use os apêndices** como referência contínua durante sua leitura
+
+### Padrão de Estudo Recomendado
+
+1. **Ler** o capítulo completo para entender a teoria
+2. **Executar** os exemplos de código fornecidos
+3. **Modificar** os exemplos para testar variações
+4. **Implementar** os exercícios práticos propostos
+5. **Revisar** conceitos-chave antes de avançar
+
+SEMPRE modifique e experimente o código - é assim que se aprende de verdade! Quebre as coisas, veja o que funciona e o que não funciona. Estamos usando versionamento de código para que você possa sempre voltar a um estado funcional se algo der errado.
+
+### Indicadores de Progresso
+
+Cada parte do livro tem objetivos claros de aprendizado. Você está pronto para avançar quando conseguir:
+
+- **Após Parte I**: Explicar como *LLMs* funcionam e criar prompts eficazes
+- **Após Parte II**: Construir um agente funcional com *tools* e memória
+- **Após Parte III**: Fazer *deploy* de um sistema multi-agentes em produção
+
+---
+
+Com essa estrutura e abordagem, você estará bem equipado para dominar agentes de IA e aplicá-los em seus próprios projetos. Boa leitura e bom aprendizado!
