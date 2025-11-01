@@ -1,0 +1,48 @@
+name: Publish Book to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: 'latest'
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install uv and sync Python dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Install TinyTeX
+        run: |
+          quarto install tinytex
+
+      - name: Render book
+        run: |
+          quarto render book/
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.AUTH_GITHUB_TOKEN }}
+          publish_dir: book/_book
+          publish_branch: gh-pages
