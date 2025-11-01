@@ -1,0 +1,56 @@
+name: Create Release with PDF
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tinytex: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install uv and sync Python dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Install TinyTeX
+        run: |
+          quarto install tinytex
+
+      - name: Install LaTeX packages for Portuguese
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
+
+      - name: Render book to PDF
+        run: |
+          quarto render book/ --to pdf
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: book/_book/Dominando-Agentes-de-IA.pdf
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
