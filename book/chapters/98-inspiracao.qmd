@@ -1,0 +1,18 @@
+# Livros e outros conteúdos que me inspiraram a escrever sobre Agentes de IA
+
+Ao longo da minha jornada para compreender e dominar o universo dos agentes de IA, diversos livros e artigos se destacaram como fontes de conhecimento e inspiração. Estes textos não apenas forneceram fundamentos teóricos sólidos, mas também ofereceram insights práticos que moldaram minha abordagem ao desenvolvimento de agentes inteligentes. Abaixo, compartilho alguns dos livros e conteúdos que mais influenciaram meu entendimento sobre o tema:
+
+- [Hands-On Large Language Models: Language Understanding and Generation](https://amzn.to/4oglMyh)
+- [Build a Large Language Model (From Scratch)](https://amzn.to/48Xq3C5)
+- [LLM Engineer's Handbook: Master the art of engineering large language models from concept to production](https://amzn.to/3WyzaC0)
+- [Designing Large Language Model Applications: A Holistic Approach to LLMs](https://amzn.to/4qDXa4c)
+- [Prompt Engineering for LLMs: The Art and Science of Building Large Language Model-Based Applications](https://amzn.to/3LaSlzn)
+- [Ultimate Agentic AI with AutoGen for Enterprise Automation: Design, Build, And Deploy Enterprise-Grade AI Agents Using LLMs and AutoGen To Power Enterprise Automation](https://amzn.to/47m7tSY)
+- [LLMs in Production: From Language Models to Successful Products](https://amzn.to/4qDQXFw)
+- [Building Applications with AI Agents: Designing and Implementing Multi-Agent Systems](https://amzn.to/4qV4kl1)
+- [Generative AI with LangChain: Build production-ready LLM applications and advanced agents using Python, LangChain, and LangGraph](https://amzn.to/3Wvhxmv)
+- [AI Agents in Action](https://amzn.to/47hJtAu)
+- [Learning LangChain: Building AI and LLM Applications with LangChain and LangGraph](https://amzn.to/3JGhdhR)
+- [Building LLM Powered Applications: Create intelligent apps and agents with large language models](https://amzn.to/47XDmR5)
+- [Ultimate Generative AI Solutions on Google Cloud: Practical Strategies for Building and Scaling Generative AI Solutions with Google Cloud Tools, Langchain, RAG, and LLMOps](https://amzn.to/3Lj4j9Y)
+- [LLMOps: Managing Large Language Models in Production](https://amzn.to/4olfL3D)

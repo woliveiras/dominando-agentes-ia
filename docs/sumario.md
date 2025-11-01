@@ -32,7 +32,7 @@
   - Tomada de decisão
   - Execução de ações
   - Feedback loop
-- **Panorama do Livro: O que você vai aprender**
+
 
 ---
 
