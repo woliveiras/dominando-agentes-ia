@@ -1,0 +1,36 @@
+# Capítulo 4: Embeddings e Representação Semântica {.unnumbered}
+
+## Fundamentos de embeddings
+
+- Representação densa de dados
+- Embeddings pré-treinados vs. treinados do zero
+- Transferência de aprendizado em embeddings
+
+## Modelos de embedding e fine-tuning
+
+- Modelos populares (e.g., OpenAI, Sentence Transformers)
+- Técnicas de fine-tuning para domínios específicos
+
+## Similarity measures e semantic search
+
+- Métricas de similaridade (cosseno, Euclidiana, etc.)
+- Implementação de buscas semânticas com embeddings
+
+## Técnicas de chunking inteligente
+
+- Divisão de texto em partes menores
+- Manutenção de contexto entre chunks
+- Estratégias de sobreposição e agrupamento
+
+## Vector databases na prática
+
+- Armazenamento e recuperação de embeddings
+- Indexação eficiente para busca semântica
+- Casos de uso e ferramentas populares
+
+## Aplicações avançadas de embeddings
+
+- Geração de texto e chatbots
+- Análise de sentimentos e emoções
+- Recomendação de conteúdo
+- Detecção de plágio e similaridade textual

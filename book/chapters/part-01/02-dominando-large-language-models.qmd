@@ -1,0 +1,9 @@
+# Capítulo 2: Dominando Large Language Models {.unnumbered}
+
+## Configuração de parâmetros de geração
+
+## Estratégias de sampling e geração de texto
+
+## Context window e gerenciamento de memória
+
+## Otimização de custo e latência

@@ -1,0 +1,57 @@
+# Capítulo 6: Tools e Function Calling {.unnumbered}
+
+## Fundamentos de Tools
+  
+  - O que são tools e por que são essenciais
+  - Anatomia de uma tool definition
+  - Diferença entre tools e plugins
+  - Exemplos de uso de tools em agentes inteligentes
+
+## Design de Tools Efetivas
+
+  - Schemas e validação de ferramentas
+  - Naming conventions e descrições claras
+  - Parâmetros obrigatórios vs. opcionais
+  - Type safety e validation
+
+## Exemplos de Tools Específicas
+
+  - **Web Search Tools**
+    - Integração com APIs de busca
+    - Parsing e estruturação de resultados
+    - Rate limiting e caching
+  - **Database Access Tools**
+    - Query generation segura (SQL injection prevention)
+    - Read-only vs. write operations
+    - Transaction management
+  - **API Integration Tools**
+    - REST, GraphQL, gRPC
+    - Authentication e credentials management
+    - Retry strategies
+
+## Tool Execution e Error Handling
+
+  - **Patterns de Error Handling Robustos**
+    - Graceful degradation
+    - Fallback strategies
+    - Error classification (transient vs. permanent)
+    - Retry with exponential backoff
+    - Circuit breaker pattern
+  - Logging e debugging de tool calls
+  - Timeout management
+  - Partial results handling
+
+## Tool Chaining e Composition
+
+  - Sequential tool execution
+  - Parallel tool execution
+  - Conditional tool chains
+  - Tool dependencies e orchestration
+  - Compondo fluxos de trabalho complexos a partir de ferramentas simples
+
+## Melhores Práticas de Tool Orchestration
+
+  - Estratégias de seleção de ferramentas
+  - Passagem de contexto entre ferramentas
+  - Gerenciamento de estado
+  - Otimização de desempenho

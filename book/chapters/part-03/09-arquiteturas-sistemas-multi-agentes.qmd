@@ -1,0 +1,8 @@
+# Capítulo 9: Arquiteturas de Sistemas Multi-Agentes
+
+- Design patterns para sistemas multi-LLM
+- Cascade architectures e routing
+- Task-specialized agents
+- Hierarchical agent systems
+- Hybrid approaches (embeddings + LLMs + symbolic AI)
+- Trade-offs de custo, latência e performance

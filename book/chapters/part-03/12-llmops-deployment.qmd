@@ -1,0 +1,8 @@
+#### Capítulo 12: LLMOps e Deploy em Produção {.unnumbered}
+
+- CI/CD para aplicações com LLMs
+- Monitoring e observability
+- Logging de prompts e respostas
+- Gerenciamento de custos
+- A/B testing e evaluation metrics
+- Incident response e rollback strategies

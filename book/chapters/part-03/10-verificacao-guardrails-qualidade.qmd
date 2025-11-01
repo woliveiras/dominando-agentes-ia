@@ -1,0 +1,7 @@
+#### Capítulo 10: Verificação, Guardrails e Qualidade {.unnumbered}
+
+- Safety guardrails (input/output validation)
+- Verification modules e self-correction
+- Fact-checking e hallucination mitigation
+- Human-in-the-loop patterns
+- Quality assurance em produção

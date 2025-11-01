@@ -1,0 +1,51 @@
+# Capítulo 5: Retrieval-Augmented Generation (RAG) {.unnumbered}
+
+## Por que RAG é essencial para agentes
+
+- Limitações de contexto dos LLMs
+- Atualização de conhecimento em tempo real
+- Melhoria da precisão e relevância das respostas
+
+## Arquitetura de pipeline RAG completo
+
+- Componentes principais: Retriever, Reader, Reranker
+- Fluxo de dados e integração entre componentes
+- Técnicas de orquestração e coordenação
+
+## Estratégias de retrieval (híbrido, reranking, GraphRAG)
+
+- Métodos de recuperação: BM25, Dense Retrieval, Hybrid
+- Reranking para melhorar a relevância
+- GraphRAG e uso de grafos de conhecimento
+- Recuperação baseada em contexto
+
+## Query rewriting e optimization
+
+- Técnicas de reformulação de consultas
+- Otimização para melhorar a recuperação
+- Ferramentas e bibliotecas para query rewriting
+
+## RAG vs. Long Context vs. Fine-tuning
+
+- Comparação de abordagens para lidar com limitações de contexto
+- Vantagens e desvantagens de cada método
+- Casos de uso ideais para RAG, Long Context e Fine-tuning
+
+## Casos de uso avançados de RAG
+
+- Aplicações em atendimento ao cliente
+- Sistemas de recomendação
+- Geração de conteúdo personalizado
+- Análise de documentos e pesquisa acadêmica
+
+## Ferramentas e frameworks para implementar RAG
+
+- Overview de ferramentas populares (Haystack, LangChain, LlamaIndex)
+- Exemplos práticos de implementação
+- Melhores práticas e dicas para desenvolvimento
+
+## Desafios e considerações éticas em RAG
+
+- Viés e precisão das fontes de dados
+- Privacidade e segurança da informação
+- Transparência e explicabilidade dos sistemas RAG

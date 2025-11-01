@@ -1,0 +1,52 @@
+#### Capítulo 7: Workflows e Orquestração de Agentes {.unnumbered}
+
+## Task Decomposition e Planning
+
+  - Quebrando problemas complexos
+  - Planejamento hierárquico
+  - Adaptive planning
+  - Backtracking e replanning
+
+## Agent Loop e Reasoning Patterns
+
+  - O ciclo observe-think-act
+  - Agent loop system prompts
+  - Gerenciando o estado através de iterações
+
+## ReAct em Profundidade
+
+  - Implementação completa do padrão ReAct
+  - Interleaving reasoning e acting
+  - Tool selection e execution
+  - Error recovery e replanning
+
+## Técnicas Avançadas de Raciocínio
+
+  - **Tree-of-Thought (ToT)**
+    - Exploração de múltiplos caminhos de raciocínio
+    - Search strategies (BFS, DFS, beam search)
+    - State evaluation e pruning
+    - Trade-offs de custo computacional
+  - **Graph-of-Thought**
+  - **Program-of-Thought (PoT)**
+    - Gerando código para raciocínio
+    - Execução segura de código
+  - **Self-Refine e Reflexion**
+    - Crítica e melhoria iterativa
+    - Learning from mistakes
+    - Meta-cognição
+
+## Stateful Agents e Memory Management
+
+  - Short-term vs. long-term memory
+  - Memory stores e retrieval
+  - Conversational context management
+  - Técnicas de summarization e compression
+  - Memory augmentation techniques
+
+## Frameworks de Orquestração
+
+  - LangGraph, CrewAI, AutoGen
+  - Prós, contras e quando usar cada um
+  - Building your own orchestration layer
+  - Integração com ferramentas e APIs externas

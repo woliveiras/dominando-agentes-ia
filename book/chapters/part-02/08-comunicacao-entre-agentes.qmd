@@ -1,0 +1,42 @@
+#### Capítulo 8: Comunicação Entre Agentes {.unnumbered}
+
+- **Padrões de Comunicação Multi-Agente**
+  - Message passing fundamentals
+  - Synchronous vs. asynchronous communication
+  - Broadcast, unicast, multicast
+- **Agent-to-Agent (A2A) Protocols**
+  - Protocol design principles
+  - Message formats e serialization
+  - Handshaking e session management
+- **Model Context Protocol (MCP)**
+  - Arquitetura do MCP
+  - Implementação prática
+  - Use cases e benefícios
+- **Coordination Patterns**
+  - Request-response patterns
+  - Pub-sub patterns
+  - Event-driven architectures
+- **Delegation e Role Assignment**
+  - Task delegation strategies
+  - Role-based agent organization
+  - Dynamic role assignment
+- **Conflict Resolution Entre Agentes**
+  - Identifying conflicts
+  - Conflict types (resource, goal, priority)
+  - Resolution strategies
+    - Voting mechanisms
+    - Priority-based resolution
+    - Mediator patterns
+    - Negotiation protocols
+- **Consensus Mechanisms**
+  - Distributed consensus basics
+  - Majority voting
+  - Weighted voting
+  - Byzantine fault tolerance considerations
+  - Practical consensus for agent systems
+- **Load Balancing Entre Agentes**
+  - Work distribution strategies
+  - Round-robin vs. weighted distribution
+  - Dynamic load balancing
+  - Queue-based task distribution
+  - Monitoring agent capacity e health

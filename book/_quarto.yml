@@ -9,6 +9,25 @@ book:
     - index.qmd
     - chapters/00-visao-geral.qmd
     - chapters/01-intro.qmd
+    # - part: "Parte I: Fundamentos e Componentes Base"
+    #   chapters:
+    #     - chapters/part-01/01-foundation-models.qmd
+    #     - chapters/part-01/02-dominando-large-language-models.qmd
+    #     - chapters/part-01/03-fundamentos-prompting.qmd
+    #     - chapters/part-01/04-embeddings.qmd
+    # - part: "Parte II: Construindo Sistemas de Agentes"
+    #   chapters:
+    #     - chapters/part-02/05-retrieval-augmented-generation.qmd
+    #     - chapters/part-02/06-tools-function-calling.qmd
+    #     - chapters/part-02/07-workflows-orquestracao-agentes.qmd
+    #     - chapters/part-02/08-comunicacao-entre-agentes.qmd
+    # - part: "Parte III: Arquitetura e Produção"
+    #   chapters:
+    #     - chapters/part-03/09-arquiteturas-sistemas-multi-agentes.qmd
+    #     - chapters/part-03/10-verificacao-guardrails-qualidade.qmd
+    #     - chapters/part-03/11-seguranca-sistemas-agentes-ia.qmd
+    #     - chapters/part-03/12-llmops-deployment.qmd
+    #     - chapters/part-03/13-avaliacao-iteracao-agentes.qmd
     - chapters/99-references.qmd
 
 bibliography: references.bib

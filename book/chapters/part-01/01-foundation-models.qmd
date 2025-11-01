@@ -1,0 +1,11 @@
+# Capítulo 1: Foundation Models: A Base dos Agentes Inteligentes {.unnumbered}
+
+## Arquitetura de modelos Transformer
+
+## Como os LLMs aprendem e representam conhecimento
+
+## Treinamento e fine-tuning de foundation models
+
+## Seleção do modelo certo para cada tarefa 
+
+## Limitações e desafios dos foundation models

@@ -1,0 +1,8 @@
+#### Capítulo 11: Segurança em Sistemas de AI Agents {.unnumbered}
+
+- Threat model para aplicações com LLMs
+- Prompt injection e adversarial attacks
+- Proteção de dados sensíveis (PII, secrets)
+- Guardrails comerciais vs. open source
+- Zero trust architecture para agentes
+- Supply chain security (ML-BOMs, model cards)

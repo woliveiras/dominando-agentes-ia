@@ -1,0 +1,7 @@
+# Capítulo 13: Avaliação e Iteração de Agentes {.unnumbered}
+
+- Métricas de sucesso para agentes
+- Offline vs. online evaluation
+- Building test suites e benchmarks
+- Red teaming para agentes
+- Continuous improvement loops

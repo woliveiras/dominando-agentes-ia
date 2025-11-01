@@ -1,0 +1,30 @@
+# Capítulo 3: Fundamentos de Prompting e Raciocínio {.unnumbered}
+
+## Prompt Engineering Essencial
+
+  - Anatomia de um bom prompt
+  - System prompts, user prompts e assistant responses
+  - Técnicas de estruturação (markdown, XML, JSON)
+  - Uso de templates e variáveis
+
+## In-Context Learning (ICL)
+
+  - Zero-shot: quando o modelo já sabe
+  - Few-shot: aprendendo com exemplos
+  - Many-shot: maximizando o context window
+  - Seleção e ordenação estratégica de exemplos
+  - Dynamic example selection
+
+## Chain-of-Thought (CoT) Prompting
+
+  - Fundamentos do raciocínio passo-a-passo
+  - Zero-shot CoT: "Let's think step by step"
+  - Few-shot CoT: ensinando com exemplos de raciocínio
+  - Self-consistency: múltiplos caminhos para uma resposta
+  - Quando CoT funciona melhor (e quando não funciona)
+
+## Técnicas Fundamentais de Reasoning
+
+  - ReAct: Reasoning + Acting (introdução básica)
+  - Self-reflection patterns
+  - Analogical prompting

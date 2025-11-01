@@ -33,7 +33,6 @@
   - Execução de ações
   - Feedback loop
 
-
 ---
 
 ### **PARTE I: Fundamentos e Componentes Base**
@@ -84,6 +83,7 @@
 ### **PARTE II: Construindo Sistemas de Agentes**
 
 #### Capítulo 5: Retrieval-Augmented Generation (RAG)
+
 - Por que RAG é essencial para agentes
 - Arquitetura de pipeline RAG completo
 - Estratégias de retrieval (híbrido, reranking, GraphRAG)
@@ -91,6 +91,7 @@
 - RAG vs. Long Context vs. Fine-tuning
 
 #### Capítulo 6: Tools e Function Calling
+
 - **Fundamentos de Tools**
   - O que são tools e por que são essenciais
   - Anatomia de uma tool definition
@@ -139,6 +140,7 @@
   - Performance optimization
 
 #### Capítulo 7: Workflows e Orquestração de Agentes
+
 - **Task Decomposition e Planning**
   - Quebrando problemas complexos
   - Planejamento hierárquico
@@ -175,6 +177,7 @@
   - Building your own orchestration layer
 
 #### Capítulo 8: Comunicação Entre Agentes
+
 - **Padrões de Comunicação Multi-Agente**
   - Message passing fundamentals
   - Synchronous vs. asynchronous communication
@@ -263,22 +266,26 @@
 ### **Apêndices**
 
 #### Apêndice A: Guia de Ferramentas e Frameworks
+
 - Overview de frameworks populares
 - Comparação de vector databases
 - LLM providers e suas características
 - Tools de desenvolvimento recomendadas
 
 #### Apêndice B: Datasets e Recursos
+
 - Datasets para fine-tuning
 - Benchmarks importantes
 - Comunidades e recursos de aprendizado
 
 #### Apêndice C: Exercícios Práticos Avançados
+
 - Projetos completos end-to-end
 - Desafios de implementação
 - Soluções e discussões
 
 #### Apêndice D: Glossário de Termos Técnicos
+
 - Definições de termos-chave
 - Siglas e abreviações comuns
 - Referências cruzadas para capítulos relevantes
