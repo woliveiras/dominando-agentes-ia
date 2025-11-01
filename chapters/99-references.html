@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Referências – Dominando Agentes de IA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/01-intro.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-0dd2bd5de344125cf763a379ddc3eb04.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/99-references.html">Referências</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Dominando Agentes de IA</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/00-visao-geral.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visão Geral do Livro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introdução: O Universo dos AI Agents</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/99-references.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar zindex-bottom">
+        
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Referências</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list">
+<div id="ref-ada2024chatbot" class="csl-entry" role="listitem">
+Ada. 2024. <span>“Chatbot Vs. AI Agent: What’s the Difference?”</span>
+2024. <a href="https://www.ada.cx/blog/chatbot-vs-ai-agent-what-s-the-difference-and-why-does-it-matter/">https://www.ada.cx/blog/chatbot-vs-ai-agent-what-s-the-difference-and-why-does-it-matter/</a>.
+</div>
+<div id="ref-aflcio2024labor" class="csl-entry" role="listitem">
+AFL-CIO. 2024. <span>“AI and Labor.”</span> 2024. <a href="https://aflcio.org/issues/future-work/ai">https://aflcio.org/issues/future-work/ai</a>.
+</div>
+<div id="ref-aiprm2024statistics" class="csl-entry" role="listitem">
+AIPRM. 2024. <span>“50+ AI Replacing Jobs Statistics 2024.”</span> 2024.
+<a href="https://www.aiprm.com/ai-replacing-jobs-statistics/">https://www.aiprm.com/ai-replacing-jobs-statistics/</a>.
+</div>
+<div id="ref-allaboutai2024anatomy" class="csl-entry" role="listitem">
+All About AI. 2024a. <span>“The Anatomy of an AI Agent: Perception,
+Cognition, and Action.”</span> 2024. <a href="https://www.allaboutai.com/ai-agents/anatomy/">https://www.allaboutai.com/ai-agents/anatomy/</a>.
+</div>
+<div id="ref-allaboutai2024bdi" class="csl-entry" role="listitem">
+———. 2024b. <span>“What Is the Belief Desire Intention Software
+Model?”</span> 2024. <a href="https://www.allaboutai.com/ai-glossary/belief-desire-intention-software-model/">https://www.allaboutai.com/ai-glossary/belief-desire-intention-software-model/</a>.
+</div>
+<div id="ref-allaboutai2024pac" class="csl-entry" role="listitem">
+———. 2024c. <span>“What Is the Perception-Action Cycle? The AI Mechanism
+You Didn’t Know.”</span> 2024. <a href="https://www.allaboutai.com/ai-glossary/perception-action-cycle/">https://www.allaboutai.com/ai-glossary/perception-action-cycle/</a>.
+</div>
+<div id="ref-aba2024mitigating" class="csl-entry" role="listitem">
+American Bar Association. 2024. <span>“Mitigating Algorithmic Bias:
+Strategies for Addressing Discrimination in Data.”</span> 2024. <a href="https://www.americanbar.org/groups/science_technology/resources/scitech-lawyer/2024-summer/mitigating-algorithmic-bias-strategies-addressing-discrimination-data/">https://www.americanbar.org/groups/science_technology/resources/scitech-lawyer/2024-summer/mitigating-algorithmic-bias-strategies-addressing-discrimination-data/</a>.
+</div>
+<div id="ref-amplework2024loops" class="csl-entry" role="listitem">
+Amplework. 2024a. <span>“Agentic AI Loops: How Perception, Reasoning,
+Action &amp; Feedback Drive Self-Learning AI.”</span> 2024. <a href="https://www.amplework.com/blog/agentic-ai-loops-perception-reasoning-action-feedback/">https://www.amplework.com/blog/agentic-ai-loops-perception-reasoning-action-feedback/</a>.
+</div>
+<div id="ref-amplework2024agentic" class="csl-entry" role="listitem">
+———. 2024b. <span>“Build Feedback Loops in Agentic AI for Digital
+Growth.”</span> 2024. <a href="https://www.amplework.com/blog/build-feedback-loops-agentic-ai-continuous-transformation/">https://www.amplework.com/blog/build-feedback-loops-agentic-ai-continuous-transformation/</a>.
+</div>
+<div id="ref-analyticsvidhya2022peas" class="csl-entry" role="listitem">
+Analytics Vidhya. 2022. <span>“Simplifying AI Models with the PEAS
+Representation System.”</span> 2022. <a href="https://www.analyticsvidhya.com/blog/2022/08/simplifying-ai-models-with-the-peas-representation-system/">https://www.analyticsvidhya.com/blog/2022/08/simplifying-ai-models-with-the-peas-representation-system/</a>.
+</div>
+<div id="ref-analyticsvidhya2024autogpt" class="csl-entry" role="listitem">
+———. 2024. <span>“A Comprehensive Guide on Building AI Agents with
+AutoGPT.”</span> 2024. <a href="https://www.analyticsvidhya.com/blog/2024/07/ai-agents-with-autogpt/">https://www.analyticsvidhya.com/blog/2024/07/ai-agents-with-autogpt/</a>.
+</div>
+<div id="ref-arxiv2024multiagent" class="csl-entry" role="listitem">
+Authors, Multiple. 2024a. <span>“A Multi-AI Agent System for Autonomous
+Optimization of Agentic AI Solutions via Iterative Refinement and
+LLM-Driven Feedback Loops.”</span> <em>arXiv Preprint</em>. <a href="https://arxiv.org/html/2412.17149v1">https://arxiv.org/html/2412.17149v1</a>.
+</div>
+<div id="ref-arxiv2024taxonomy" class="csl-entry" role="listitem">
+———. 2024b. <span>“AI Agents Vs. Agentic AI: A Conceptual Taxonomy,
+Applications and Challenges.”</span> <em>arXiv Preprint</em>. <a href="https://arxiv.org/abs/2505.10468">https://arxiv.org/abs/2505.10468</a>.
+</div>
+<div id="ref-yalejreg2024belaboring" class="csl-entry" role="listitem">
+———. 2024c. <span>“Belaboring the Algorithm: Artificial Intelligence and
+Labor Unions.”</span> Yale Journal on Regulation. 2024. <a href="https://www.yalejreg.com/bulletin/belaboring-the-algorithm-artificial-intelligence-and-labor-unions/">https://www.yalejreg.com/bulletin/belaboring-the-algorithm-artificial-intelligence-and-labor-unions/</a>.
+</div>
+<div id="ref-frontiersin2024bias" class="csl-entry" role="listitem">
+———. 2024d. <span>“Navigating Algorithm Bias in AI: Ensuring Fairness
+and Trust in Africa.”</span> Frontiers in Research Metrics and
+Analytics. 2024. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11540688/">https://pmc.ncbi.nlm.nih.gov/articles/PMC11540688/</a>.
+</div>
+<div id="ref-springer2024policy" class="csl-entry" role="listitem">
+———. 2024e. <span>“Policy Advice and Best Practices on Bias and Fairness
+in AI.”</span> Ethics and Information Technology. 2024. <a href="https://link.springer.com/article/10.1007/s10676-024-09746-w">https://link.springer.com/article/10.1007/s10676-024-09746-w</a>.
+</div>
+<div id="ref-frontiers2024transparency" class="csl-entry" role="listitem">
+———. 2024f. <span>“Transparency and Accountability in AI Systems:
+Safeguarding Wellbeing in the Age of Algorithmic
+Decision-Making.”</span> Frontiers in Human Dynamics. 2024. <a href="https://www.frontiersin.org/journals/human-dynamics/articles/10.3389/fhumd.2024.1421273/full">https://www.frontiersin.org/journals/human-dynamics/articles/10.3389/fhumd.2024.1421273/full</a>.
+</div>
+<div id="ref-preprints2025bias" class="csl-entry" role="listitem">
+———. 2025. <span>“Bias in AI Models: Origins, Impact, and Mitigation
+Strategies.”</span> 2025. <a href="https://www.preprints.org/manuscript/202503.1629">https://www.preprints.org/manuscript/202503.1629</a>.
+</div>
+<div id="ref-getbasalt2024feedback" class="csl-entry" role="listitem">
+Basalt AI. 2024. <span>“Feedback Loops: A Cornerstone of Continuous
+Improvement for AI Agents.”</span> 2024. <a href="https://www.getbasalt.ai/post/feedback-loops-continuous-improvement-ai-agents">https://www.getbasalt.ai/post/feedback-loops-continuous-improvement-ai-agents</a>.
+</div>
+<div id="ref-bludigital2024feedback" class="csl-entry" role="listitem">
+Blu Digital AI. 2024. <span>“The AI Feedback Loop: Continuous Learning
+and Improvement in Organizational AI Systems.”</span> 2024. <a href="https://bludigital.ai/blog/2024/10/28/the-ai-feedback-loop-continuous-learning-and-improvement-in-organizational-ai-systems/">https://bludigital.ai/blog/2024/10/28/the-ai-feedback-loop-continuous-learning-and-improvement-in-organizational-ai-systems/</a>.
+</div>
+<div id="ref-cap2024unions" class="csl-entry" role="listitem">
+Center for American Progress. 2024. <span>“Unions Give Workers a Voice
+over How AI Affects Their Jobs.”</span> 2024. <a href="https://www.americanprogress.org/article/unions-give-workers-a-voice-over-how-ai-affects-their-jobs/">https://www.americanprogress.org/article/unions-give-workers-a-voice-over-how-ai-affects-their-jobs/</a>.
+</div>
+<div id="ref-certlibrary2024agents" class="csl-entry" role="listitem">
+CertLibrary. 2024. <span>“A Comprehensive Guide to AI Agents.”</span>
+2024. <a href="https://www.certlibrary.com/blog/a-comprehensive-guide-to-ai-agents/">https://www.certlibrary.com/blog/a-comprehensive-guide-to-ai-agents/</a>.
+</div>
+<div id="ref-medium2024nerdfortech" class="csl-entry" role="listitem">
+Clark, Matthew. 2024. <span>“Intelligent Agents.”</span> Medium - Nerd
+For Tech. 2024. <a href="https://medium.com/nerd-for-tech/intelligent-agents-cfec4db49be6">https://medium.com/nerd-for-tech/intelligent-agents-cfec4db49be6</a>.
+</div>
+<div id="ref-cnn2025environment" class="csl-entry" role="listitem">
+CNN. 2025. <span>“How Your AI Prompts Could Harm the
+Environment.”</span> 2025. <a href="https://www.cnn.com/2025/06/22/climate/ai-prompt-carbon-emissions-environment-wellness">https://www.cnn.com/2025/06/22/climate/ai-prompt-carbon-emissions-environment-wellness</a>.
+</div>
+<div id="ref-devrev2024agent" class="csl-entry" role="listitem">
+DevRev. 2024. <span>“AI Agent Vs Chatbot: What’s the Key
+Differences.”</span> 2024. <a href="https://devrev.ai/blog/ai-agent-vs-chatbot">https://devrev.ai/blog/ai-agent-vs-chatbot</a>.
+</div>
+<div id="ref-digitalocean2024chatbot" class="csl-entry" role="listitem">
+DigitalOcean. 2024. <span>“AI Agent Vs AI Chatbot: Key Differences
+Explained.”</span> 2024. <a href="https://www.digitalocean.com/resources/articles/ai-agent-vs-ai-chatbot">https://www.digitalocean.com/resources/articles/ai-agent-vs-ai-chatbot</a>.
+</div>
+<div id="ref-drake2024rational" class="csl-entry" role="listitem">
+Drake, Peter. 2024. <span>“Rational Agents.”</span> Lewis &amp; Clark
+College. 2024. <a href="https://sites.google.com/a/lclark.edu/drake/courses/drakepedia/rational-agents">https://sites.google.com/a/lclark.edu/drake/courses/drakepedia/rational-agents</a>.
+</div>
+<div id="ref-eastgate2024medium" class="csl-entry" role="listitem">
+Eastgate Software. 2024. <span>“AI Agent Vs. Chatbot: Key Differences
+&amp; Best Use Cases Explained.”</span> Medium. 2024. <a href="https://medium.com/@eastgate/ai-agent-vs-chatbot-key-differences-best-use-cases-explained-c2c2d314c73b">https://medium.com/@eastgate/ai-agent-vs-chatbot-key-differences-best-use-cases-explained-c2c2d314c73b</a>.
+</div>
+<div id="ref-ehsan2024privacy" class="csl-entry" role="listitem">
+Ehsan, Muhammad. 2024. <span>“The Privacy and Security Risks of
+Autonomous AI Agents.”</span> Medium. 2024. <a href="https://muhammad--ehsan.medium.com/the-privacy-and-security-risks-of-autonomous-ai-agents-acaa36c5a985">https://muhammad--ehsan.medium.com/the-privacy-and-security-risks-of-autonomous-ai-agents-acaa36c5a985</a>.
+</div>
+<div id="ref-ema2024history" class="csl-entry" role="listitem">
+EMA. 2024. <span>“The Evolution and History of AI Agents.”</span> 2024.
+<a href="https://www.ema.co/additional-blogs/addition-blogs/history-evolution-ai-agents">https://www.ema.co/additional-blogs/addition-blogs/history-evolution-ai-agents</a>.
+</div>
+<div id="ref-etuc2024workers" class="csl-entry" role="listitem">
+ETUC. 2024. <span>“Artificial Intelligence for Workers, Not Just for
+Profit: Ensuring Quality Jobs in the Digital Age.”</span> 2024. <a href="https://etuc.org/en/document/artificial-intelligence-workers-not-just-profit-ensuring-quality-jobs-digital-age">https://etuc.org/en/document/artificial-intelligence-workers-not-just-profit-ensuring-quality-jobs-digital-age</a>.
+</div>
+<div id="ref-mdpi2024fairness" class="csl-entry" role="listitem">
+Ferrara, Emilio. 2024. <span>“Fairness and Bias in Artificial
+Intelligence: A Brief Survey of Sources, Impacts, and Mitigation
+Strategies.”</span> Journal of Data and Information Quality. 2024. <a href="https://www.mdpi.com/2413-4155/6/1/3">https://www.mdpi.com/2413-4155/6/1/3</a>.
+</div>
+<div id="ref-fpf2024agents" class="csl-entry" role="listitem">
+Future of Privacy Forum. 2024. <span>“Minding Mindful Machines: AI
+Agents and Data Protection Considerations.”</span> 2024. <a href="https://fpf.org/blog/minding-mindful-machines-ai-agents-and-data-protection-considerations/">https://fpf.org/blog/minding-mindful-machines-ai-agents-and-data-protection-considerations/</a>.
+</div>
+<div id="ref-gdprlocal2024privacy" class="csl-entry" role="listitem">
+GDPR Local. 2024. <span>“AI Privacy Risks and Data Protection
+Challenges.”</span> 2024. <a href="https://gdprlocal.com/ai-privacy-risks/">https://gdprlocal.com/ai-privacy-risks/</a>.
+</div>
+<div id="ref-geeksforgeeks2024peas" class="csl-entry" role="listitem">
+GeeksforGeeks. 2024. <span>“Understanding PEAS in Artificial
+Intelligence.”</span> 2024. <a href="https://www.geeksforgeeks.org/artificial-intelligence/understanding-peas-in-artificial-intelligence/">https://www.geeksforgeeks.org/artificial-intelligence/understanding-peas-in-artificial-intelligence/</a>.
+</div>
+<div id="ref-medium2024agents" class="csl-entry" role="listitem">
+Geller, Anna. 2024. <span>“AI Tools and Autonomous Agents: Auto-GPT,
+BabyAGI, LangChain, AgentGPT, HeyGPT, and More.”</span> Medium. 2024. <a href="https://annageller.medium.com/ai-tools-and-autonomous-agents-auto-gpt-babyagi-langchain-agentgpt-heygpt-and-more-61c11e0b8f19">https://annageller.medium.com/ai-tools-and-autonomous-agents-auto-gpt-babyagi-langchain-agentgpt-heygpt-and-more-61c11e0b8f19</a>.
+</div>
+<div id="ref-goldmansachs2024workforce" class="csl-entry" role="listitem">
+Goldman Sachs. 2024. <span>“How Will AI Affect the Global
+Workforce?”</span> 2024. <a href="https://www.goldmansachs.com/insights/articles/how-will-ai-affect-the-global-workforce">https://www.goldmansachs.com/insights/articles/how-will-ai-affect-the-global-workforce</a>.
+</div>
+<div id="ref-harvardclje2024regulating" class="csl-entry" role="listitem">
+Harvard Center for Labor and a Just Economy. 2024. <span>“Regulating AI
+in the Workplace.”</span> 2024. <a href="https://clje.law.harvard.edu/publication/building-worker-power-in-cities-states/regulating-ai-in-the-workplace/">https://clje.law.harvard.edu/publication/building-worker-power-in-cities-states/regulating-ai-in-the-workplace/</a>.
+</div>
+<div id="ref-helpshift2024conversational" class="csl-entry" role="listitem">
+Helpshift. 2024. <span>“Chatbot Vs AI Agent Vs Conversational AI:
+Difference.”</span> 2024. <a href="https://www.helpshift.com/blog/conversational-ai-vs-chatbots/">https://www.helpshift.com/blog/conversational-ai-vs-chatbots/</a>.
+</div>
+<div id="ref-ibm2024reasoning" class="csl-entry" role="listitem">
+IBM. 2024a. <span>“What Is Agentic Reasoning?”</span> 2024. <a href="https://www.ibm.com/think/topics/agentic-reasoning">https://www.ibm.com/think/topics/agentic-reasoning</a>.
+</div>
+<div id="ref-ibm2024perception" class="csl-entry" role="listitem">
+———. 2024b. <span>“What Is AI Agent Perception?”</span> 2024. <a href="https://www.ibm.com/think/topics/ai-agent-perception">https://www.ibm.com/think/topics/ai-agent-perception</a>.
+</div>
+<div id="ref-ibm2024planning" class="csl-entry" role="listitem">
+———. 2024c. <span>“What Is AI Agent Planning?”</span> 2024. <a href="https://www.ibm.com/think/topics/ai-agent-planning">https://www.ibm.com/think/topics/ai-agent-planning</a>.
+</div>
+<div id="ref-itcc2024hidden" class="csl-entry" role="listitem">
+IEEE Technology Climate Center. 2024. <span>“The Hidden Cost of AI:
+Unpacking Its Energy and Water Footprint.”</span> 2024. <a href="https://itcc.ieee.org/blog/the-hidden-cost-of-ai-unpacking-its-energy-and-water-footprint/">https://itcc.ieee.org/blog/the-hidden-cost-of-ai-unpacking-its-energy-and-water-footprint/</a>.
+</div>
+<div id="ref-kiteworks2024privacy" class="csl-entry" role="listitem">
+Kiteworks. 2024. <span>“AI Agents Are Advancing—but Enterprise Data
+Privacy and Security Still Lag.”</span> 2024. <a href="https://www.kiteworks.com/cybersecurity-risk-management/ai-agents-enterprise-data-privacy-security-balance/">https://www.kiteworks.com/cybersecurity-risk-management/ai-agents-enterprise-data-privacy-security-balance/</a>.
+</div>
+<div id="ref-wharton2024hidden" class="csl-entry" role="listitem">
+Knowledge at Wharton. 2024. <span>“The Hidden Cost of AI Energy
+Consumption.”</span> 2024. <a href="https://knowledge.wharton.upenn.edu/article/the-hidden-cost-of-ai-energy-consumption/">https://knowledge.wharton.upenn.edu/article/the-hidden-cost-of-ai-energy-consumption/</a>.
+</div>
+<div id="ref-arxiv2024agents" class="csl-entry" role="listitem">
+Krishnan, Naveen. 2024. <span>“AI Agents: Evolution, Architecture, and
+Real-World Applications.”</span> <em>arXiv Preprint</em>. <a href="https://arxiv.org/abs/2503.12687">https://arxiv.org/abs/2503.12687</a>.
+</div>
+<div id="ref-lablab2024autogpt" class="csl-entry" role="listitem">
+Lablab.ai. 2024. <span>“AutoGPT Tutorial: Building an AI Agent-Powered
+Research Assistant App.”</span> 2024. <a href="https://lablab.ai/t/autogpt-tutorial-building-ai-agent-powered-research-assistant-app">https://lablab.ai/t/autogpt-tutorial-building-ai-agent-powered-research-assistant-app</a>.
+</div>
+<div id="ref-livechatai2024chatbot" class="csl-entry" role="listitem">
+LiveChatAI. 2024. <span>“AI Agent Vs Chatbot: Evaluation, Differences,
+Use Cases.”</span> 2024. <a href="https://livechatai.com/blog/ai-agent-vs-chatbot">https://livechatai.com/blog/ai-agent-vs-chatbot</a>.
+</div>
+<div id="ref-lumenova2024transparency" class="csl-entry" role="listitem">
+Lumenova AI. 2024. <span>“AI Risk Management: Transparency &amp;
+Accountability.”</span> 2024. <a href="https://www.lumenova.ai/blog/ai-risk-management-importance-of-transparency-and-accountability/">https://www.lumenova.ai/blog/ai-risk-management-importance-of-transparency-and-accountability/</a>.
+</div>
+<div id="ref-marktechpost2025agents" class="csl-entry" role="listitem">
+MarkTechPost. 2025. <span>“The Definitive Guide to AI Agents:
+Architectures, Frameworks, and Real-World Applications (2025).”</span>
+2025. <a href="https://www.marktechpost.com/2025/07/19/the-definitive-guide-to-ai-agents-architectures-frameworks-and-real-world-applications-2025/">https://www.marktechpost.com/2025/07/19/the-definitive-guide-to-ai-agents-architectures-frameworks-and-real-world-applications-2025/</a>.
+</div>
+<div id="ref-mayerbrown2024transparency" class="csl-entry" role="listitem">
+Mayer Brown. 2024. <span>“Addressing Transparency &amp; Explainability
+When Using AI Under Global Standards.”</span> 2024. <a href="https://www.mayerbrown.com/-/media/files/perspectives-events/publications/2024/01/addressing-transparency-and-explainability-when-using-ai-under-global-standards.pdf">https://www.mayerbrown.com/-/media/files/perspectives-events/publications/2024/01/addressing-transparency-and-explainability-when-using-ai-under-global-standards.pdf</a>.
+</div>
+<div id="ref-metomic2024security" class="csl-entry" role="listitem">
+Metomic. 2024. <span>“Understanding AI Agents &amp; Security: What They
+Mean for Your Business and Data Security.”</span> 2024. <a href="https://www.metomic.io/resource-centre/understanding-ai-agents-data-security">https://www.metomic.io/resource-centre/understanding-ai-agents-data-security</a>.
+</div>
+<div id="ref-microcontroller2024sense" class="csl-entry" role="listitem">
+Microcontroller Tips. 2024. <span>“The Sense-Think-Act Model of
+Autonomous Vehicles.”</span> 2024. <a href="https://www.microcontrollertips.com/the-sense-think-act-model-of-autonomous-vehicles-faq/">https://www.microcontrollertips.com/the-sense-think-act-model-of-autonomous-vehicles-faq/</a>.
+</div>
+<div id="ref-mitnews2025environmental" class="csl-entry" role="listitem">
+MIT News. 2025. <span>“Explained: Generative AI’s Environmental
+Impact.”</span> 2025. <a href="https://news.mit.edu/2025/explained-generative-ai-environmental-impact-0117">https://news.mit.edu/2025/explained-generative-ai-environmental-impact-0117</a>.
+</div>
+<div id="ref-mitsloan2024energy" class="csl-entry" role="listitem">
+MIT Sloan. 2024. <span>“AI Has High Data Center Energy Costs — but There
+Are Solutions.”</span> 2024. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/ai-has-high-data-center-energy-costs-there-are-solutions">https://mitsloan.mit.edu/ideas-made-to-matter/ai-has-high-data-center-energy-costs-there-are-solutions</a>.
+</div>
+<div id="ref-mittr2025energy" class="csl-entry" role="listitem">
+MIT Technology Review. 2025. <span>“We Did the Math on AI’s Energy
+Footprint. Here’s the Story You Haven’t Heard.”</span> 2025. <a href="https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/">https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/</a>.
+</div>
+<div id="ref-morganlewis2024workplace" class="csl-entry" role="listitem">
+Morgan Lewis. 2024. <span>“AI in the Workplace: The New Legal Landscape
+Facing US Employers.”</span> 2024. <a href="https://www.morganlewis.com/pubs/2024/07/ai-in-the-workplace-the-new-legal-landscape-facing-us-employers">https://www.morganlewis.com/pubs/2024/07/ai-in-the-workplace-the-new-legal-landscape-facing-us-employers</a>.
+</div>
+<div id="ref-nu2024jobs" class="csl-entry" role="listitem">
+National University. 2024. <span>“59 AI Job Statistics: Future of u.s.
+Jobs.”</span> 2024. <a href="https://www.nu.edu/blog/ai-job-statistics/">https://www.nu.edu/blog/ai-job-statistics/</a>.
+</div>
+<div id="ref-nurix2024evolution" class="csl-entry" role="listitem">
+Nurix AI. 2024. <span>“Exploring the Evolution and Future of Autonomous
+AI Agents.”</span> 2024. <a href="https://www.nurix.ai/blogs/evolution-future-autonomous-ai-agents">https://www.nurix.ai/blogs/evolution-future-autonomous-ai-agents</a>.
+</div>
+<div id="ref-nvidia2024reasoning" class="csl-entry" role="listitem">
+NVIDIA. 2024. <span>“How Reasoning AI Agents Transform High-Stakes
+Decision Making.”</span> 2024. <a href="https://blogs.nvidia.com/blog/reasoning-ai-agents-decision-making/">https://blogs.nvidia.com/blog/reasoning-ai-agents-decision-making/</a>.
+</div>
+<div id="ref-oceg2024transparency" class="csl-entry" role="listitem">
+OCEG. 2024. <span>“What Does Transparency Really Mean in the Context of
+AI Governance?”</span> 2024. <a href="https://www.oceg.org/what-does-transparency-really-mean-in-the-context-of-ai-governance/">https://www.oceg.org/what-does-transparency-really-mean-in-the-context-of-ai-governance/</a>.
+</div>
+<div id="ref-p0stman2025guide" class="csl-entry" role="listitem">
+P0STMAN. 2025. <span>“AI Agent Vs Traditional Chatbot: Complete
+Comparison Guide (2025).”</span> 2025. <a href="https://www.p0stman.com/guides/ai-agent-vs-chatbot-comparison-guide-2025.html">https://www.p0stman.com/guides/ai-agent-vs-chatbot-comparison-guide-2025.html</a>.
+</div>
+<div id="ref-psu2024energy" class="csl-entry" role="listitem">
+Penn State Institute of Energy and the Environment. 2024. <span>“AI’s
+Energy Demand: Challenges and Solutions for a Sustainable
+Future.”</span> 2024. <a href="https://iee.psu.edu/news/blog/why-ai-uses-so-much-energy-and-what-we-can-do-about-it">https://iee.psu.edu/news/blog/why-ai-uses-so-much-energy-and-what-we-can-do-about-it</a>.
+</div>
+<div id="ref-pesto2024agents" class="csl-entry" role="listitem">
+Pesto Tech. 2024. <span>“The ABCs of AI Agents: What They Are and How
+They Work.”</span> 2024. <a href="https://www.pesto.tech/resources/the-abcs-of-ai-agents-what-they-are-and-how-they-work">https://www.pesto.tech/resources/the-abcs-of-ai-agents-what-they-are-and-how-they-work</a>.
+</div>
+<div id="ref-pickl2024peas" class="csl-entry" role="listitem">
+Pickl.AI. 2024. <span>“What Is PEAS in Artificial Intelligence
+(AI)?”</span> 2024. <a href="https://www.pickl.ai/blog/what-is-peas-in-artificial-intelligence-ai/">https://www.pickl.ai/blog/what-is-peas-in-artificial-intelligence-ai/</a>.
+</div>
+<div id="ref-professionalai2024types" class="csl-entry" role="listitem">
+ProfessionalAI.com. 2024. <span>“Artificial Intelligence Agents &amp;
+Its Types.”</span> 2024. <a href="https://www.professional-ai.com/ai-agents-types.html">https://www.professional-ai.com/ai-agents-types.html</a>.
+</div>
+<div id="ref-medium2024taxonomy" class="csl-entry" role="listitem">
+Raghuvanshi, Aman. 2024. <span>“Agentic AI #4 — Understanding the
+Different Types of AI Agents: Reactive, Planning, and More.”</span>
+Medium. 2024. <a href="https://medium.com/@iamanraghuvanshi/agentic-ai-4-understanding-the-different-types-of-ai-agents-reactive-planning-and-more-c7783cec7c69">https://medium.com/@iamanraghuvanshi/agentic-ai-4-understanding-the-different-types-of-ai-agents-reactive-planning-and-more-c7783cec7c69</a>.
+</div>
+<div id="ref-russellandnorvig1995" class="csl-entry" role="listitem">
+Russell, Stuart J., and Peter Norvig. 1995. <em>Artificial Intelligence:
+A Modern Approach</em>. 1st ed. Prentice Hall.
+</div>
+<div id="ref-russellandnorvig2003" class="csl-entry" role="listitem">
+———. 2003. <em>Artificial Intelligence: A Modern Approach</em>. 2nd ed.
+Prentice Hall.
+</div>
+<div id="ref-saiwa2024peas" class="csl-entry" role="listitem">
+Saiwa. 2024. <span>“PEAS in AI: The Core AI Features.”</span> 2024. <a href="https://saiwa.ai/blog/peas-in-ai/">https://saiwa.ai/blog/peas-in-ai/</a>.
+</div>
+<div id="ref-salesforce2024agent" class="csl-entry" role="listitem">
+Salesforce. 2024a. <span>“AI Agent Vs. Chatbot — What’s the
+Difference?”</span> 2024. <a href="https://www.salesforce.com/agentforce/ai-agent-vs-chatbot/">https://www.salesforce.com/agentforce/ai-agent-vs-chatbot/</a>.
+</div>
+<div id="ref-salesforce2024reasoning" class="csl-entry" role="listitem">
+———. 2024b. <span>“How an Advanced Reasoning Engine Is Powering the Next
+Generation of AI Agents.”</span> 2024. <a href="https://www.salesforce.com/news/stories/reasoning-engine-for-ai-agents/">https://www.salesforce.com/news/stories/reasoning-engine-for-ai-agents/</a>.
+</div>
+<div id="ref-scaler2024agents" class="csl-entry" role="listitem">
+Scaler Topics. 2024. <span>“Agents in Artificial Intelligence.”</span>
+2024. <a href="https://www.scaler.com/topics/artificial-intelligence-tutorial/agents-in-ai/">https://www.scaler.com/topics/artificial-intelligence-tutorial/agents-in-ai/</a>.
+</div>
+<div id="ref-simform2024agents" class="csl-entry" role="listitem">
+Simform. 2024. <span>“What Is an AI Agent? Characteristics, Advantages,
+Challenges, Applications.”</span> 2024. <a href="https://www.simform.com/blog/ai-agent/">https://www.simform.com/blog/ai-agent/</a>.
+</div>
+<div id="ref-medium2024react" class="csl-entry" role="listitem">
+Sinha, Akanksha. 2024. <span>“LLM Agents: ReAct, Toolformer, AutoGPT
+Family &amp; Autonomous Agent Frameworks.”</span> Medium. 2024. <a href="https://medium.com/@akankshasinha247/react-toolformer-autogpt-family-autonomous-agent-frameworks-2c4f780654b8">https://medium.com/@akankshasinha247/react-toolformer-autogpt-family-autonomous-agent-frameworks-2c4f780654b8</a>.
+</div>
+<div id="ref-smythos2024interaction" class="csl-entry" role="listitem">
+SmythOS. 2024a. <span>“Intelligent Agents and Environmental
+Interaction.”</span> 2024. <a href="https://smythos.com/developers/agent-integrations/intelligent-agents-and-environmental-interaction/">https://smythos.com/developers/agent-integrations/intelligent-agents-and-environmental-interaction/</a>.
+</div>
+<div id="ref-smythos2024decision" class="csl-entry" role="listitem">
+———. 2024b. <span>“Understanding AI Agent Decision-Making
+Processes.”</span> 2024. <a href="https://smythos.com/developers/agent-development/ai-agent-decision-making/">https://smythos.com/developers/agent-development/ai-agent-decision-making/</a>.
+</div>
+<div id="ref-startupsgurukul2024perception" class="csl-entry" role="listitem">
+Startupsgurukul. 2024. <span>“Perception, Reasoning, Action: The AI
+Trilogy for the Modern Era.”</span> 2024. <a href="https://startupsgurukul.com/blog/2024/01/07/perception-reasoning-action-the-ai-trilogy-for-the-modern-era/">https://startupsgurukul.com/blog/2024/01/07/perception-reasoning-action-the-ai-trilogy-for-the-modern-era/</a>.
+</div>
+<div id="ref-techpolicy2024transparency" class="csl-entry" role="listitem">
+TechPolicy.Press. 2024. <span>“AI Accountability Starts with Government
+Transparency.”</span> 2024. <a href="https://www.techpolicy.press/ai-accountability-starts-with-government-transparency/">https://www.techpolicy.press/ai-accountability-starts-with-government-transparency/</a>.
+</div>
+<div id="ref-yale2024evaluating" class="csl-entry" role="listitem">
+The Budget Lab at Yale. 2024. <span>“Evaluating the Impact of AI on the
+Labor Market: Current State of Affairs.”</span> 2024. <a href="https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs">https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs</a>.
+</div>
+<div id="ref-civilrights2024worker" class="csl-entry" role="listitem">
+The Leadership Conference on Civil and Human Rights. 2024. <span>“A
+Worker-Resistant Approach to AI Is Harming Our Workforce, Economy, and
+Civil Rights.”</span> 2024. <a href="https://civilrights.org/blog/a-worker-resistant-approach-to-ai-is-harming-our-workforce-economy-and-civil-rights/">https://civilrights.org/blog/a-worker-resistant-approach-to-ai-is-harming-our-workforce-economy-and-civil-rights/</a>.
+</div>
+<div id="ref-washingtonpost2023unions" class="csl-entry" role="listitem">
+The Washington Post. 2023. <span>“From Airlines to Hollywood, Unions Are
+Fighting to Keep AI at Bay.”</span> 2023. <a href="https://www.washingtonpost.com/technology/2023/06/08/labor-unions-fight-ai/">https://www.washingtonpost.com/technology/2023/06/08/labor-unions-fight-ai/</a>.
+</div>
+<div id="ref-toloka2024components" class="csl-entry" role="listitem">
+Toloka AI. 2024. <span>“AI Agents Components and Their Role in
+Autonomous Decision-Making.”</span> 2024. <a href="https://toloka.ai/blog/ai-agents-components-and-their-role-in-autonomous-decision-making/">https://toloka.ai/blog/ai-agents-components-and-their-role-in-autonomous-decision-making/</a>.
+</div>
+<div id="ref-markey2024civilrights" class="csl-entry" role="listitem">
+U.S. Senator Ed Markey. 2024. <span>“Senator Markey Introduces AI Civil
+Rights Act to Eliminate AI Bias.”</span> 2024. <a href="https://www.markey.senate.gov/news/press-releases/senator-markey-introduces-ai-civil-rights-act-to-eliminate-ai-bias-enact-guardrails-on-use-of-algorithms-in-decisions-impacting-peoples-rights-civil-liberties-livelihoods">https://www.markey.senate.gov/news/press-releases/senator-markey-introduces-ai-civil-rights-act-to-eliminate-ai-bias-enact-guardrails-on-use-of-algorithms-in-decisions-impacting-peoples-rights-civil-liberties-livelihoods</a>.
+</div>
+<div id="ref-venturebeat2024displacement" class="csl-entry" role="listitem">
+VentureBeat. 2024. <span>“’Gradually Then Suddenly’: Is AI Job
+Displacement Following This Pattern?”</span> 2024. <a href="https://venturebeat.com/ai/gradually-then-suddenly-is-ai-job-displacement-following-this-pattern">https://venturebeat.com/ai/gradually-then-suddenly-is-ai-job-displacement-following-this-pattern</a>.
+</div>
+<div id="ref-wikipedia2024agents" class="csl-entry" role="listitem">
+Wikipedia. 2024. <span>“Intelligent Agent.”</span> 2024. <a href="https://en.wikipedia.org/wiki/Intelligent_agent">https://en.wikipedia.org/wiki/Intelligent_agent</a>.
+</div>
+<div id="ref-wwt2024evolution" class="csl-entry" role="listitem">
+World Wide Technology. 2024. <span>“The Evolution of AI Agents: From
+Simple Programs to Agentic AI.”</span> 2024. <a href="https://www.wwt.com/blog/the-evolution-of-ai-agents-from-simple-programs-to-agentic-ai">https://www.wwt.com/blog/the-evolution-of-ai-agents-from-simple-programs-to-agentic-ai</a>.
+</div>
+<div id="ref-xoriant2024continuous" class="csl-entry" role="listitem">
+Xoriant. 2024. <span>“Agentic AI &amp; Continuous Learning: Creating
+Ever-Evolving Systems.”</span> 2024. <a href="https://www.xoriant.com/thought-leadership/article/agentic-ai-and-continuous-learning-creating-ever-evolving-systems">https://www.xoriant.com/thought-leadership/article/agentic-ai-and-continuous-learning-creating-ever-evolving-systems</a>.
+</div>
+<div id="ref-zonkafeedback2024loop" class="csl-entry" role="listitem">
+Zonka Feedback. 2024. <span>“The AI Feedback Loop: From Insights to
+Action in Real-Time.”</span> 2024. <a href="https://www.zonkafeedback.com/blog/ai-feedback-loop">https://www.zonkafeedback.com/blog/ai-feedback-loop</a>.
+</div>
+<div id="ref-zscaler2024gdpr" class="csl-entry" role="listitem">
+Zscaler. 2024. <span>“AI in Cybersecurity: GDPR, Privacy Laws, and Risk
+Management.”</span> 2024. <a href="https://www.zscaler.com/blogs/product-insights/ai-cybersecurity-navigating-gdpr-privacy-laws-and-risk-management">https://www.zscaler.com/blogs/product-insights/ai-cybersecurity-navigating-gdpr-privacy-laws-and-risk-management</a>.
+</div>
+</div>
+
+
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/01-intro.html" class="pagination-link" aria-label="Introdução: O Universo dos AI Agents">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introdução: O Universo dos AI Agents</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Visão Geral do Livro – Dominando Agentes de IA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/01-intro.html" rel="next">
+<link href="../index.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-0dd2bd5de344125cf763a379ddc3eb04.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/00-visao-geral.html">Visão Geral do Livro</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Dominando Agentes de IA</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/00-visao-geral.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Visão Geral do Livro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introdução: O Universo dos AI Agents</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/99-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Índice</h2>
+   
+  <ul>
+  <li><a href="#sobre-o-autor" id="toc-sobre-o-autor" class="nav-link active" data-scroll-target="#sobre-o-autor">Sobre o autor</a></li>
+  <li><a href="#como-este-livro-funciona" id="toc-como-este-livro-funciona" class="nav-link" data-scroll-target="#como-este-livro-funciona">Como este livro funciona</a>
+  <ul class="collapse">
+  <li><a href="#objetivos-e-público-alvo" id="toc-objetivos-e-público-alvo" class="nav-link" data-scroll-target="#objetivos-e-público-alvo">Objetivos e público-alvo</a></li>
+  <li><a href="#pré-requisitos-técnicos" id="toc-pré-requisitos-técnicos" class="nav-link" data-scroll-target="#pré-requisitos-técnicos">Pré-requisitos técnicos</a></li>
+  </ul></li>
+  <li><a href="#estrutura-do-livro-e-como-navegar-pelos-capítulos" id="toc-estrutura-do-livro-e-como-navegar-pelos-capítulos" class="nav-link" data-scroll-target="#estrutura-do-livro-e-como-navegar-pelos-capítulos">Estrutura do livro e como navegar pelos capítulos</a>
+  <ul class="collapse">
+  <li><a href="#divisão-em-partes-e-capítulos" id="toc-divisão-em-partes-e-capítulos" class="nav-link" data-scroll-target="#divisão-em-partes-e-capítulos">Divisão em partes e capítulos</a></li>
+  <li><a href="#como-aproveitar-ao-máximo-o-conteúdo" id="toc-como-aproveitar-ao-máximo-o-conteúdo" class="nav-link" data-scroll-target="#como-aproveitar-ao-máximo-o-conteúdo">Como aproveitar ao máximo o conteúdo</a></li>
+  <li><a href="#recursos-de-aprendizado" id="toc-recursos-de-aprendizado" class="nav-link" data-scroll-target="#recursos-de-aprendizado">Recursos de Aprendizado</a></li>
+  <li><a href="#importante" id="toc-importante" class="nav-link" data-scroll-target="#importante">Importante</a></li>
+  <li><a href="#padrão-de-estudo-recomendado" id="toc-padrão-de-estudo-recomendado" class="nav-link" data-scroll-target="#padrão-de-estudo-recomendado">Padrão de Estudo Recomendado</a></li>
+  <li><a href="#indicadores-de-progresso" id="toc-indicadores-de-progresso" class="nav-link" data-scroll-target="#indicadores-de-progresso">Indicadores de Progresso</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Visão Geral do Livro</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Neste capítulo introdutório, apresentamos uma visão geral do livro “Dominando Agentes de IA”. Você encontrará informações sobre o autor, os objetivos do livro, o público-alvo, os pré-requisitos técnicos necessários para melhor aproveitar o conteúdo e a estrutura do livro.</p>
+<p>Lembrando que os pré-requisitos técnicos não são limitantes para o aprendizado dos conceitos apresentados, mas ajudam a contextualizar o leitor e facilitar a compreensão dos temas abordados.</p>
+<section id="sobre-o-autor" class="level2">
+<h2 class="anchored" data-anchor-id="sobre-o-autor">Sobre o autor</h2>
+<p>William Oliveira é um engenheiro de Software com vasta experiência em desenvolvimento de aplicações empresariais de larga escala, autor dos livros “<a href="https://www.casadocodigo.com.br/products/livro-universo-programacao">O Universo da Programação</a>”, “<a href="https://www.casadocodigo.com.br/products/livro-navegando-universo">Navegando no universo da programação</a>” e “<a href="https://www.casadocodigo.com.br/products/livro-carreira-tecnica">Carreira técnica no universo da programação</a>”, mentor e voluntário em diversos projetos e comunidades de tecnologia focadas em inclusão social. Apaixonado por desenvolvimento de software e Inteligência Artificial, tem se dedicado a estudar e aplicar técnicas de IA em projetos práticos e produtivos, com ênfase em agentes inteligentes.</p>
+<p>Você pode saber mais sobre o autor visitando seu site pessoal <a href="https://woliveiras.com.br">em português</a>, <a href="https://woliveiras.github.io/">em inglês</a> ou seguindo-o no <a href="https://www.linkedin.com/in/william-oliveira/">LinkedIn</a>. Se quiser saber mais sobre agentes de IA, o site em inglês será sua melhor fonte de informações.</p>
+</section>
+<section id="como-este-livro-funciona" class="level2">
+<h2 class="anchored" data-anchor-id="como-este-livro-funciona">Como este livro funciona</h2>
+<section id="objetivos-e-público-alvo" class="level3">
+<h3 class="anchored" data-anchor-id="objetivos-e-público-alvo">Objetivos e público-alvo</h3>
+<p>O objetivo central deste livro é fornecer uma compreensão abrangente sobre agentes de IA, capacitando os leitores a desenvolver e implementar seus próprios agentes inteligentes em diversas aplicações. Mas, não somente isso, o livro também busca deixar claro as oportunidades e desafios envolvidos no desenvolvimento de agentes de IA, preparando os leitores para enfrentar as complexidades do campo e saber quando cabe implementar um agente de IA ou não em seus projetos.</p>
+<p>Especificamente, o livro visa:</p>
+<ul>
+<li>Introduzir conceitos fundamentais sobre agentes de IA</li>
+<li>Capacitar desenvolvedores a criar e implementar agentes inteligentes</li>
+<li>Explorar casos de uso práticos e aplicações reais de agentes de IA</li>
+<li>Discutir desafios éticos e técnicos relacionados ao desenvolvimento de agentes de IA</li>
+<li>Propor diretrizes e melhores práticas para a implementação de agentes de IA</li>
+</ul>
+<p>Este livro é ideal para desenvolvedores de software, engenheiros de dados, cientistas de dados, pesquisadores e entusiastas de IA que desejam aprofundar seus conhecimentos em agentes inteligentes.</p>
+</section>
+<section id="pré-requisitos-técnicos" class="level3">
+<h3 class="anchored" data-anchor-id="pré-requisitos-técnicos">Pré-requisitos técnicos</h3>
+<p>Para aproveitar ao máximo este livro, é recomendável que os leitores tenham:</p>
+<ul>
+<li>Conhecimento de programação (preferencialmente na linguagem Python, que será utilizada nos exemplos do livro)</li>
+<li>Familiaridade com conceitos de inteligência artificial e aprendizado de máquina (conhecimento básico é suficiente para compreender os fundamentos e limitações de <em>LLMs</em> e <em>VLMs</em>)</li>
+<li>Conhecimento básico de Git e GitHub para baixar os códigos de exemplo e acompanhar os exercícios práticos</li>
+</ul>
+</section>
+</section>
+<section id="estrutura-do-livro-e-como-navegar-pelos-capítulos" class="level2">
+<h2 class="anchored" data-anchor-id="estrutura-do-livro-e-como-navegar-pelos-capítulos">Estrutura do livro e como navegar pelos capítulos</h2>
+<section id="divisão-em-partes-e-capítulos" class="level3">
+<h3 class="anchored" data-anchor-id="divisão-em-partes-e-capítulos">Divisão em partes e capítulos</h3>
+<p>Este livro está organizado em <strong>três partes principais</strong>, cada uma com um propósito específico na sua jornada de aprendizado:</p>
+<p><strong>Parte I: Fundamentos e Componentes Base (Capítulos 1-4)</strong></p>
+<ul>
+<li>Estabelece a base teórica e prática necessária</li>
+<li>Foco em entender <em>LLMs</em>, <em>prompting</em> e <em>embeddings</em></li>
+<li><strong>Leia sequencialmente</strong> - cada capítulo constrói sobre o anterior</li>
+<li>Essencial mesmo se você já tem experiência com IA, para entender a abordagem do autor</li>
+</ul>
+<p><strong>Parte II: Construindo Sistemas de Agentes (Capítulos 5-8)</strong></p>
+<ul>
+<li>Aplica os fundamentos em construção de agentes</li>
+<li>Introduz <em>RAG</em>, <em>tools</em>, <em>workflows</em> e <em>comunicação entre agentes</em></li>
+<li><strong>Recomendação</strong>: Pratique cada conceito antes de avançar</li>
+<li>Os exemplos de código aqui são a essência do livro</li>
+</ul>
+<p><strong>Parte III: Arquitetura e Produção (Capítulos 9-13)</strong></p>
+<ul>
+<li>Prepara seus agentes para ambientes de produção</li>
+<li>Aborda arquitetura, segurança, qualidade e operações</li>
+<li><strong>Pode ser consultada conforme necessário</strong> depois de dominar a Parte II</li>
+<li>Referência contínua para projetos reais</li>
+</ul>
+<p><strong>Apêndices</strong></p>
+<ul>
+<li>Material de referência e recursos complementares</li>
+<li>Consulte quando precisar de comparações, <em>datasets</em> ou aprofundamento</li>
+</ul>
+</section>
+<section id="como-aproveitar-ao-máximo-o-conteúdo" class="level3">
+<h3 class="anchored" data-anchor-id="como-aproveitar-ao-máximo-o-conteúdo">Como aproveitar ao máximo o conteúdo</h3>
+<section id="se-você-é-iniciante-em-ia" class="level4">
+<h4 class="anchored" data-anchor-id="se-você-é-iniciante-em-ia">Se você é iniciante em IA:</h4>
+<ul>
+<li>Leia linearmente do Capítulo 1 ao 13</li>
+<li>Dedique tempo extra aos capítulos 3 e 6 (prompting e tools)</li>
+<li>Pratique <strong>todos</strong> os exemplos de código</li>
+</ul>
+</section>
+<section id="se-você-já-trabalha-com-llms" class="level4">
+<h4 class="anchored" data-anchor-id="se-você-já-trabalha-com-llms">Se você já trabalha com <em>LLMs</em></h4>
+<ul>
+<li>Revise rapidamente os Capítulos 1-2</li>
+<li>Foque na Parte II (especialmente Capítulos 6-8)</li>
+<li>Use a Parte III como referência para produção</li>
+</ul>
+</section>
+<section id="se-você-quer-construir-um-projeto-específico" class="level4">
+<h4 class="anchored" data-anchor-id="se-você-quer-construir-um-projeto-específico">Se você quer construir um projeto específico</h4>
+<ul>
+<li>Leia os Capítulos 1-4 para fundamentos</li>
+<li>Vá direto para o capítulo relevante ao seu caso:
+<ul>
+<li><strong>RAG system</strong> → Capítulos 4, 5</li>
+<li><strong>Multi-agente</strong> → Capítulos 7, 8, 9</li>
+<li><strong>Deploy em produção</strong> → Capítulos 10-13</li>
+</ul></li>
+</ul>
+</section>
+</section>
+<section id="recursos-de-aprendizado" class="level3">
+<h3 class="anchored" data-anchor-id="recursos-de-aprendizado">Recursos de Aprendizado</h3>
+<ul>
+<li><strong>Código de exemplo</strong>: Todo código está disponível no repositório GitHub do livro</li>
+<li><strong>Exercícios práticos</strong>: Cada capítulo inclui exercícios hands-on</li>
+<li><strong>Projeto integrado</strong>: Os capítulos constroem um sistema real incrementalmente</li>
+<li><strong>Referências cruzadas</strong>: Links internos conectam conceitos relacionados</li>
+</ul>
+</section>
+<section id="importante" class="level3">
+<h3 class="anchored" data-anchor-id="importante">Importante</h3>
+<ul>
+<li><strong>Não pule a Parte I</strong> mesmo se você já usa <em>LLMs</em>, ela estabelece terminologia e conceitos específicos de agentes</li>
+<li><strong>Pratique antes de avançar</strong> - agentes de IA requerem experimentação para domínio real (entender os limites, falhas e melhores práticas)</li>
+<li><strong>Volte aos fundamentos</strong> quando necessário, revisitando os capítulos iniciais</li>
+<li><strong>Use os apêndices</strong> como referência contínua durante sua leitura</li>
+</ul>
+</section>
+<section id="padrão-de-estudo-recomendado" class="level3">
+<h3 class="anchored" data-anchor-id="padrão-de-estudo-recomendado">Padrão de Estudo Recomendado</h3>
+<ol type="1">
+<li><strong>Ler</strong> o capítulo completo para entender a teoria</li>
+<li><strong>Executar</strong> os exemplos de código fornecidos</li>
+<li><strong>Modificar</strong> os exemplos para testar variações</li>
+<li><strong>Implementar</strong> os exercícios práticos propostos</li>
+<li><strong>Revisar</strong> conceitos-chave antes de avançar</li>
+</ol>
+<p>SEMPRE modifique e experimente o código - é assim que se aprende de verdade! Quebre as coisas, veja o que funciona e o que não funciona. Estamos usando versionamento de código para que você possa sempre voltar a um estado funcional se algo der errado.</p>
+</section>
+<section id="indicadores-de-progresso" class="level3">
+<h3 class="anchored" data-anchor-id="indicadores-de-progresso">Indicadores de Progresso</h3>
+<p>Cada parte do livro tem objetivos claros de aprendizado. Você está pronto para avançar quando conseguir:</p>
+<ul>
+<li><strong>Após Parte I</strong>: Explicar como <em>LLMs</em> funcionam e criar prompts eficazes</li>
+<li><strong>Após Parte II</strong>: Construir um agente funcional com <em>tools</em> e memória</li>
+<li><strong>Após Parte III</strong>: Fazer <em>deploy</em> de um sistema multi-agentes em produção</li>
+</ul>
+<hr>
+<p>Com essa estrutura e abordagem, você estará bem equipado para dominar agentes de IA e aplicá-los em seus próprios projetos. Boa leitura e bom aprendizado!</p>
+
+
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../index.html" class="pagination-link" aria-label="Prefácio">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Prefácio</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/01-intro.html" class="pagination-link" aria-label="Introdução: O Universo dos AI Agents">
+        <span class="nav-page-text">Introdução: O Universo dos AI Agents</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

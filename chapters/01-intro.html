@@ -1,0 +1,1935 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="pt-BR"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Introdução: O Universo dos AI Agents – Dominando Agentes de IA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<link href="../chapters/99-references.html" rel="next">
+<link href="../chapters/00-visao-geral.html" rel="prev">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-0dd2bd5de344125cf763a379ddc3eb04.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+
+
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../chapters/01-intro.html">Introdução: O Universo dos AI Agents</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../">Dominando Agentes de IA</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/00-visao-geral.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visão Geral do Livro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/01-intro.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Introdução: O Universo dos AI Agents</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../chapters/99-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Índice</h2>
+   
+  <ul>
+  <li><a href="#evolução-dos-agentes-de-ia" id="toc-evolução-dos-agentes-de-ia" class="nav-link active" data-scroll-target="#evolução-dos-agentes-de-ia">Evolução dos Agentes de IA</a>
+  <ul class="collapse">
+  <li><a href="#de-sistemas-especialistas-a-agentes-autônomos" id="toc-de-sistemas-especialistas-a-agentes-autônomos" class="nav-link" data-scroll-target="#de-sistemas-especialistas-a-agentes-autônomos">De sistemas especialistas a agentes autônomos</a></li>
+  <li><a href="#a-influência-do-aprendizado-de-máquina-e-redes-neurais" id="toc-a-influência-do-aprendizado-de-máquina-e-redes-neurais" class="nav-link" data-scroll-target="#a-influência-do-aprendizado-de-máquina-e-redes-neurais">A influência do aprendizado de máquina e redes neurais</a></li>
+  <li><a href="#exemplos-notáveis-de-agentes-inteligentes-na-prática" id="toc-exemplos-notáveis-de-agentes-inteligentes-na-prática" class="nav-link" data-scroll-target="#exemplos-notáveis-de-agentes-inteligentes-na-prática">Exemplos notáveis de agentes inteligentes na prática</a></li>
+  </ul></li>
+  <li><a href="#o-que-são-ai-agents" id="toc-o-que-são-ai-agents" class="nav-link" data-scroll-target="#o-que-são-ai-agents">O que são AI Agents?</a>
+  <ul class="collapse">
+  <li><a href="#definição-formal-e-características-essenciais" id="toc-definição-formal-e-características-essenciais" class="nav-link" data-scroll-target="#definição-formal-e-características-essenciais">Definição formal e características essenciais</a></li>
+  <li><a href="#autonomia-reatividade-e-proatividade" id="toc-autonomia-reatividade-e-proatividade" class="nav-link" data-scroll-target="#autonomia-reatividade-e-proatividade">Autonomia, reatividade e proatividade</a></li>
+  <li><a href="#capacidade-de-interação-com-o-ambiente" id="toc-capacidade-de-interação-com-o-ambiente" class="nav-link" data-scroll-target="#capacidade-de-interação-com-o-ambiente">Capacidade de interação com o ambiente</a></li>
+  </ul></li>
+  <li><a href="#agentes-vs.-chatbots-simples" id="toc-agentes-vs.-chatbots-simples" class="nav-link" data-scroll-target="#agentes-vs.-chatbots-simples">Agentes vs.&nbsp;Chatbots Simples</a>
+  <ul class="collapse">
+  <li><a href="#limitações-dos-chatbots-tradicionais" id="toc-limitações-dos-chatbots-tradicionais" class="nav-link" data-scroll-target="#limitações-dos-chatbots-tradicionais">Limitações dos chatbots tradicionais</a></li>
+  <li><a href="#o-salto-qualitativo-dos-agentes-autônomos" id="toc-o-salto-qualitativo-dos-agentes-autônomos" class="nav-link" data-scroll-target="#o-salto-qualitativo-dos-agentes-autônomos">O salto qualitativo dos agentes autônomos</a></li>
+  <li><a href="#quando-usar-cada-abordagem" id="toc-quando-usar-cada-abordagem" class="nav-link" data-scroll-target="#quando-usar-cada-abordagem">Quando usar cada abordagem</a></li>
+  </ul></li>
+  <li><a href="#taxonomia-de-agentes" id="toc-taxonomia-de-agentes" class="nav-link" data-scroll-target="#taxonomia-de-agentes">Taxonomia de Agentes</a>
+  <ul class="collapse">
+  <li><a href="#classificação-clássica-de-russell-e-norvig" id="toc-classificação-clássica-de-russell-e-norvig" class="nav-link" data-scroll-target="#classificação-clássica-de-russell-e-norvig">Classificação Clássica de Russell e Norvig</a></li>
+  <li><a href="#agentes-reativos-stimulus-response" id="toc-agentes-reativos-stimulus-response" class="nav-link" data-scroll-target="#agentes-reativos-stimulus-response">Agentes reativos (<em>stimulus-response</em>)</a></li>
+  <li><a href="#agentes-deliberativos-goal-driven" id="toc-agentes-deliberativos-goal-driven" class="nav-link" data-scroll-target="#agentes-deliberativos-goal-driven">Agentes deliberativos (<em>goal-driven</em>)</a></li>
+  <li><a href="#agentes-híbridos" id="toc-agentes-híbridos" class="nav-link" data-scroll-target="#agentes-híbridos">Agentes híbridos</a></li>
+  <li><a href="#agentes-de-aprendizado" id="toc-agentes-de-aprendizado" class="nav-link" data-scroll-target="#agentes-de-aprendizado">Agentes de aprendizado</a></li>
+  </ul></li>
+  <li><a href="#o-ciclo-percepção-ação" id="toc-o-ciclo-percepção-ação" class="nav-link" data-scroll-target="#o-ciclo-percepção-ação">O Ciclo Percepção-Ação</a>
+  <ul class="collapse">
+  <li><a href="#observação-do-ambiente" id="toc-observação-do-ambiente" class="nav-link" data-scroll-target="#observação-do-ambiente">Observação do ambiente</a></li>
+  <li><a href="#processamento-e-raciocínio" id="toc-processamento-e-raciocínio" class="nav-link" data-scroll-target="#processamento-e-raciocínio">Processamento e raciocínio</a></li>
+  <li><a href="#tomada-de-decisão" id="toc-tomada-de-decisão" class="nav-link" data-scroll-target="#tomada-de-decisão">Tomada de decisão</a></li>
+  <li><a href="#execução-de-ações" id="toc-execução-de-ações" class="nav-link" data-scroll-target="#execução-de-ações">Execução de ações</a></li>
+  <li><a href="#feedback-loop" id="toc-feedback-loop" class="nav-link" data-scroll-target="#feedback-loop">Feedback loop</a></li>
+  </ul></li>
+  <li><a href="#desafios-e-considerações-éticas" id="toc-desafios-e-considerações-éticas" class="nav-link" data-scroll-target="#desafios-e-considerações-éticas">Desafios e Considerações Éticas</a>
+  <ul class="collapse">
+  <li><a href="#privacidade-e-segurança-dos-dados" id="toc-privacidade-e-segurança-dos-dados" class="nav-link" data-scroll-target="#privacidade-e-segurança-dos-dados">Privacidade e segurança dos dados</a></li>
+  <li><a href="#transparência-e-explicabilidade" id="toc-transparência-e-explicabilidade" class="nav-link" data-scroll-target="#transparência-e-explicabilidade">Transparência e explicabilidade</a></li>
+  <li><a href="#impacto-no-mercado-de-trabalho" id="toc-impacto-no-mercado-de-trabalho" class="nav-link" data-scroll-target="#impacto-no-mercado-de-trabalho">Impacto no mercado de trabalho</a></li>
+  <li><a href="#viés-algorítmico-e-justiça-social" id="toc-viés-algorítmico-e-justiça-social" class="nav-link" data-scroll-target="#viés-algorítmico-e-justiça-social">Viés algorítmico e justiça social</a></li>
+  <li><a href="#custo-ambiental-e-sustentabilidade" id="toc-custo-ambiental-e-sustentabilidade" class="nav-link" data-scroll-target="#custo-ambiental-e-sustentabilidade">Custo ambiental e sustentabilidade</a></li>
+  <li><a href="#responsabilidade-e-governança-democrática" id="toc-responsabilidade-e-governança-democrática" class="nav-link" data-scroll-target="#responsabilidade-e-governança-democrática">Responsabilidade e governança democrática</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Introdução: O Universo dos AI Agents</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<section id="evolução-dos-agentes-de-ia" class="level2">
+<h2 class="anchored" data-anchor-id="evolução-dos-agentes-de-ia">Evolução dos Agentes de IA</h2>
+<p>A história dos agentes de IA é uma jornada muito interessante que reflete décadas de inovação e transformação tecnológica tanto na área de inteligência artificial e campos relacionados quanto na engenharia de software. Compreender essa evolução nos ajuda a contextualizar os avanços atuais e antever as possibilidades futuras.</p>
+<p>Por isso, vamos iniciar a nossa exploração deste universo revisando os marcos históricos e as mudanças de paradigma que moldaram o desenvolvimento dos agentes inteligentes ao longo do tempo.</p>
+<section id="de-sistemas-especialistas-a-agentes-autônomos" class="level3">
+<h3 class="anchored" data-anchor-id="de-sistemas-especialistas-a-agentes-autônomos">De sistemas especialistas a agentes autônomos</h3>
+<p>A trajetória dos agentes inteligentes pode ser dividida em várias eras distintas, cada uma marcada por avanços tecnológicos e mudanças de paradigma:</p>
+<p><strong>Era dos Fundamentos (1950-1970)</strong></p>
+<p>A origem dos agentes de IA remonta a 1950, quando Alan Turing propôs o famoso <em>Teste de Turing</em> para determinar se uma máquina poderia pensar como um humano <span class="citation" data-cites="ema2024history">(<a href="99-references.html#ref-ema2024history" role="doc-biblioref">EMA 2024</a>)</span>. A Conferência de Dartmouth em 1956 é amplamente reconhecida como o marco do nascimento da IA como campo formal de estudo. Em 1966, Joseph Weizenbaum criou o ELIZA no MIT, um programa que simulava um psicoterapeuta usando simples correspondência de padrões — um dos primeiros exemplos de agente conversacional <span class="citation" data-cites="wwt2024evolution">(<a href="99-references.html#ref-wwt2024evolution" role="doc-biblioref">World Wide Technology 2024</a>)</span>.</p>
+<p><strong>Era dos Sistemas Especialistas (1970-1990)</strong></p>
+<p>As décadas de 1970 e 1980 marcaram o auge dos <em>sistemas especialistas</em>, programas de IA projetados para resolver problemas específicos usando regras e lógica predefinidas <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>. Sistemas baseados em regras (<em>rule-based systems</em>) dependiam de declarações <em>if-then</em> explicitamente programadas para tomar decisões, mas eram limitados por sua incapacidade de lidar com cenários inesperados.</p>
+<p>Exemplos notáveis dessa era incluem o HEARSAY-II para reconhecimento de fala e o PROSPECTOR para prospecção geológica, que demonstraram as primeiras formas de agentes autônomos de IA <span class="citation" data-cites="ema2024history">(<a href="99-references.html#ref-ema2024history" role="doc-biblioref">EMA 2024</a>)</span>. Apesar de seus sucessos em domínios restritos, esses sistemas eram rígidos e requeriam extenso conhecimento especializado codificado manualmente.</p>
+<p><strong>Era da Transição para Aprendizado de Máquina (1990-2010)</strong></p>
+<p>A jornada dos agentes autônomos ganhou momentum nos anos 1990 com o aumento das capacidades computacionais, levando ao desenvolvimento de <em>sistemas multi-agentes</em> que podiam operar independentemente enquanto coordenavam com outros agentes <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>. Em 1988, Sutton e Barto desenvolveram o <em>temporal difference learning</em>, um método fundamental de aprendizado por reforço que permitiu aos agentes aprenderem com experiências ao longo do tempo <span class="citation" data-cites="ema2024history">(<a href="99-references.html#ref-ema2024history" role="doc-biblioref">EMA 2024</a>)</span>.</p>
+<p>Durante esse período, Russell e Norvig (1995) estabeleceram definições fundamentais que ainda guiam o campo hoje. Eles definiram um agente como “qualquer coisa que pode ser vista como percebendo seu ambiente através de sensores e agindo sobre esse ambiente através de atuadores” <span class="citation" data-cites="russellandnorvig1995">(<a href="99-references.html#ref-russellandnorvig1995" role="doc-biblioref">Russell e Norvig 1995</a>)</span>. Essa definição estabeleceu o <em>ciclo percepção-ação</em> fundamental que caracteriza sistemas de agentes <span class="citation" data-cites="arxiv2024agents">(<a href="99-references.html#ref-arxiv2024agents" role="doc-biblioref">Krishnan 2024</a>)</span>.</p>
+<p><strong>Era Moderna: Deep Learning e LLMs (2010-presente)</strong></p>
+<p>A evolução dos agentes de IA foi acelerada por avanços recentes em <em>modelos de linguagem de grande escala</em> (<em>LLMs</em>), que forneceram uma base para capacidades de raciocínio mais sofisticadas <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>. Agentes de IA modernos aproveitam modelos de linguagem avançados como componentes centrais, aumentando-os com módulos especializados para memória, planejamento, uso de ferramentas (<em>tools</em>) e interação com o ambiente.</p>
+<p>Em 2024, a evolução dos agentes de IA alcançou novos patamares, marcando um marco significativo em seu desenvolvimento. O mercado está projetado para crescer de US$ 5,1 bilhões em 2024 para US$ 47,1 bilhões até 2030 <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>. Agentes de IA estão se tornando cada vez mais autônomos, capazes de tomar decisões e executar ações sem intervenção humana.</p>
+</section>
+<section id="a-influência-do-aprendizado-de-máquina-e-redes-neurais" class="level3">
+<h3 class="anchored" data-anchor-id="a-influência-do-aprendizado-de-máquina-e-redes-neurais">A influência do aprendizado de máquina e redes neurais</h3>
+<p>A transição de sistemas baseados em regras para redes neurais representa um dos saltos evolutivos mais significativos em inteligência artificial, transformando fundamentalmente como abordamos inteligência de máquina e sistemas autônomos <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>.</p>
+<p><strong>Mudança de Paradigma</strong></p>
+<p>Enquanto sistemas especialistas dependiam de conhecimento explicitamente codificado por humanos, o aprendizado de máquina permitiu que agentes extraíssem padrões e conhecimento diretamente dos <strong>dados</strong>. Redes neurais profundas (<em>deep learning</em>) revolucionaram a capacidade dos agentes de:</p>
+<ul>
+<li><strong>Perceber</strong>: Processar entradas sensoriais complexas (visão, linguagem, áudio)</li>
+<li><strong>Raciocinar</strong>: Fazer inferências sofisticadas sobre estados do mundo</li>
+<li><strong>Aprender</strong>: Melhorar o desempenho através da experiência</li>
+<li><strong>Generalizar</strong>: Aplicar conhecimento a situações novas e inesperadas</li>
+</ul>
+<p><strong>Arquiteturas de Agentes Modernos</strong></p>
+<p>Russell e Norvig descreveram várias arquiteturas de agentes que evoluíram ao longo do tempo <span class="citation" data-cites="arxiv2024agents">(<a href="99-references.html#ref-arxiv2024agents" role="doc-biblioref">Krishnan 2024</a>)</span>:</p>
+<ol type="1">
+<li><strong>Agentes Reflexivos Simples</strong>: Agem apenas com base na percepção atual, usando regras <em>condition-action</em></li>
+<li><strong>Agentes Reflexivos Baseados em Modelo</strong>: Incorporam um modelo interno do mundo, mantendo informações de estado</li>
+<li><strong>Agentes Baseados em Objetivos</strong>: Representam explicitamente estados desejáveis do mundo e selecionam ações para alcançá-los</li>
+<li><strong>Agentes Baseados em Utilidade</strong>: Selecionam ações com base na utilidade esperada, considerando incerteza</li>
+</ol>
+<p>A introdução de <em>LLMs</em> criou uma nova categoria de agentes que combinam raciocínio linguístico sofisticado com capacidades de planejamento e execução, transcendendo as limitações das arquiteturas anteriores.</p>
+</section>
+<section id="exemplos-notáveis-de-agentes-inteligentes-na-prática" class="level3">
+<h3 class="anchored" data-anchor-id="exemplos-notáveis-de-agentes-inteligentes-na-prática">Exemplos notáveis de agentes inteligentes na prática</h3>
+<p>A teoria dos agentes de IA ganhou vida através de implementações práticas que demonstram seu potencial transformador:</p>
+<p><strong>ReAct (Reasoning and Acting)</strong></p>
+<p>O framework <em>ReAct</em>, introduzido pelo Google em 2022, representa uma técnica fundacional que integra raciocínio e ação dentro de modelos de linguagem <span class="citation" data-cites="medium2024react">(<a href="99-references.html#ref-medium2024react" role="doc-biblioref">Sinha 2024</a>)</span>. O ReAct opera através de um ciclo iterativo:</p>
+<ol type="1">
+<li><strong>Thought</strong> (Pensamento): O agente raciocina sobre a situação atual</li>
+<li><strong>Action</strong> (Ação): Executa uma ação (como chamar ferramentas ou APIs)</li>
+<li><strong>Observation</strong> (Observação): Observa os resultados da ação</li>
+<li><strong>Reflection</strong> (Reflexão): Reflete sobre as observações para decidir os próximos passos</li>
+</ol>
+<p>Este padrão forma a base de frameworks populares como AutoGPT, CrewAI e LangChain <span class="citation" data-cites="medium2024react">(<a href="99-references.html#ref-medium2024react" role="doc-biblioref">Sinha 2024</a>)</span>.</p>
+<p><strong>AutoGPT</strong></p>
+<p>Lançado duas semanas após o GPT-4, AutoGPT viralizou e atingiu 100.000 estrelas no GitHub rapidamente <span class="citation" data-cites="medium2024agents">(<a href="99-references.html#ref-medium2024agents" role="doc-biblioref">Geller 2024</a>)</span>. É um projeto experimental <em>open-source</em> que visa tornar o GPT-4 totalmente autônomo na realização de diversos objetivos, incluindo pesquisa de mercado, programação e escrita <span class="citation" data-cites="analyticsvidhya2024autogpt">(<a href="99-references.html#ref-analyticsvidhya2024autogpt" role="doc-biblioref">Analytics Vidhya 2024</a>)</span>.</p>
+<p>AutoGPT utiliza ReAct para decompor prompts de usuário em etapas menores e gerenciáveis, raciocinando sobre cada uma antes de agir adequadamente <span class="citation" data-cites="medium2024react">(<a href="99-references.html#ref-medium2024react" role="doc-biblioref">Sinha 2024</a>)</span>. Ele demonstra como agentes podem operar com supervisão humana mínima, gerenciando seus próprios sub-objetivos e estratégias.</p>
+<p><strong>LangChain e CrewAI</strong></p>
+<p>LangChain se destaca por sua funcionalidade de agentes, onde agentes são <em>LLMs</em> que podem decidir quais ferramentas usar e quando. Quando configurado corretamente, o agente pode determinar que precisa buscar algo, então usar uma calculadora, e depois formatar uma resposta <span class="citation" data-cites="medium2024agents">(<a href="99-references.html#ref-medium2024agents" role="doc-biblioref">Geller 2024</a>)</span>.</p>
+<p>CrewAI leva isso adiante ao focar na orquestração em estilo de equipe, permitindo que desenvolvedores definam papéis especializados de agentes (por exemplo, Planejador, Programador, Crítico) e os coordenem em <em>pipelines</em>, integrando-se perfeitamente com LangChain <span class="citation" data-cites="medium2024react">(<a href="99-references.html#ref-medium2024react" role="doc-biblioref">Sinha 2024</a>)</span>.</p>
+<p><strong>Aplicações no Mundo Real</strong></p>
+<p>Agentes de IA estão transformando diversos setores:</p>
+<ul>
+<li><strong>Suporte Interno</strong>: Agentes como AskIT da IBM reduziram chamadas de suporte de TI em 70%, roteando tickets, diagnosticando problemas e resolvendo questões comuns automaticamente <span class="citation" data-cites="marktechpost2025agents">(<a href="99-references.html#ref-marktechpost2025agents" role="doc-biblioref">MarkTechPost 2025</a>)</span></li>
+<li><strong>Atendimento ao Cliente</strong>: Lidam com consultas de alto volume — desde rastreamento de pedidos até recomendações de produtos — integrando-se com CRMs e bases de conhecimento <span class="citation" data-cites="marktechpost2025agents">(<a href="99-references.html#ref-marktechpost2025agents" role="doc-biblioref">MarkTechPost 2025</a>)</span></li>
+<li><strong>Assistentes de Pesquisa</strong>: AutoGPT tem sido usado para construir assistentes de pesquisa que podem formular soluções passo a passo e gerar relatórios <span class="citation" data-cites="lablab2024autogpt">(<a href="99-references.html#ref-lablab2024autogpt" role="doc-biblioref">Lablab.ai 2024</a>)</span></li>
+</ul>
+<p><strong>Perspectiva Futura</strong></p>
+<p>Se 2024 foi o ano em que agentes emergiram como uma abordagem viável para resolução de problemas, 2025 será o ano em que eles se tornarão a solução de melhor desempenho <em>de facto</em> para domínios específicos de problemas <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>. Sistemas multi-agentes emergiram como áreas importantes de avanço, explorando como coleções de agentes especializados podem coordenar para realizar tarefas complexas, distribuindo trabalho cognitivo através de múltiplos agentes com capacidades complementares <span class="citation" data-cites="nurix2024evolution">(<a href="99-references.html#ref-nurix2024evolution" role="doc-biblioref">Nurix AI 2024</a>)</span>.</p>
+<p>A evolução continua, com agentes se tornando mais autônomos, colaborativos e capazes de raciocínio sofisticado — transformando-os de ferramentas experimentais em componentes essenciais de sistemas de software modernos.</p>
+</section>
+</section>
+<section id="o-que-são-ai-agents" class="level2">
+<h2 class="anchored" data-anchor-id="o-que-são-ai-agents">O que são AI Agents?</h2>
+<p>Após explorarmos a evolução histórica dos agentes de IA, é fundamental estabelecermos uma definição clara e precisa do que realmente constitui um agente inteligente. Essa compreensão nos permitirá distinguir agentes verdadeiros de sistemas de IA mais simples e apreciar as capacidades únicas que os tornam tão poderosos.</p>
+<section id="definição-formal-e-características-essenciais" class="level3">
+<h3 class="anchored" data-anchor-id="definição-formal-e-características-essenciais">Definição formal e características essenciais</h3>
+<p><strong>Definição Fundamental</strong></p>
+<p>Russell e Norvig estabeleceram a definição clássica que permanece como fundamento do campo: “um agente é qualquer coisa que pode ser vista como percebendo seu ambiente através de <em>sensores</em> e agindo sobre esse ambiente através de <em>atuadores</em>” <span class="citation" data-cites="russellandnorvig1995">(<a href="99-references.html#ref-russellandnorvig1995" role="doc-biblioref">Russell e Norvig 1995</a>)</span>. Essa definição, aparentemente simples, encapsula uma ideia profunda: <em>agentes são entidades que mantêm uma relação dinâmica e bidirecional com seu ambiente</em>.</p>
+<p>Em termos contemporâneos, podemos expandir essa definição para algo como: <strong>um agente de IA é um programa de software projetado para interagir com seu ambiente, perceber os dados que recebe e tomar ações baseadas nesses dados para alcançar objetivos específicos</strong> <span class="citation" data-cites="simform2024agents">(<a href="99-references.html#ref-simform2024agents" role="doc-biblioref">Simform 2024</a>)</span>.</p>
+<p><strong>O Conceito de Agente Racional</strong></p>
+<p>Russell e Norvig introduziram um conceito crucial: o <em>agente racional</em>. Para cada sequência possível de percepções, um agente racional deve selecionar uma ação que se espera maximize sua medida de desempenho, dada a evidência fornecida pela sequência de percepções e qualquer conhecimento interno que o agente possua <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>.</p>
+<p>Um agente é racional na medida em que age para maximizar sua medida de desempenho esperada, dadas as restrições externas, incluindo que informações o agente percebe e que ações o agente é capaz de executar <span class="citation" data-cites="drake2024rational">(<a href="99-references.html#ref-drake2024rational" role="doc-biblioref">Drake 2024</a>)</span>. Essa noção de racionalidade fornece um critério objetivo para avaliar o comportamento de agentes.</p>
+<p><strong>Framework PEAS</strong></p>
+<p>Para projetar agentes de forma sistemática, Russell e Norvig propuseram o framework <em>PEAS</em> (<em>Performance, Environment, Actuators, Sensors</em>), que especifica <span class="citation" data-cites="analyticsvidhya2022peas geeksforgeeks2024peas">(<a href="99-references.html#ref-analyticsvidhya2022peas" role="doc-biblioref">Analytics Vidhya 2022</a>; <a href="99-references.html#ref-geeksforgeeks2024peas" role="doc-biblioref">GeeksforGeeks 2024</a>)</span>:</p>
+<ul>
+<li><strong>Performance</strong> (Desempenho): Como o sucesso é avaliado (métricas, objetivos)</li>
+<li><strong>Environment</strong> (Ambiente): O contexto onde o agente opera</li>
+<li><strong>Actuators</strong> (Atuadores): As ações que o agente pode executar</li>
+<li><strong>Sensors</strong> (Sensores): O que o agente pode perceber</li>
+</ul>
+<p>Este framework ajuda as pessoas desenvolvedoras do agente a considerarem sistematicamente todos os aspectos do ambiente de tarefas antes de implementar um isso <span class="citation" data-cites="saiwa2024peas">(<a href="99-references.html#ref-saiwa2024peas" role="doc-biblioref">Saiwa 2024</a>)</span>.</p>
+<p><strong>Propriedades do Ambiente</strong></p>
+<p>Os ambientes onde agentes operam podem ser categorizados segundo várias dimensões <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>:</p>
+<ul>
+<li><strong>Observabilidade</strong>: Totalmente observável, parcialmente observável ou não observável</li>
+<li><strong>Agentes</strong>: Um único agente ou multi-agente (que pode ser competitivo ou cooperativo)</li>
+<li><strong>Determinismo</strong>: Determinístico (resultado previsível) ou estocástico (com aleatoriedade)</li>
+<li><strong>Episódico vs.&nbsp;Sequencial</strong>: Se ações atuais afetam decisões futuras</li>
+<li><strong>Estático vs.&nbsp;Dinâmico</strong>: Se o ambiente muda enquanto o agente delibera</li>
+<li><strong>Discreto vs.&nbsp;Contínuo</strong>: Natureza dos estados e tempo</li>
+</ul>
+<p>Compreender essas propriedades é essencial para projetar agentes adequados ao contexto específico de aplicação. E que sejam resilientes às complexidades de um sistema em produção.</p>
+</section>
+<section id="autonomia-reatividade-e-proatividade" class="level3">
+<h3 class="anchored" data-anchor-id="autonomia-reatividade-e-proatividade">Autonomia, reatividade e proatividade</h3>
+<p>As características distintivas que definem agentes inteligentes vão além da simples capacidade de processar informações. Três propriedades fundamentais emergem como essenciais:</p>
+<p><strong>Autonomia</strong></p>
+<p>Um agente de IA é capaz de executar tarefas independentemente, sem requerer constante intervenção ou entrada humana <span class="citation" data-cites="simform2024agents">(<a href="99-references.html#ref-simform2024agents" role="doc-biblioref">Simform 2024</a>)</span>. A autonomia manifesta-se em diferentes graus:</p>
+<ul>
+<li><strong>Autonomia Operacional</strong>: Capacidade de executar ações sem supervisão contínua</li>
+<li><strong>Autonomia de Aprendizado</strong>: Habilidade de melhorar desempenho através da experiência</li>
+<li><strong>Autonomia de Decisão</strong>: Competência para escolher entre alternativas baseando-se em seus próprios critérios</li>
+</ul>
+<p>A autonomia não significa isolamento total — agentes autônomos frequentemente colaboram com humanos e outros agentes — mas sim a capacidade de operar de forma auto-dirigida dentro de parâmetros estabelecidos.</p>
+<p><strong>Reatividade</strong></p>
+<p>Um agente de IA pode avaliar o ambiente e responder adequadamente para alcançar seus objetivos <span class="citation" data-cites="simform2024agents">(<a href="99-references.html#ref-simform2024agents" role="doc-biblioref">Simform 2024</a>)</span>. A reatividade implica:</p>
+<ul>
+<li><strong>Percepção Contínua</strong>: Monitoramento ativo do ambiente</li>
+<li><strong>Resposta Oportuna</strong>: Reação apropriada a mudanças e eventos</li>
+<li><strong>Adaptabilidade</strong>: Ajuste de comportamento baseado em condições atuais</li>
+</ul>
+<p>Agentes reativos na robótica executavam ciclos <em>sense-act</em> baseados em regras de controle fixas <span class="citation" data-cites="arxiv2024taxonomy">(<a href="99-references.html#ref-arxiv2024taxonomy" role="doc-biblioref">Authors 2024b</a>)</span>. Embora essa reatividade básica seja essencial, agentes modernos vão além, integrando reatividade com capacidades deliberativas ainda mais sofisticadas.</p>
+<p><strong>Proatividade</strong></p>
+<p>Agentes exibem <em>proatividade</em>, iniciando ações baseadas em seus objetivos e ambiente percebido, ao invés de apenas reagir a estímulos externos <span class="citation" data-cites="arxiv2024taxonomy">(<a href="99-references.html#ref-arxiv2024taxonomy" role="doc-biblioref">Authors 2024b</a>)</span>. A proatividade distingue-se por:</p>
+<ul>
+<li><strong>Comportamento Orientado a Objetivos</strong>: Ações direcionadas a alcançar metas específicas</li>
+<li><strong>Iniciativa</strong>: Capacidade de começar ações sem solicitação externa</li>
+<li><strong>Planejamento Antecipado</strong>: Consideração de consequências futuras das ações</li>
+</ul>
+<p>A mudança em direção a arquiteturas proativas, descentralizadas e orientadas a objetivos representa capacidades emergentes incluindo colaboração multi-agente, coordenação de sistemas, contexto compartilhado e decomposição de tarefas <span class="citation" data-cites="arxiv2024taxonomy">(<a href="99-references.html#ref-arxiv2024taxonomy" role="doc-biblioref">Authors 2024b</a>)</span>.</p>
+<p><strong>Arquitetura BDI (Belief-Desire-Intention)</strong></p>
+<p>Uma das abordagens mais influentes para implementar comportamento proativo é a arquitetura <em>BDI</em> (<em>Belief-Desire-Intention</em>), que simula tomada de decisão semelhante à humana através de três componentes mentais fundamentais <span class="citation" data-cites="allaboutai2024bdi medium2024agents">(<a href="99-references.html#ref-allaboutai2024bdi" role="doc-biblioref">All About AI 2024b</a>; <a href="99-references.html#ref-medium2024agents" role="doc-biblioref">Geller 2024</a>)</span>:</p>
+<ul>
+<li><strong>Beliefs</strong> (Crenças): O conhecimento ou hipóteses sobre o mundo possuídas pelo agente, continuamente revisadas a partir de percepções</li>
+<li><strong>Desires</strong> (Desejos): O conjunto de resultados que o agente pode querer alcançar</li>
+<li><strong>Intentions</strong> (Intenções): Os fins específicos aos quais o agente está comprometido a alcançar, tipicamente escolhidos entre seus desejos</li>
+</ul>
+<p>Arquiteturas BDI possibilitaram comportamento orientado a objetivos em agentes de software, como aqueles em simulações de controle de tráfego aéreo <span class="citation" data-cites="allaboutai2024bdi">(<a href="99-references.html#ref-allaboutai2024bdi" role="doc-biblioref">All About AI 2024b</a>)</span>. A principal contribuição da arquitetura BDI é fornecer um <em>framework</em> robusto para agentes operando em ambientes complexos, dinâmicos e ricos em objetivos, particularmente onde objetivos estão em conflito uns com os outros ou evoluem ao longo do tempo <span class="citation" data-cites="allaboutai2024bdi">(<a href="99-references.html#ref-allaboutai2024bdi" role="doc-biblioref">All About AI 2024b</a>)</span>.</p>
+</section>
+<section id="capacidade-de-interação-com-o-ambiente" class="level3">
+<h3 class="anchored" data-anchor-id="capacidade-de-interação-com-o-ambiente">Capacidade de interação com o ambiente</h3>
+<p>A essência de um agente inteligente reside em sua capacidade de interagir efetivamente com o mundo ao seu redor. Essa interação não é unidirecional — é um processo contínuo e dinâmico que define o comportamento do agente.</p>
+<p><strong>O Ciclo Percepção-Ação</strong></p>
+<p>A beleza da interação agente-ambiente reside em sua natureza cíclica. Cada ação que um agente executa afeta o ambiente, que por sua vez fornece nova entrada sensorial <span class="citation" data-cites="smythos2024interaction">(<a href="99-references.html#ref-smythos2024interaction" role="doc-biblioref">SmythOS 2024a</a>)</span>. Mais especificamente:</p>
+<ol type="1">
+<li><strong>Sensores coletam informação</strong></li>
+<li><strong>O motor de decisão a processa</strong></li>
+<li><strong>Efetores agem no mundo</strong></li>
+<li><strong>Essas ações criam nova entrada sensorial</strong></li>
+<li><strong>O ciclo recomeça</strong></li>
+</ol>
+<p>É esse <em>loop</em> constante de percepção, decisão e ação que permite aos agentes inteligentes adaptar-se e responder a ambientes em constante mudança <span class="citation" data-cites="smythos2024interaction">(<a href="99-references.html#ref-smythos2024interaction" role="doc-biblioref">SmythOS 2024a</a>)</span>.</p>
+<p><strong>Processo de Interação em Três Fases</strong></p>
+<p>A interação agente-ambiente tipicamente segue um padrão estruturado <span class="citation" data-cites="certlibrary2024agents medium2024nerdfortech">(<a href="99-references.html#ref-certlibrary2024agents" role="doc-biblioref">CertLibrary 2024</a>; <a href="99-references.html#ref-medium2024nerdfortech" role="doc-biblioref">Clark 2024</a>)</span>:</p>
+<p><strong>1. Percepção</strong></p>
+<p>Agentes usam sensores para coletar informações sobre seu ambiente. Esses sensores podem ser câmeras, microfones ou até fluxos de dados no caso de agentes de software <span class="citation" data-cites="certlibrary2024agents">(<a href="99-references.html#ref-certlibrary2024agents" role="doc-biblioref">CertLibrary 2024</a>)</span>. O sistema de percepção coleta entrada do ambiente via sensores e alimenta essa informação a um controlador central <span class="citation" data-cites="scaler2024agents">(<a href="99-references.html#ref-scaler2024agents" role="doc-biblioref">Scaler Topics 2024</a>)</span>.</p>
+<p><strong>2. Tomada de Decisão</strong></p>
+<p>Baseado na informação percebida, o agente processa dados e decide o próximo curso de ação. É aqui que a “inteligência” em IA realmente brilha, pois o agente deve interpretar dados complexos e escolher a resposta mais apropriada <span class="citation" data-cites="certlibrary2024agents">(<a href="99-references.html#ref-certlibrary2024agents" role="doc-biblioref">CertLibrary 2024</a>)</span>.</p>
+<p><strong>3. Ação</strong></p>
+<p>O agente executa sua decisão através de efetores. Em um robô, esses podem ser motores ou atuadores. O controlador central então emite comandos aos atuadores <span class="citation" data-cites="scaler2024agents certlibrary2024agents">(<a href="99-references.html#ref-scaler2024agents" role="doc-biblioref">Scaler Topics 2024</a>; <a href="99-references.html#ref-certlibrary2024agents" role="doc-biblioref">CertLibrary 2024</a>)</span>.</p>
+<p><strong>Arquitetura de Agentes Inteligentes</strong></p>
+<p>Tipicamente, um agente é estruturado dividindo-o em sensores e atuadores <span class="citation" data-cites="scaler2024agents">(<a href="99-references.html#ref-scaler2024agents" role="doc-biblioref">Scaler Topics 2024</a>)</span>. Essa arquitetura forma a espinha dorsal de qualquer agente inteligente: sensores coletam informação sobre o ambiente, que a IA processa para avaliar suas medidas de desempenho. Baseado nessa avaliação, a IA toma decisões e usa seus atuadores para executar ações que se alinham com seus objetivos <span class="citation" data-cites="pickl2024peas">(<a href="99-references.html#ref-pickl2024peas" role="doc-biblioref">Pickl.AI 2024</a>)</span>.</p>
+<p><strong>Tipos de Sensores e Atuadores</strong></p>
+<p>A natureza dos sensores e atuadores varia dramaticamente conforme o tipo de agente:</p>
+<ul>
+<li><strong>Agentes Robóticos</strong>: Câmeras (visão), microfones (áudio), sensores de toque; motores, manipuladores, alto-falantes</li>
+<li><strong>Agentes de Software</strong>: APIs, <em>web scraping</em>, entradas de usuário; chamadas de API, operações de banco de dados, interfaces de usuário</li>
+<li><strong>Agentes Híbridos</strong>: Combinam sensores físicos e digitais com atuadores correspondentes</li>
+</ul>
+<p>Esse modelo cíclico de interação é fundamental para como sistemas inteligentes operam através de diversas aplicações, da robótica a agentes de software <span class="citation" data-cites="smythos2024interaction">(<a href="99-references.html#ref-smythos2024interaction" role="doc-biblioref">SmythOS 2024a</a>)</span>.</p>
+<p><strong>Implicações para Design de Agentes</strong></p>
+<p>Compreender a interação agente-ambiente tem implicações práticas importantes:</p>
+<ul>
+<li><strong>Qualidade dos Sensores</strong>: Limitações perceptuais afetam diretamente a qualidade das decisões</li>
+<li><strong>Latência de Ação</strong>: O tempo entre percepção e ação impacta a efetividade em ambientes dinâmicos</li>
+<li><strong>Feedback Loop</strong>: Agentes devem monitorar os efeitos de suas ações para ajustar comportamento</li>
+<li><strong>Robustez</strong>: Agentes devem lidar com percepções ruidosas ou incompletas e ações que podem falhar</li>
+</ul>
+<p>A capacidade de interagir efetivamente com o ambiente — percebendo, decidindo e agindo em ciclos contínuos — é o que transforma código estático em agentes verdadeiramente inteligentes e adaptativos.</p>
+</section>
+</section>
+<section id="agentes-vs.-chatbots-simples" class="level2">
+<h2 class="anchored" data-anchor-id="agentes-vs.-chatbots-simples">Agentes vs.&nbsp;Chatbots Simples</h2>
+<p>Uma das confusões mais comuns no campo da IA conversacional é a distinção entre <em>chatbots</em> e <em>agentes de IA</em>. Embora ambos utilizem tecnologias similares — processamento de linguagem natural (<em>NLP</em>) e modelos de linguagem de grande escala (<em>LLMs</em>) — suas capacidades e casos de uso diferem significativamente. No contexto de engenharia de software e design de sistemas, isso difere ainda mais, pois agentes de IA são projetados para realizar trabalho autônomo, enquanto chatbots são essencialmente ferramentas de comunicação. Vamos analisar essas diferenças pouco a pouco.</p>
+<section id="limitações-dos-chatbots-tradicionais" class="level3">
+<h3 class="anchored" data-anchor-id="limitações-dos-chatbots-tradicionais">Limitações dos chatbots tradicionais</h3>
+<p><strong>Definição e Escopo</strong></p>
+<p>Chatbots são sistemas projetados principalmente para interação conversacional predefinida, tipicamente seguindo scripts ou gerando respostas textuais para perguntas de rotina <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>. Eles são programados com um conjunto específico de regras ou treinados em conjuntos de dados particulares, permitindo-lhes lidar com tarefas predefinidas ou responder perguntas dentro de um escopo limitado <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span>.</p>
+<p><strong>Limitações Fundamentais</strong></p>
+<p>Os chatbots tradicionais enfrentam várias limitações estruturais que restringem sua utilidade em cenários complexos:</p>
+<p><strong>1. Restrições Contextuais</strong></p>
+<p>Chatbots frequentemente lutam para compreender o contexto mais amplo de conversas multi-turno e são confinados por sua lógica roteirizada <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>. Se o usuário desvia dos padrões de entrada esperados, eles falham em responder com precisão. Essa rigidez torna-se especialmente problemática em conversas naturais e fluidas onde o contexto evolui dinamicamente.</p>
+<p><strong>2. Incapacidade de Ação</strong></p>
+<p>Um chatbot <em>fala</em>; ele não <em>age</em> <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>. Chatbots são excelentes em fornecer informações — como “Aqui está como solicitar um reembolso” — mas não podem executar a ação real de processar esse reembolso <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>. Eles não são construídos para lidar com <em>workflows</em> de ponta a ponta envolvendo tomada de decisão em tempo real <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>.</p>
+<p><strong>3. Ausência de Proatividade</strong></p>
+<p>Chatbots tradicionais são puramente reativos. Eles esperam por entrada do usuário e respondem dentro de seus limites programados, sem a capacidade de antecipar necessidades, sugerir ações proativamente ou adaptar-se dinamicamente a situações novas.</p>
+<p><strong>4. Limitações Emocionais</strong></p>
+<p>Embora sistemas de IA conversacional ofereçam muitas capacidades avançadas e automação, às vezes esses sistemas podem não replicar com precisão inteligência emocional e empatia genuínas, afetando sua habilidade de proporcionar uma experiência humanizada ao cliente <span class="citation" data-cites="helpshift2024conversational">(<a href="99-references.html#ref-helpshift2024conversational" role="doc-biblioref">Helpshift 2024</a>)</span>.</p>
+<p><strong>Casos de Uso Apropriados</strong></p>
+<p>Apesar dessas limitações, chatbots permanecem valiosos para:</p>
+<ul>
+<li>Consultas de clientes de rotina e suporte</li>
+<li><em>Workflows</em> predefinidos e conversas roteirizadas</li>
+<li>Respostas automatizadas 24/7 para perguntas frequentes</li>
+<li>Interações diretas e repetitivas</li>
+<li>Empresas lidando com altos volumes de consultas repetitivas <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span></li>
+</ul>
+<p>Chatbots tradicionais custam entre $2.000-$5.000 para implementar e são ideais quando você precisa de respostas rápidas, tem orçamento limitado ou quer um início fácil com IA <span class="citation" data-cites="p0stman2025guide">(<a href="99-references.html#ref-p0stman2025guide" role="doc-biblioref">P0STMAN 2025</a>)</span>.</p>
+</section>
+<section id="o-salto-qualitativo-dos-agentes-autônomos" class="level3">
+<h3 class="anchored" data-anchor-id="o-salto-qualitativo-dos-agentes-autônomos">O salto qualitativo dos agentes autônomos</h3>
+<p><strong>A Diferença Fundamental</strong></p>
+<p>A distinção central é simples mas profunda: enquanto um chatbot <em>conversa</em>, um agente <em>age</em> <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>. Ambos dependem das mesmas tecnologias centrais de IA — processamento de linguagem natural e modelos de linguagem de grande escala — mas a autonomia adicional, memória e acesso a ferramentas do agente transformam conversação em trabalho completado <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>.</p>
+<p><strong>Características Distintivas dos Agentes</strong></p>
+<p><strong>1. Autonomia e Capacidade de Decisão</strong></p>
+<p>Agentes de IA têm algo que chatbots não possuem: <em>agência</em>. Na prática, isso significa que eles podem tomar decisões e executar ações reais, não apenas conversar <span class="citation" data-cites="ada2024chatbot">(<a href="99-references.html#ref-ada2024chatbot" role="doc-biblioref">Ada 2024</a>)</span>. Um agente de IA é um sistema autônomo capaz de raciocinar, planejar e executar ações para alcançar objetivos <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>.</p>
+<p><strong>2. Execução Multi-Etapas</strong></p>
+<p>Agentes lidam com tarefas passo a passo. Eles podem tentar uma ação, verificar o resultado, e então mover-se para a próxima etapa, até que o objetivo seja alcançado ou precisem de ajuda <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span>. Essa capacidade de orquestração permite que agentes completem <em>workflows</em> complexos de forma autônoma.</p>
+<p><strong>3. Memória e Contexto</strong></p>
+<p>Agentes podem lembrar partes de uma conversa ou interações passadas. Isso os ajuda a responder mais naturalmente, como reconhecer perguntas repetidas ou fazer acompanhamento com informações relevantes <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span>. Essa memória persistente permite continuidade genuína em interações ao longo do tempo.</p>
+<p><strong>4. Acesso a Ferramentas e Integração</strong></p>
+<p>Enquanto um chatbot pode dizer “Aqui está como solicitar um reembolso”, um agente de IA pode verificar seu pedido, processar o reembolso e enviar confirmação, no ato <span class="citation" data-cites="digitalocean2024chatbot">(<a href="99-references.html#ref-digitalocean2024chatbot" role="doc-biblioref">DigitalOcean 2024</a>)</span>. Agentes integram-se com sistemas externos, acessam bases de dados, invocam APIs e utilizam ferramentas especializadas para realizar trabalho real.</p>
+<p><strong>5. Capacidades Analíticas Avançadas</strong></p>
+<p>Agentes podem analisar grandes conjuntos de dados, identificar tendências e otimizar tomada de decisão através de análise preditiva <span class="citation" data-cites="eastgate2024medium">(<a href="99-references.html#ref-eastgate2024medium" role="doc-biblioref">Eastgate Software 2024</a>)</span>. Eles são úteis para analisar dados não estruturados, identificar correlações e fazer recomendações baseadas em padrões complexos <span class="citation" data-cites="eastgate2024medium">(<a href="99-references.html#ref-eastgate2024medium" role="doc-biblioref">Eastgate Software 2024</a>)</span>.</p>
+<p><strong>Evolução em 2024</strong></p>
+<p>Modelos de linguagem de grande escala como o GPT-4o tornaram IA conversacional muito mais adaptável. Construtores adicionaram <em>frameworks</em> de planejamento por cima, dando aos bots a habilidade de decidir “Eu deveria criar um ticket” ou “Eu posso emitir esse reembolso” <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>. Em 2024, fornecedores líderes mudaram sua marca e suas capacidades.</p>
+<p>Algumas projeções mostram o mercado global de agentes de IA alcançando $7,6 bilhões em 2025 (acima de $5,4B em 2024) e crescendo a ~45% CAGR até 2030. Isso é quase o dobro da taxa de crescimento do mercado de chatbots mais maduro, que está se expandindo cerca de 23% anualmente <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>.</p>
+<p><strong>Investimento e Retorno</strong></p>
+<p>Agentes de IA custam entre $8.000-$15.000 para implementar, mas entregam resultados 5 vezes melhores que chatbots tradicionais <span class="citation" data-cites="p0stman2025guide">(<a href="99-references.html#ref-p0stman2025guide" role="doc-biblioref">P0STMAN 2025</a>)</span>. Esse investimento adicional se justifica em cenários onde automação completa de <em>workflows</em> e tomada de decisão autônoma geram valor significativo.</p>
+</section>
+<section id="quando-usar-cada-abordagem" class="level3">
+<h3 class="anchored" data-anchor-id="quando-usar-cada-abordagem">Quando usar cada abordagem</h3>
+<p>A escolha entre chatbots e agentes de IA não é binária — é uma questão de alinhamento entre capacidades e necessidades. Compreender quando cada abordagem é apropriada maximiza valor e minimiza complexidade desnecessária.</p>
+<p>Podemos pensar o mesmo sobre quando criar um sistema autônomo completo versus uma solução mais simples e direta com engenharia de software tradicional. A decisão depende de <strong>vários</strong> fatores, incluindo a complexidade da tarefa, variabilidade das entradas, valor do resultado e requisitos de integração.</p>
+<p><strong>Framework de Decisão</strong></p>
+<p>Uma heurística útil: <strong>se mais de 3 destes critérios se aplicam, escolha um agente de IA</strong> <span class="citation" data-cites="p0stman2025guide">(<a href="99-references.html#ref-p0stman2025guide" role="doc-biblioref">P0STMAN 2025</a>)</span>:</p>
+<ul>
+<li>Modifica dados ou sistemas externos</li>
+<li>Requer múltiplas etapas ou decisões</li>
+<li>Consultas imprevisíveis ou altamente variáveis</li>
+<li>Contexto é crítico para qualidade da resposta</li>
+<li>Resultados de alto valor empresarial</li>
+</ul>
+<p><strong>Quando Escolher Chatbots</strong></p>
+<p>Chatbots são a escolha ideal quando:</p>
+<p><strong>Características do Caso de Uso:</strong></p>
+<ul>
+<li>Consultas de rotina com padrões previsíveis</li>
+<li><em>Workflows</em> bem definidos e lineares</li>
+<li>Interações simples e diretas</li>
+<li>Alto volume de perguntas repetitivas</li>
+<li>Necessidade de respostas rápidas e consistentes</li>
+</ul>
+<p><strong>Considerações Práticas:</strong></p>
+<ul>
+<li>Orçamento limitado ($2.000-$5.000)</li>
+<li>Necessidade de implementação rápida</li>
+<li>Equipe técnica com recursos limitados</li>
+<li>ROI focado em deflexão de consultas básicas</li>
+</ul>
+<p><strong>Exemplos Concretos:</strong></p>
+<ul>
+<li>FAQ automatizado para produtos ou serviços</li>
+<li>Suporte de primeiro nível (horários, políticas, informações básicas)</li>
+<li>Coleta de informações estruturadas (formulários conversacionais)</li>
+<li>Agendamento simples com disponibilidade predefinida</li>
+</ul>
+<p><strong>Quando Escolher Agentes de IA</strong></p>
+<p>Agentes de IA são superiores quando:</p>
+<p><strong>Características do Caso de Uso:</strong></p>
+<ul>
+<li><em>Workflows</em> complexos e multi-etapas</li>
+<li>Necessidade de ações reais em sistemas externos</li>
+<li>Tomada de decisão dinâmica e contextual</li>
+<li>Análise de dados e recomendações personalizadas</li>
+<li>Resolução autônoma de problemas</li>
+</ul>
+<p><strong>Capacidades Necessárias:</strong></p>
+<ul>
+<li>Análise preditiva e otimização de decisões</li>
+<li>Processamento de dados não estruturados</li>
+<li>Integração profunda com múltiplos sistemas</li>
+<li>Adaptação a cenários novos e inesperados</li>
+<li>Memória de longo prazo e contexto persistente</li>
+</ul>
+<p><strong>Exemplos Concretos:</strong></p>
+<ul>
+<li>Processamento completo de reembolsos (verificação, aprovação, execução)</li>
+<li>Análise de dados de clientes e recomendações personalizadas</li>
+<li>Resolução autônoma de problemas técnicos complexos</li>
+<li>Orquestração de <em>workflows</em> entre múltiplos sistemas</li>
+<li>Assistentes de vendas que qualificam <em>leads</em>, agendam reuniões e atualizam CRM</li>
+</ul>
+<p><strong>Abordagem Progressiva</strong></p>
+<p>Uma estratégia pragmática é começar com chatbots e evoluir conforme necessário <span class="citation" data-cites="p0stman2025guide">(<a href="99-references.html#ref-p0stman2025guide" role="doc-biblioref">P0STMAN 2025</a>)</span>:</p>
+<ol type="1">
+<li><strong>Fase Inicial</strong>: Implemente um chatbot para lidar com consultas de rotina</li>
+<li><strong>Avaliação</strong>: Identifique padrões onde chatbots falham ou exigem intervenção humana</li>
+<li><strong>Evolução Incremental</strong>: Adicione ações e integrações gradualmente</li>
+<li><strong>Transformação</strong>: Transforme o chatbot em um agente completo quando o ROI justificar</li>
+</ol>
+<p>Essa progressão permite aprendizado organizacional, validação de valor e investimento alinhado com maturidade.</p>
+<p><strong>O Cenário Estratificado</strong></p>
+<p>O resultado é uma paisagem estratificada: chatbots básicos servem como ferramentas de Q&amp;A de nível de entrada, enquanto agentes se tornam o padrão para qualquer coisa que requer ação <span class="citation" data-cites="salesforce2024agent">(<a href="99-references.html#ref-salesforce2024agent" role="doc-biblioref">Salesforce 2024a</a>)</span>. A escolha não é “qual é melhor”, mas sim “qual é apropriado para este contexto específico”.</p>
+<p><strong>Critérios de Avaliação</strong></p>
+<p>Empresas devem avaliar seus casos de uso, expectativas de clientes e necessidades de integração antes de decidir sobre uma solução baseada em IA <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span>. Considere:</p>
+<ul>
+<li><strong>Complexidade da tarefa</strong>: Informacional vs.&nbsp;transacional</li>
+<li><strong>Variabilidade de entrada</strong>: Previsível vs.&nbsp;imprevisível</li>
+<li><strong>Valor do resultado</strong>: Deflexão de custos vs.&nbsp;geração de receita</li>
+<li><strong>Requisitos de integração</strong>: Leitura vs.&nbsp;escrita em sistemas externos</li>
+<li><strong>Contexto temporal</strong>: Interação única vs.&nbsp;relacionamento contínuo</li>
+</ul>
+<p>A decisão final depende de suas necessidades empresariais específicas: escolha chatbots para automação custo-efetiva de tarefas rotineiras, ou invista em agentes de IA quando precisar de tomada de decisão autônoma e gerenciamento de <em>workflows</em> complexos <span class="citation" data-cites="devrev2024agent">(<a href="99-references.html#ref-devrev2024agent" role="doc-biblioref">DevRev 2024</a>)</span>.</p>
+</section>
+</section>
+<section id="taxonomia-de-agentes" class="level2">
+<h2 class="anchored" data-anchor-id="taxonomia-de-agentes">Taxonomia de Agentes</h2>
+<p>Assim como organizamos o mundo natural em categorias para melhor compreendê-lo, classificar agentes de IA em tipos distintos nos ajuda a entender suas capacidades, limitações e aplicações apropriadas, facilitando a nossa tomada de decisão como engenheiros de software quando projetamos sistemas complexos. A taxonomia de agentes evoluiu ao longo das décadas, refletindo tanto avanços teóricos quanto necessidades práticas.</p>
+<p>Existem múltiplas formas de categorizar agentes — por sua arquitetura interna, capacidades cognitivas, ou estratégias de tomada de decisão. Nesta seção, exploraremos as principais classificações, começando com a taxonomia clássica de Russell e Norvig e expandindo para abordagens arquiteturais modernas.</p>
+<section id="classificação-clássica-de-russell-e-norvig" class="level3">
+<h3 class="anchored" data-anchor-id="classificação-clássica-de-russell-e-norvig">Classificação Clássica de Russell e Norvig</h3>
+<p>Russell e Norvig (2003) agruparam agentes em cinco classes baseadas em seu grau de inteligência percebida e capacidade <span class="citation" data-cites="russellandnorvig2003 wikipedia2024agents">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>; <a href="99-references.html#ref-wikipedia2024agents" role="doc-biblioref">Wikipedia 2024</a>)</span>. Esta classificação permanece fundamental para compreender a evolução da complexidade em agentes.</p>
+<p><strong>1. Agentes Reflexivos Simples (<em>Simple Reflex Agents</em>)</strong></p>
+<p>Agentes reflexivos simples agem apenas com base na percepção atual, ignorando o resto do histórico de percepções <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>. A função do agente é baseada em regras <em>condition-action</em>: “se condição, então ação” <span class="citation" data-cites="wikipedia2024agents">(<a href="99-references.html#ref-wikipedia2024agents" role="doc-biblioref">Wikipedia 2024</a>)</span>.</p>
+<p><strong>Características:</strong></p>
+<ul>
+<li>Respondem a estímulos específicos em seu ambiente sem manter estado interno</li>
+<li>Tipicamente usados para tarefas simples onde respostas imediatas são necessárias <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Rápidos e computacionalmente eficientes <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Sem memória ou capacidade de aprendizado <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+</ul>
+<p><strong>Limitações:</strong> Esta função de agente só tem sucesso quando o ambiente é totalmente observável <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>. Em ambientes parcialmente observáveis, agentes reflexivos simples podem falhar ou comportar-se de forma subótima.</p>
+<p><strong>Exemplo prático:</strong> Um termostato simples que liga o aquecedor quando a temperatura cai abaixo de um limiar e o desliga quando excede outro.</p>
+<p><strong>2. Agentes Reflexivos Baseados em Modelo (<em>Model-Based Reflex Agents</em>)</strong></p>
+<p>Um agente reflexivo baseado em modelo deve manter algum tipo de modelo interno que depende do histórico de percepções e, portanto, reflete pelo menos alguns dos aspectos não observados do estado atual <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>. Um agente baseado em modelo pode lidar com ambientes parcialmente observáveis <span class="citation" data-cites="wikipedia2024agents">(<a href="99-references.html#ref-wikipedia2024agents" role="doc-biblioref">Wikipedia 2024</a>)</span>.</p>
+<p><strong>Avanços sobre agentes simples:</strong></p>
+<ul>
+<li>Mantêm representação interna do mundo</li>
+<li>Rastreiam aspectos do ambiente não diretamente observáveis</li>
+<li>Atualizam seu modelo baseado em percepções e ações anteriores</li>
+<li>Podem funcionar em ambientes parcialmente observáveis</li>
+</ul>
+<p><strong>Exemplo prático:</strong> Um robô de limpeza que mantém um mapa interno do ambiente, rastreando áreas já limpas mesmo quando não estão atualmente visíveis.</p>
+<p><strong>3. Agentes Baseados em Objetivos (<em>Goal-Based Agents</em>)</strong></p>
+<p>Agentes baseados em objetivos expandem ainda mais as capacidades dos agentes baseados em modelo, usando informação de “objetivo” <span class="citation" data-cites="russellandnorvig2003">(<a href="99-references.html#ref-russellandnorvig2003" role="doc-biblioref">Russell e Norvig 2003</a>)</span>. Informação de objetivo descreve situações que são desejáveis. Isso fornece ao agente uma forma de escolher entre múltiplas possibilidades, selecionando aquela que alcança um estado de objetivo <span class="citation" data-cites="wikipedia2024agents">(<a href="99-references.html#ref-wikipedia2024agents" role="doc-biblioref">Wikipedia 2024</a>)</span>.</p>
+<p><strong>Capacidades distintivas:</strong></p>
+<ul>
+<li>Representam explicitamente estados desejáveis do mundo</li>
+<li>Avaliam sequências de ações para alcançar objetivos</li>
+<li>Podem planejar caminhos para alcançar múltiplos objetivos</li>
+<li>Tomam decisões baseadas em quão bem ações contribuem para objetivos</li>
+</ul>
+<p><strong>Diferença fundamental:</strong> Enquanto agentes reflexivos reagem ao presente, agentes baseados em objetivos antecipam o futuro, considerando “O que acontecerá se eu fizer X?” e “Isso me levará mais perto do meu objetivo?”</p>
+<p><strong>Exemplo prático:</strong> Um agente de navegação que planeja rotas considerando múltiplos objetivos como minimizar tempo, evitar pedágios e passar por um posto de gasolina.</p>
+<p><strong>4. Agentes Baseados em Utilidade (<em>Utility-Based Agents</em>)</strong></p>
+<p>Agentes baseados em utilidade tomam decisões baseadas em seus objetivos e avaliam múltiplos cenários para maximizar sua função de utilidade esperada <span class="citation" data-cites="professionalai2024types">(<a href="99-references.html#ref-professionalai2024types" role="doc-biblioref">ProfessionalAI.com 2024</a>)</span>. Seu foco não é apenas alcançar objetivos, mas encontrar a melhor alternativa/caminho para alcançar aquele objetivo particular <span class="citation" data-cites="professionalai2024types">(<a href="99-references.html#ref-professionalai2024types" role="doc-biblioref">ProfessionalAI.com 2024</a>)</span>.</p>
+<p><strong>Sofisticação adicional:</strong></p>
+<ul>
+<li>Usam uma função de utilidade para classificar cenários possíveis <span class="citation" data-cites="professionalai2024types">(<a href="99-references.html#ref-professionalai2024types" role="doc-biblioref">ProfessionalAI.com 2024</a>)</span></li>
+<li>Empregam medida geral de desempenho para compará-los <span class="citation" data-cites="professionalai2024types">(<a href="99-references.html#ref-professionalai2024types" role="doc-biblioref">ProfessionalAI.com 2024</a>)</span></li>
+<li>Lidam com trade-offs entre objetivos conflitantes</li>
+<li>Otimizam não apenas para sucesso, mas para qualidade do sucesso</li>
+</ul>
+<p><strong>Quando são necessários:</strong></p>
+<ul>
+<li>Objetivos podem estar em conflito (rapidez vs.&nbsp;segurança)</li>
+<li>Múltiplos objetivos com diferentes prioridades</li>
+<li>Incerteza sobre alcançar objetivos (maximizar probabilidade)</li>
+<li>Necessidade de equilibrar objetivos de curto e longo prazo</li>
+</ul>
+<p><strong>Exemplo prático:</strong> Um assistente de investimentos que não apenas busca lucro (objetivo), mas otimiza para o melhor equilíbrio entre retorno esperado, risco, liquidez e horizonte temporal.</p>
+<p><strong>5. Agentes de Aprendizado (<em>Learning Agents</em>)</strong></p>
+<p>Agentes de aprendizado podem aprender e melhorar através de interações com o ambiente <span class="citation" data-cites="professionalai2024types">(<a href="99-references.html#ref-professionalai2024types" role="doc-biblioref">ProfessionalAI.com 2024</a>)</span>. Esses agentes podem adaptar e melhorar seu desempenho ao longo do tempo baseado em experiência <span class="citation" data-cites="wikipedia2024agents">(<a href="99-references.html#ref-wikipedia2024agents" role="doc-biblioref">Wikipedia 2024</a>)</span>.</p>
+<p><strong>Componentes de um agente de aprendizado:</strong></p>
+<ul>
+<li><strong>Elemento de aprendizado</strong>: Responsável por melhorias baseadas em experiência</li>
+<li><strong>Elemento de desempenho</strong>: Seleciona ações externas (pode ser qualquer tipo de agente acima)</li>
+<li><strong>Crítico</strong>: Fornece <em>feedback</em> sobre como o agente está indo</li>
+<li><strong>Gerador de problemas</strong>: Sugere ações exploratórias para novas experiências</li>
+</ul>
+<p><strong>Capacidades transformadoras:</strong></p>
+<ul>
+<li>Começam com conhecimento básico e melhoram com experiência</li>
+<li>Adaptam-se a ambientes em mudança</li>
+<li>Descobrem padrões não antecipados por designers</li>
+<li>Podem operar em domínios onde programação explícita é impraticável</li>
+</ul>
+<p><strong>Exemplo prático:</strong> Um agente de recomendação que inicialmente usa regras gerais, mas aprende preferências individuais dos usuários ao longo do tempo, melhorando continuamente suas sugestões.</p>
+</section>
+<section id="agentes-reativos-stimulus-response" class="level3">
+<h3 class="anchored" data-anchor-id="agentes-reativos-stimulus-response">Agentes reativos (<em>stimulus-response</em>)</h3>
+<p>Expandindo a classificação de Russell e Norvig, a taxonomia arquitetural identifica agentes reativos como aqueles que operam baseados no princípio <em>condition-action</em>, reagindo a entradas imediatas e suas percepções atuais de acordo com regras predefinidas <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Princípios de Operação</strong></p>
+<p>Agentes reativos analisam entradas de seu ambiente e produzem saídas imediatas sem engajar em processos mais profundos de raciocínio ou aprendizado <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>. Eles não mantêm uma compreensão profunda do mundo além da situação atual e tipicamente não consideram ações passadas ou consequências futuras <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Arquitetura Subsumption</strong></p>
+<p>Uma abordagem influente para agentes reativos é a <em>arquitetura de subsunção</em> de Rodney Brooks, que organiza comportamentos em camadas hierárquicas. Camadas superiores podem “subsumir” (sobrescrever) camadas inferiores, permitindo comportamentos complexos emergirem de regras simples.</p>
+<p><strong>Vantagens:</strong></p>
+<ul>
+<li>Respostas extremamente rápidas (latência mínima)</li>
+<li>Computacionalmente eficientes</li>
+<li>Previsíveis e debugáveis</li>
+<li>Robustos em ambientes bem definidos</li>
+</ul>
+<p><strong>Limitações:</strong></p>
+<ul>
+<li>Incapazes de planejar ou antecipar</li>
+<li>Não aprendem com experiência</li>
+<li>Lutam com ambientes complexos ou novos</li>
+<li>Podem ficar presos em loops comportamentais</li>
+</ul>
+<p><strong>Aplicações modernas:</strong></p>
+<ul>
+<li>Sistemas de controle em tempo real</li>
+<li>Comportamentos básicos em robótica (evitar obstáculos)</li>
+<li>Sistemas embarcados com recursos limitados</li>
+<li>Componentes de baixo nível em arquiteturas híbridas</li>
+</ul>
+</section>
+<section id="agentes-deliberativos-goal-driven" class="level3">
+<h3 class="anchored" data-anchor-id="agentes-deliberativos-goal-driven">Agentes deliberativos (<em>goal-driven</em>)</h3>
+<p>Agentes deliberativos engajam em raciocínio e planejamento para alcançar objetivos específicos <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>. Eles frequentemente mantêm um modelo interno de seu ambiente para avaliar ações potenciais e suas consequências antes de agir <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Características Fundamentais</strong></p>
+<p>Esses agentes mantêm um modelo interno do mundo e podem planejar suas ações baseadas nesse modelo <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>. São mais complexos e podem lidar com tarefas que requerem previsão e estratégia <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Processo de Deliberação</strong></p>
+<ol type="1">
+<li><strong>Modelagem</strong>: Construir e manter representação do mundo</li>
+<li><strong>Planejamento</strong>: Gerar sequências de ações para alcançar objetivos</li>
+<li><strong>Raciocínio</strong>: Avaliar consequências de diferentes planos</li>
+<li><strong>Seleção</strong>: Escolher o plano mais promissor</li>
+<li><strong>Execução</strong>: Implementar ações sequencialmente</li>
+<li><strong>Monitoramento</strong>: Verificar se plano está funcionando</li>
+</ol>
+<p><strong>Técnicas de Planejamento:</strong></p>
+<ul>
+<li>Busca em espaço de estados (A*, busca heurística)</li>
+<li>Planejamento hierárquico (decomposição de tarefas)</li>
+<li>Planejamento temporal (considerando tempo e recursos)</li>
+<li>Planejamento contingente (planos com ramificações)</li>
+</ul>
+<p><strong>Vantagens:</strong></p>
+<ul>
+<li>Podem resolver problemas complexos</li>
+<li>Otimizam para eficiência e qualidade</li>
+<li>Lidam bem com objetivos de longo prazo</li>
+<li>Adaptam planos quando o mundo muda</li>
+</ul>
+<p><strong>Limitações:</strong></p>
+<ul>
+<li>Computacionalmente custosos</li>
+<li>Requerem tempo para deliberação</li>
+<li>Dependem da qualidade do modelo do mundo</li>
+<li>Podem falhar se modelo for impreciso</li>
+</ul>
+<p><strong>Aplicações práticas:</strong></p>
+<ul>
+<li>Encontrados em veículos autônomos onde gerenciam navegação e tomada de decisão <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Robótica inteligente, realizando tarefas intricadas enquanto adaptam-se ao ambiente <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Sistemas de planejamento logístico</li>
+<li>Assistentes pessoais que organizam agendas complexas</li>
+</ul>
+</section>
+<section id="agentes-híbridos" class="level3">
+<h3 class="anchored" data-anchor-id="agentes-híbridos">Agentes híbridos</h3>
+<p>Agentes de IA híbridos são sistemas que integram elementos tanto reativos quanto deliberativos <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>. Esses agentes usam uma mistura de ações baseadas em regras para tarefas imediatas e processos avançados de tomada de decisão para desafios mais complexos <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Motivação para Arquiteturas Híbridas</strong></p>
+<p>O mundo real demanda tanto velocidade quanto inteligência:</p>
+<ul>
+<li>Situações de emergência requerem reação imediata (reatividade)</li>
+<li>Problemas complexos requerem planejamento cuidadoso (deliberação)</li>
+<li>Contextos dinâmicos beneficiam-se de ambos</li>
+</ul>
+<p><strong>Arquiteturas Híbridas Comuns</strong></p>
+<p><strong>1. Arquitetura em Camadas Horizontais</strong></p>
+<ul>
+<li>Camada reativa lida com comportamentos de baixo nível</li>
+<li>Camada deliberativa faz planejamento de alto nível</li>
+<li>Mediador coordena entre camadas</li>
+</ul>
+<p><strong>2. Arquitetura em Camadas Verticais</strong></p>
+<ul>
+<li>Múltiplas camadas processam entrada simultaneamente</li>
+<li>Cada camada pode sugerir ações</li>
+<li>Árbitro decide qual camada controla saída</li>
+</ul>
+<p><strong>3. Arquitetura BDI Híbrida</strong></p>
+<ul>
+<li>Combina crenças-desejos-intenções com comportamentos reativos</li>
+<li>Biblioteca de planos predefinidos para eficiência</li>
+<li>Deliberação apenas quando necessário</li>
+</ul>
+<p><strong>Vantagens:</strong></p>
+<ul>
+<li>Flexibilidade para alternar entre ações reativas e deliberativas baseado em contexto <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Reduzem falha ao retornar a comportamento mais simples se planejamento falhar <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span></li>
+<li>Equilibram velocidade de resposta com qualidade de decisão</li>
+<li>Otimizam uso de recursos computacionais</li>
+</ul>
+<p><strong>Desafios de Design:</strong></p>
+<ul>
+<li>Determinar quando usar qual modo</li>
+<li>Evitar conflitos entre camadas</li>
+<li>Garantir transições suaves</li>
+<li>Balancear complexidade com desempenho</li>
+</ul>
+<p><strong>Aplicações práticas:</strong></p>
+<ul>
+<li>Robôs autônomos em ambientes dinâmicos</li>
+<li>Veículos autônomos (reação rápida + planejamento de rota)</li>
+<li>Jogos de estratégia em tempo real</li>
+<li>Sistemas de controle industrial</li>
+</ul>
+</section>
+<section id="agentes-de-aprendizado" class="level3">
+<h3 class="anchored" data-anchor-id="agentes-de-aprendizado">Agentes de aprendizado</h3>
+<p>Agentes de aprendizado e adaptativos podem aprender de dados, interações e <em>feedback</em> e melhorar seu desempenho ao longo do tempo <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>. Eles podem refinar suas respostas, adaptar-se a novos cenários e continuamente aprimorar suas capacidades <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Quando Ocorre o Aprendizado</strong></p>
+<p>O aprendizado pode ocorrer durante o desenvolvimento (por exemplo, modelos ajustados finamente) ou durante a operação (por exemplo, aprendizado por reforço ou aprendizado contínuo) <span class="citation" data-cites="medium2024taxonomy">(<a href="99-references.html#ref-medium2024taxonomy" role="doc-biblioref">Raghuvanshi 2024</a>)</span>.</p>
+<p><strong>Paradigmas de Aprendizado</strong></p>
+<p><strong>1. Aprendizado Supervisionado</strong></p>
+<ul>
+<li>Aprende de exemplos rotulados</li>
+<li>Usado para classificação e predição</li>
+<li>Exemplo: Agente aprende a categorizar emails como spam</li>
+</ul>
+<p><strong>2. Aprendizado por Reforço</strong></p>
+<ul>
+<li>Aprende através de tentativa e erro</li>
+<li>Maximiza recompensas acumuladas</li>
+<li>Exemplo: Agente aprende a jogar xadrez através de auto-jogo</li>
+</ul>
+<p><strong>3. Aprendizado Não Supervisionado</strong></p>
+<ul>
+<li>Descobre padrões em dados não rotulados</li>
+<li>Usado para clustering e descoberta</li>
+<li>Exemplo: Agente identifica segmentos de clientes</li>
+</ul>
+<p><strong>4. Aprendizado por Transferência</strong></p>
+<ul>
+<li>Aplica conhecimento de um domínio a outro</li>
+<li>Acelera aprendizado em novas tarefas</li>
+<li>Exemplo: Agente usa conhecimento de um idioma para aprender outro</li>
+</ul>
+<p><strong>5. Aprendizado Meta (Meta-Learning)</strong></p>
+<ul>
+<li>Aprende como aprender mais eficientemente</li>
+<li>Adapta-se rapidamente a novas tarefas</li>
+<li>Exemplo: Few-shot learning em <em>LLMs</em></li>
+</ul>
+<p><strong>Ciclo de Aprendizado Contínuo</strong></p>
+<ol type="1">
+<li><strong>Experiência</strong>: Agente interage com ambiente</li>
+<li><strong>Feedback</strong>: Recebe sinais de sucesso/falha</li>
+<li><strong>Análise</strong>: Identifica padrões e causas</li>
+<li><strong>Atualização</strong>: Modifica políticas ou modelos</li>
+<li><strong>Aplicação</strong>: Usa conhecimento melhorado</li>
+</ol>
+<p><strong>Desafios:</strong></p>
+<ul>
+<li>Balancear exploração (novas ações) vs.&nbsp;exploração (ações conhecidas)</li>
+<li>Evitar <em>overfitting</em> a experiências recentes</li>
+<li>Lidar com <em>concept drift</em> (mundo mudando)</li>
+<li>Garantir segurança durante aprendizado</li>
+</ul>
+<p><strong>Aplicações transformadoras:</strong></p>
+<ul>
+<li>Sistemas de recomendação personalizados</li>
+<li>Assistentes virtuais adaptativos</li>
+<li>Robôs que aprendem novas habilidades</li>
+<li>Sistemas de detecção de fraude evolutivos</li>
+<li>Agentes de <em>trading</em> que adaptam a mercados</li>
+</ul>
+<p><strong>Agentes <em>LLM</em>-based modernos</strong> combinam múltiplas categorias: são agentes de aprendizado (treinados em vastos dados), podem ser deliberativos (planejamento via <em>chain-of-thought</em>), reativos (respostas diretas), e híbridos (combinando modos conforme contexto).</p>
+</section>
+</section>
+<section id="o-ciclo-percepção-ação" class="level2">
+<h2 class="anchored" data-anchor-id="o-ciclo-percepção-ação">O Ciclo Percepção-Ação</h2>
+<p>Após compreendermos a taxonomia dos agentes e suas diferentes arquiteturas, agora é necessário entender o mecanismo fundamental que permite a todos os agentes inteligentes — sejam reativos, deliberativos ou híbridos — interagirem efetivamente com seu ambiente: o <em>ciclo percepção-ação</em>.</p>
+<p>Este ciclo, também conhecido como <em>sense-think-act</em> ou <em>perception-action loop</em>, representa o fluxo circular de informação que ocorre entre o agente e seu ambiente no decorrer de uma sequência de comportamentos guiada sensorialmente em direção a um objetivo <span class="citation" data-cites="allaboutai2024pac">(<a href="99-references.html#ref-allaboutai2024pac" role="doc-biblioref">All About AI 2024c</a>)</span>. É a base do aprendizado, adaptação e comportamento inteligente — seja em cérebros, robôs ou sistemas de IA <span class="citation" data-cites="allaboutai2024pac">(<a href="99-references.html#ref-allaboutai2024pac" role="doc-biblioref">All About AI 2024c</a>)</span>.</p>
+<section id="observação-do-ambiente" class="level3">
+<h3 class="anchored" data-anchor-id="observação-do-ambiente">Observação do ambiente</h3>
+<p>A primeira fase do ciclo é a <strong>percepção</strong> ou <strong>sensoriamento</strong>, onde o agente coleta informações sobre seu ambiente através de sensores ou entradas de dados <span class="citation" data-cites="pesto2024agents">(<a href="99-references.html#ref-pesto2024agents" role="doc-biblioref">Pesto Tech 2024</a>)</span>. Antes de poder tomar decisões apropriadas, o agente necessita de uma visão robusta de seu ambiente em todas as condições <span class="citation" data-cites="microcontroller2024sense">(<a href="99-references.html#ref-microcontroller2024sense" role="doc-biblioref">Microcontroller Tips 2024</a>)</span>.</p>
+<p><strong>Natureza da Percepção</strong></p>
+<p>A percepção em agentes de IA envolve detectar mudanças no ambiente através de diversos mecanismos <span class="citation" data-cites="amplework2024loops">(<a href="99-references.html#ref-amplework2024loops" role="doc-biblioref">Amplework 2024a</a>)</span>:</p>
+<ul>
+<li><strong>Agentes Físicos</strong>: Câmeras para visão, microfones para áudio, sensores de toque, temperatura, proximidade</li>
+<li><strong>Agentes de Software</strong>: APIs, <em>web scraping</em>, entrada de usuários, fluxos de dados, logs de sistema</li>
+<li><strong>Agentes Híbridos</strong>: Combinação de sensores físicos e digitais</li>
+</ul>
+<p><strong>Desafios Perceptuais</strong></p>
+<p>A qualidade da percepção afeta diretamente a qualidade das decisões subsequentes. Agentes devem lidar com:</p>
+<ul>
+<li><strong>Ruído Sensorial</strong>: Dados imprecisos ou corrompidos</li>
+<li><strong>Informação Parcial</strong>: Ambientes não completamente observáveis</li>
+<li><strong>Ambiguidade</strong>: Múltiplas interpretações possíveis do mesmo dado</li>
+<li><strong>Volume</strong>: Grandes quantidades de dados que precisam ser filtrados</li>
+</ul>
+<p>A percepção não é meramente passiva — agentes inteligentes ativamente buscam informação relevante, priorizando sensores e fontes de dados baseados em seus objetivos atuais <span class="citation" data-cites="ibm2024perception">(<a href="99-references.html#ref-ibm2024perception" role="doc-biblioref">IBM 2024b</a>)</span>.</p>
+</section>
+<section id="processamento-e-raciocínio" class="level3">
+<h3 class="anchored" data-anchor-id="processamento-e-raciocínio">Processamento e raciocínio</h3>
+<p>Após coletar dados sensoriais, o agente entra na fase de <strong>processamento e raciocínio</strong>, onde interpreta a informação percebida e a transforma em representações internas significativas <span class="citation" data-cites="pesto2024agents">(<a href="99-references.html#ref-pesto2024agents" role="doc-biblioref">Pesto Tech 2024</a>)</span>.</p>
+<p><strong>O Motor de Raciocínio (<em>Reasoning Engine</em>)</strong></p>
+<p>O <em>reasoning engine</em> é o componente que alimenta as fases de planejamento e chamada de ferramentas dos <em>workflows</em> agentic <span class="citation" data-cites="ibm2024reasoning">(<a href="99-references.html#ref-ibm2024reasoning" role="doc-biblioref">IBM 2024a</a>)</span>. O <em>LLM</em> atua como o motor de raciocínio do agente, processando prompts e transformando-os em ações, decisões ou consultas a outros componentes <span class="citation" data-cites="toloka2024components">(<a href="99-references.html#ref-toloka2024components" role="doc-biblioref">Toloka AI 2024</a>)</span>.</p>
+<p><strong>Estratégias de Raciocínio</strong></p>
+<p>Agentes modernos empregam diferentes estratégias de raciocínio conforme a complexidade da tarefa <span class="citation" data-cites="nvidia2024reasoning">(<a href="99-references.html#ref-nvidia2024reasoning" role="doc-biblioref">NVIDIA 2024</a>)</span>:</p>
+<p><strong>Pensamento Sistema 1 vs.&nbsp;Sistema 2</strong></p>
+<ul>
+<li><strong>Sistema 1</strong> (rápido, intuitivo): Assistentes básicos seguem um caminho rápido para tarefas simples</li>
+<li><strong>Sistema 2</strong> (deliberado, analítico): Inferência profunda entra em ação com capacidade de compreender e pensar através de uma situação, entregar insights relevantes e sugerir ações <span class="citation" data-cites="salesforce2024reasoning">(<a href="99-references.html#ref-salesforce2024reasoning" role="doc-biblioref">Salesforce 2024b</a>)</span></li>
+</ul>
+<p><strong>Abordagens Populares</strong></p>
+<ul>
+<li><strong>Chain-of-Thought (CoT)</strong>: Imita tomada de decisão ao estilo humano, instruindo um <em>LLM</em> a decompor um problema complexo em uma sequência de passos <span class="citation" data-cites="nvidia2024reasoning">(<a href="99-references.html#ref-nvidia2024reasoning" role="doc-biblioref">NVIDIA 2024</a>)</span></li>
+<li><strong>ReAct (Reasoning and Acting)</strong>: Acessa informação do mundo real para raciocínio, levando a melhor tratamento de erros e menores taxas de alucinação <span class="citation" data-cites="nvidia2024reasoning">(<a href="99-references.html#ref-nvidia2024reasoning" role="doc-biblioref">NVIDIA 2024</a>)</span></li>
+</ul>
+<p><strong>Módulo de Planejamento</strong></p>
+<p>O módulo de planejamento permite ao agente decompor objetivos em etapas menores e gerenciáveis, sequenciando-as logicamente <span class="citation" data-cites="toloka2024components">(<a href="99-references.html#ref-toloka2024components" role="doc-biblioref">Toloka AI 2024</a>)</span>. Emprega raciocínio simbólico, árvores de decisão ou estratégias algorítmicas para determinar a abordagem mais efetiva <span class="citation" data-cites="toloka2024components">(<a href="99-references.html#ref-toloka2024components" role="doc-biblioref">Toloka AI 2024</a>)</span>.</p>
+<p>O planejamento envolve <span class="citation" data-cites="ibm2024planning">(<a href="99-references.html#ref-ibm2024planning" role="doc-biblioref">IBM 2024c</a>)</span>:</p>
+<ol type="1">
+<li><strong>Decomposição de Tarefas</strong>: Quebrar objetivos complexos em sub-objetivos</li>
+<li><strong>Priorização de Objetivos</strong>: Determinar ordem e importância</li>
+<li><strong>Sequenciamento de Ações</strong>: Ordenar passos logicamente</li>
+<li><strong>Alocação de Recursos</strong>: Considerar tempo, memória e ferramentas disponíveis</li>
+</ol>
+</section>
+<section id="tomada-de-decisão" class="level3">
+<h3 class="anchored" data-anchor-id="tomada-de-decisão">Tomada de decisão</h3>
+<p>A fase de <strong>tomada de decisão</strong> é onde a “inteligência” em IA realmente brilha, pois o agente deve interpretar dados complexos e escolher a resposta mais apropriada <span class="citation" data-cites="certlibrary2024agents">(<a href="99-references.html#ref-certlibrary2024agents" role="doc-biblioref">CertLibrary 2024</a>)</span>.</p>
+<p><strong>Processo de Decisão</strong></p>
+<p>Baseado na informação percebida e processada, o agente determina o próximo curso de ação. Esse processo varia dramaticamente conforme o tipo de agente:</p>
+<p><strong>Agentes Reativos:</strong></p>
+<ul>
+<li>Aplicam regras <em>condition-action</em> diretas</li>
+<li>Decisão quase instantânea</li>
+<li>Adequado para ambientes previsíveis</li>
+</ul>
+<p><strong>Agentes Deliberativos:</strong></p>
+<ul>
+<li>Avaliam múltiplas sequências de ações</li>
+<li>Consideram consequências futuras</li>
+<li>Otimizam para objetivos de longo prazo</li>
+</ul>
+<p><strong>Agentes Baseados em Utilidade:</strong></p>
+<ul>
+<li>Calculam utilidade esperada de cada opção</li>
+<li>Equilibram objetivos conflitantes</li>
+<li>Maximizam função de utilidade geral</li>
+</ul>
+<p><strong>Fatores na Tomada de Decisão</strong></p>
+<p>Agentes sofisticados consideram <span class="citation" data-cites="smythos2024decision">(<a href="99-references.html#ref-smythos2024decision" role="doc-biblioref">SmythOS 2024b</a>)</span>:</p>
+<ul>
+<li><strong>Certeza vs.&nbsp;Incerteza</strong>: Quão confiável é a informação disponível?</li>
+<li><strong>Exploração vs.&nbsp;Exploração</strong>: Tentar algo novo ou usar conhecimento existente?</li>
+<li><strong>Custo vs.&nbsp;Benefício</strong>: Vale a pena o recurso necessário para a ação?</li>
+<li><strong>Curto vs.&nbsp;Longo Prazo</strong>: Otimizar para recompensa imediata ou futura?</li>
+</ul>
+<p><strong>Raciocínio Sob Incerteza</strong></p>
+<p>No mundo real, agentes raramente têm informação completa. Técnicas modernas incluem:</p>
+<ul>
+<li><strong>Raciocínio Probabilístico</strong>: Usar distribuições de probabilidade</li>
+<li><strong>Teoria da Decisão</strong>: Maximizar utilidade esperada</li>
+<li><strong>Planejamento Contingente</strong>: Preparar para múltiplos cenários</li>
+<li><strong>Aprendizado Ativo</strong>: Buscar informação que reduz incerteza</li>
+</ul>
+</section>
+<section id="execução-de-ações" class="level3">
+<h3 class="anchored" data-anchor-id="execução-de-ações">Execução de ações</h3>
+<p>Após decidir o curso de ação, o agente entra na fase de <strong>execução</strong>, onde realiza ações que modificam o estado do ambiente <span class="citation" data-cites="pesto2024agents">(<a href="99-references.html#ref-pesto2024agents" role="doc-biblioref">Pesto Tech 2024</a>)</span>.</p>
+<p><strong>Natureza das Ações</strong></p>
+<p>As ações executadas variam conforme o tipo de agente <span class="citation" data-cites="amplework2024loops">(<a href="99-references.html#ref-amplework2024loops" role="doc-biblioref">Amplework 2024a</a>)</span>:</p>
+<p><strong>Agentes Físicos:</strong></p>
+<ul>
+<li>Movimentar-se no espaço (motores, rodas)</li>
+<li>Manipular objetos (braços robóticos, garras)</li>
+<li>Comunicar-se (alto-falantes, displays)</li>
+<li>Modificar o ambiente (aquecimento, iluminação)</li>
+</ul>
+<p><strong>Agentes de Software:</strong></p>
+<ul>
+<li>Chamar APIs externas</li>
+<li>Modificar bases de dados</li>
+<li>Enviar mensagens ou notificações</li>
+<li>Gerar conteúdo (texto, código, imagens)</li>
+<li>Acionar <em>workflows</em> em outros sistemas</li>
+</ul>
+<p><strong>Orquestração de Ações Multi-Etapas</strong></p>
+<p>Agentes modernos frequentemente executam sequências complexas de ações <span class="citation" data-cites="livechatai2024chatbot">(<a href="99-references.html#ref-livechatai2024chatbot" role="doc-biblioref">LiveChatAI 2024</a>)</span>:</p>
+<ol type="1">
+<li>Tentam uma ação</li>
+<li>Verificam o resultado</li>
+<li>Movem-se para a próxima etapa</li>
+<li>Continuam até que o objetivo seja alcançado ou precisem de ajuda</li>
+</ol>
+<p>Essa capacidade de orquestração permite que agentes completem <em>workflows</em> complexos de forma autônoma, distinguindo-os de chatbots simples que apenas conversam.</p>
+<p><strong>Gerenciamento de Falhas</strong></p>
+<p>A execução no mundo real nem sempre ocorre conforme planejado. Agentes robustos implementam:</p>
+<ul>
+<li><strong>Detecção de Falhas</strong>: Monitorar se ações foram bem-sucedidas</li>
+<li><strong>Recuperação</strong>: Estratégias alternativas quando ações falham</li>
+<li><strong>Rollback</strong>: Desfazer ações parcialmente completadas se necessário</li>
+<li><strong>Escalonamento</strong>: Solicitar ajuda humana quando apropriado</li>
+</ul>
+</section>
+<section id="feedback-loop" class="level3">
+<h3 class="anchored" data-anchor-id="feedback-loop">Feedback loop</h3>
+<p>A característica definitiva do ciclo percepção-ação é sua natureza <strong>cíclica e contínua</strong> — cada ação executada pelo agente afeta o ambiente, que por sua vez fornece nova entrada sensorial, criando um <em>feedback loop</em> constante <span class="citation" data-cites="smythos2024interaction">(<a href="99-references.html#ref-smythos2024interaction" role="doc-biblioref">SmythOS 2024a</a>)</span>.</p>
+<p><strong>O Loop de Feedback Fundamental</strong></p>
+<p>Este loop recursivo funciona da seguinte forma <span class="citation" data-cites="amplework2024loops">(<a href="99-references.html#ref-amplework2024loops" role="doc-biblioref">Amplework 2024a</a>)</span>:</p>
+<ol type="1">
+<li><strong>Ação modifica o ambiente</strong>: Cada ação do agente causa mudanças</li>
+<li><strong>Ambiente fornece novo estado</strong>: Sensores captam o novo estado</li>
+<li><strong>Percepção atualizada</strong>: Agente percebe os efeitos de suas ações</li>
+<li><strong>Avaliação de resultados</strong>: Compara resultado esperado vs.&nbsp;real</li>
+<li><strong>Ajuste de estratégia</strong>: Modifica plano se necessário</li>
+<li><strong>Próxima ação</strong>: Ciclo recomeça</li>
+</ol>
+<p><strong>Aprendizado Contínuo Através de Feedback</strong></p>
+<p>Um <em>feedback loop</em> robusto permite que um agente de IA aprenda, adapte-se e torne-se mais resiliente ao longo do tempo <span class="citation" data-cites="getbasalt2024feedback">(<a href="99-references.html#ref-getbasalt2024feedback" role="doc-biblioref">Basalt AI 2024</a>)</span>. O conceito de <em>closed-loop learning</em> é central para o sucesso da IA em ambientes empresariais dinâmicos <span class="citation" data-cites="bludigital2024feedback">(<a href="99-references.html#ref-bludigital2024feedback" role="doc-biblioref">Blu Digital AI 2024</a>)</span>:</p>
+<p><strong>Processo de Aprendizado Contínuo:</strong></p>
+<ol type="1">
+<li><strong>Análise de Feedback</strong>: IA analisa <em>feedback</em> (como sentimento ou uso)</li>
+<li><strong>Geração de Insights</strong>: Gera ações ou insights</li>
+<li><strong>Recebimento de Dados</strong>: Recebe dados de acompanhamento sobre resultados</li>
+<li><strong>Retreinamento</strong>: Usa essa resposta para retreinar-se ao longo do tempo <span class="citation" data-cites="zonkafeedback2024loop">(<a href="99-references.html#ref-zonkafeedback2024loop" role="doc-biblioref">Zonka Feedback 2024</a>)</span></li>
+</ol>
+<p><strong>Tipos de Feedback</strong></p>
+<p>Agentes podem receber <em>feedback</em> de múltiplas fontes <span class="citation" data-cites="xoriant2024continuous">(<a href="99-references.html#ref-xoriant2024continuous" role="doc-biblioref">Xoriant 2024</a>)</span>:</p>
+<ul>
+<li><strong>Feedback Explícito</strong>: Avaliações de usuários, correções humanas</li>
+<li><strong>Feedback Implícito</strong>: Métricas de desempenho, taxas de sucesso</li>
+<li><strong>Feedback do Ambiente</strong>: Mudanças de estado observáveis</li>
+<li><strong>Feedback de Outros Agentes</strong>: Em sistemas multi-agentes</li>
+<li><strong>Auto-avaliação</strong>: Crítico interno comparando resultado vs.&nbsp;expectativa</li>
+</ul>
+<p><strong>Benefícios do Feedback Loop</strong></p>
+<p>Loops de <em>feedback</em> são cruciais em IA agentic, habilitando aprendizado contínuo e adaptação <span class="citation" data-cites="amplework2024agentic">(<a href="99-references.html#ref-amplework2024agentic" role="doc-biblioref">Amplework 2024b</a>)</span>:</p>
+<ul>
+<li><strong>Refinamento de Algoritmos</strong>: IA refina algoritmos ao longo do tempo, levando a predições, recomendações e insights mais precisos <span class="citation" data-cites="bludigital2024feedback">(<a href="99-references.html#ref-bludigital2024feedback" role="doc-biblioref">Blu Digital AI 2024</a>)</span></li>
+<li><strong>Adaptação a Mudanças</strong>: Permite que sistemas se adaptem a condições em mudança, como tendências de mercado ou preferências de clientes <span class="citation" data-cites="bludigital2024feedback">(<a href="99-references.html#ref-bludigital2024feedback" role="doc-biblioref">Blu Digital AI 2024</a>)</span></li>
+<li><strong>Otimização de Desempenho</strong>: Melhora continuamente acurácia, reduz erros e otimiza desempenho <span class="citation" data-cites="amplework2024loops">(<a href="99-references.html#ref-amplework2024loops" role="doc-biblioref">Amplework 2024a</a>)</span></li>
+<li><strong>Resiliência</strong>: Torna agentes mais robustos a situações inesperadas</li>
+</ul>
+<p><strong>Loops de Feedback em 2024</strong></p>
+<p>Desenvolvimentos recentes demonstram loops de <em>feedback</em> cada vez mais sofisticados <span class="citation" data-cites="arxiv2024multiagent">(<a href="99-references.html#ref-arxiv2024multiagent" role="doc-biblioref">Authors 2024a</a>)</span>:</p>
+<ul>
+<li><strong>Otimização Autônoma</strong>: Agentes ajustam papéis e interações autonomamente via <em>feedback loops</em></li>
+<li><strong>Aprendizado Multi-Agente</strong>: Sistemas onde múltiplos agentes aprendem uns com os outros</li>
+<li><strong>Adaptação em Tempo Real</strong>: Ajustes instantâneos baseados em mudanças ambientais</li>
+</ul>
+<p><strong>Exemplo Prático: Precificação Dinâmica</strong></p>
+<p>Um agente de IA para precificação dinâmica demonstra o ciclo completo <span class="citation" data-cites="startupsgurukul2024perception">(<a href="99-references.html#ref-startupsgurukul2024perception" role="doc-biblioref">Startupsgurukul 2024</a>)</span>:</p>
+<ol type="1">
+<li><strong>Percepção</strong>: Coleta dados de mercado em tempo real (preços de concorrentes, demanda)</li>
+<li><strong>Raciocínio</strong>: Analisa padrões, identifica tendências</li>
+<li><strong>Decisão</strong>: Calcula preço ótimo considerando múltiplos fatores</li>
+<li><strong>Ação</strong>: Atualiza preços nos sistemas</li>
+<li><strong>Feedback</strong>: Monitora vendas, receita, satisfação do cliente</li>
+<li><strong>Aprendizado</strong>: Ajusta estratégia baseada em resultados</li>
+</ol>
+<p>Este ciclo ocorre continuamente, permitindo ajustes rápidos a mudanças ambientais.</p>
+<p><strong>Ciclo Percepção-Ação como Fundamento</strong></p>
+<p>O ciclo percepção-ação não é apenas um modelo conceitual — é o mecanismo operacional fundamental de todos os agentes inteligentes <span class="citation" data-cites="allaboutai2024anatomy">(<a href="99-references.html#ref-allaboutai2024anatomy" role="doc-biblioref">All About AI 2024a</a>)</span>. Seja um robô navegando em um ambiente físico ou um agente de software gerenciando <em>workflows</em> empresariais, este ciclo de <em>sentir, processar, decidir, agir e aprender</em> é o que transforma código estático em sistemas verdadeiramente inteligentes e adaptativos.</p>
+<p>Compreender este ciclo é essencial para projetar, implementar e depurar agentes de IA eficazes. Cada fase apresenta seus próprios desafios técnicos e oportunidades de otimização, e a qualidade do sistema completo depende de quão bem essas fases se integram em um todo coeso e responsivo.</p>
+</section>
+</section>
+<section id="desafios-e-considerações-éticas" class="level2">
+<h2 class="anchored" data-anchor-id="desafios-e-considerações-éticas">Desafios e Considerações Éticas</h2>
+<p>Após explorarmos as capacidades técnicas dos agentes de IA, é imperativo confrontarmos as implicações éticas, sociais e políticas dessa tecnologia. Como desenvolvedores e engenheiros, temos a responsabilidade de construir sistemas que não apenas funcionem tecnicamente, mas que também sirvam ao bem comum e protejam os mais vulneráveis.</p>
+<p>Esta seção não oferece apenas uma lista de “melhores práticas” descontextualizadas, mas uma análise crítica dos desafios reais que agentes de IA apresentam para privacidade, trabalho, justiça social e democracia. Ignorar essas questões não é neutralidade — é cumplicidade com estruturas que perpetuam desigualdade.</p>
+<section id="privacidade-e-segurança-dos-dados" class="level3">
+<h3 class="anchored" data-anchor-id="privacidade-e-segurança-dos-dados">Privacidade e segurança dos dados</h3>
+<p>A promessa de agentes de IA autônomos depende fundamentalmente de acesso extensivo a dados — mas esse acesso cria riscos sem precedentes para privacidade individual e segurança coletiva.</p>
+<p><strong>O Paradoxo da Autonomia e Privacidade</strong></p>
+<p>Agentes de IA precisam acessar dados e sistemas para realizar tarefas com autonomia, sendo mais valiosos quando auxiliam tarefas envolvendo dados altamente sensíveis como gerenciamento de email, calendários, portfólios financeiros ou tomada de decisão em saúde <span class="citation" data-cites="fpf2024agents">(<a href="99-references.html#ref-fpf2024agents" role="doc-biblioref">Future of Privacy Forum 2024</a>)</span>. Quanto mais dados coletados para realizar tarefas, maior o potencial de excesso, transformando esses sistemas em ferramentas que monitoram e criam perfis de usuários <span class="citation" data-cites="fpf2024agents">(<a href="99-references.html#ref-fpf2024agents" role="doc-biblioref">Future of Privacy Forum 2024</a>)</span>.</p>
+<p><strong>Vulnerabilidades de Segurança Específicas</strong></p>
+<p>Características de design de agentes de IA avançados os tornam suscetíveis a novos tipos de ameaças de segurança, incluindo ataques de injeção de prompt que podem manipular esses modelos para revelar informações sensíveis como dados de cartão de crédito <span class="citation" data-cites="ehsan2024privacy">(<a href="99-references.html#ref-ehsan2024privacy" role="doc-biblioref">Ehsan 2024</a>)</span>. O acesso de agentes de IA a grandes quantidades de dados os torna alvos potenciais para ciberataques, onde qualquer violação pode comprometer dados pessoais sensíveis, resultando em roubo de identidade ou fraude financeira <span class="citation" data-cites="gdprlocal2024privacy">(<a href="99-references.html#ref-gdprlocal2024privacy" role="doc-biblioref">GDPR Local 2024</a>)</span>.</p>
+<p><strong>Coleta de Dados Telemetria</strong></p>
+<p>Agentes de IA podem coletar muitos tipos de dados de telemetria granulares como parte de suas operações, incluindo dados de interação do usuário, logs de ação e métricas de desempenho, que podem se qualificar como dados pessoais sob regimes legais de privacidade de dados <span class="citation" data-cites="fpf2024agents">(<a href="99-references.html#ref-fpf2024agents" role="doc-biblioref">Future of Privacy Forum 2024</a>)</span>. Essa coleta contínua e detalhada cria perfis comportamentais extremamente invasivos.</p>
+<p><strong>Desafios de Conformidade Regulatória</strong></p>
+<p>Regulamentações incluindo LGPD (Lei Geral de Proteção de Dados) no Brasil e GDPR na Europa requerem que organizações mantenham controle rigoroso sobre uso e processamento de dados pessoais, mas esses <em>frameworks</em> regulatórios não foram projetados pensando em sistemas autônomos, particularmente aqueles capazes de ação independente através de múltiplos ambientes computacionais <span class="citation" data-cites="metomic2024security">(<a href="99-references.html#ref-metomic2024security" role="doc-biblioref">Metomic 2024</a>)</span>. Leis de proteção de dados impõem requisitos rigorosos de conformidade, mas automação orientada por IA complica aderência <span class="citation" data-cites="zscaler2024gdpr">(<a href="99-references.html#ref-zscaler2024gdpr" role="doc-biblioref">Zscaler 2024</a>)</span>.</p>
+<p><strong>Questões de Fronteira e Controle</strong></p>
+<p>Quando agentes de IA recuperam informações de clientes ou acessam dados operacionais, devem fazê-lo dentro de fronteiras claramente definidas, mas essas fronteiras frequentemente permanecem indefinidas ou mal aplicadas, criando oportunidades para exposição não autorizada de dados <span class="citation" data-cites="metomic2024security">(<a href="99-references.html#ref-metomic2024security" role="doc-biblioref">Metomic 2024</a>)</span>. Uma preocupante estatística: embora 96% das organizações planejem expandir seu uso de agentes de IA no próximo ano, mais da metade identifica privacidade de dados como o obstáculo primário <span class="citation" data-cites="kiteworks2024privacy">(<a href="99-references.html#ref-kiteworks2024privacy" role="doc-biblioref">Kiteworks 2024</a>)</span>.</p>
+<p><strong>LGPD e Penalidades no Brasil</strong></p>
+<p>A LGPD (Lei nº 13.709/2018) estabelece que empresas devem ser transparentes sobre uso de dados e garantir aos titulares o direito de acessar, corrigir e deletar suas informações. A Autoridade Nacional de Proteção de Dados (ANPD) pode aplicar sanções que incluem multas de até 2% do faturamento da empresa no Brasil (limitadas a R$ 50 milhões por infração), além de advertências, publicização da infração e bloqueio ou eliminação dos dados. O custo da não conformidade não é apenas financeiro — é também de confiança pública e legitimidade social.</p>
+<p><strong>Recomendações para Desenvolvedores</strong></p>
+<ul>
+<li><strong>Minimização de Dados</strong>: Implemente o princípio de minimização — colete apenas dados estritamente necessários para a função específica</li>
+<li><strong>Privacy by Design</strong>: Incorpore proteções de privacidade desde a concepção, não como adição posterior</li>
+<li><strong>Transparência Radical</strong>: Documente claramente quais dados são coletados, como são usados e por quanto tempo são retidos</li>
+<li><strong>Controle do Usuário</strong>: Forneça mecanismos genuínos para que usuários acessem, corrijam e deletem seus dados</li>
+<li><strong>Auditoria Independente</strong>: Submeta sistemas a auditorias de privacidade por terceiros independentes</li>
+<li><strong>Criptografia End-to-End</strong>: Quando possível, processe dados sensíveis localmente e use criptografia forte para dados em trânsito e em repouso</li>
+</ul>
+</section>
+<section id="transparência-e-explicabilidade" class="level3">
+<h3 class="anchored" data-anchor-id="transparência-e-explicabilidade">Transparência e explicabilidade</h3>
+<p>A opacidade dos sistemas de IA não é apenas um desafio técnico — é um problema político que afeta accountability democrática e justiça social.</p>
+<p><strong>Por Que Transparência Importa</strong></p>
+<p>Transparência é uma pedra angular da ética de IA, e sistemas de IA transparentes permitem que partes interessadas compreendam como decisões são tomadas e garantam accountability <span class="citation" data-cites="frontiers2024transparency">(<a href="99-references.html#ref-frontiers2024transparency" role="doc-biblioref">Authors 2024f</a>)</span>. Transparência em governança de IA engloba múltiplos aspectos cruciais incluindo explicabilidade de modelo, transparência de dados, documentação, divulgação de riscos, avaliações de viés, <em>frameworks</em> de governança e comunicação com partes interessadas <span class="citation" data-cites="oceg2024transparency">(<a href="99-references.html#ref-oceg2024transparency" role="doc-biblioref">OCEG 2024</a>)</span>.</p>
+<p><strong>Lacuna de Confiança</strong></p>
+<p>De acordo com pesquisa da PwC, enquanto 90% de executivos acreditavam estar construindo confiança com sucesso, apenas 30% dos consumidores sentiam o mesmo, o que sublinha o papel crítico de transparência e accountability em preencher a lacuna de confiança <span class="citation" data-cites="lumenova2024transparency">(<a href="99-references.html#ref-lumenova2024transparency" role="doc-biblioref">Lumenova AI 2024</a>)</span>. Essa desconexão não é acidental — reflete incentivos estruturais que favorecem opacidade.</p>
+<p><strong>Avanços Regulatórios Globais</strong></p>
+<p>Diferentes jurisdições têm avançado em regulamentação de IA: a União Europeia aprovou o AI Act em 2024, estabelecendo requisitos rigorosos de transparência; nos Estados Unidos, agências federais melhoraram relatórios sobre sistemas de IA, com inventários capturando mais de 1.700 aplicações — um aumento de 200% em relação ao ano anterior <span class="citation" data-cites="techpolicy2024transparency">(<a href="99-references.html#ref-techpolicy2024transparency" role="doc-biblioref">TechPolicy.Press 2024</a>)</span>. No Brasil, embora ainda não exista legislação específica sobre IA, a LGPD já estabelece requisitos de transparência para tratamento automatizado de dados, e o Projeto de Lei 2338/2023 propõe marco regulatório específico para inteligência artificial.</p>
+<p><strong>Explicabilidade como Direito</strong></p>
+<p>Explicabilidade significa que organizações devem fornecer aos indivíduos uma explicação em linguagem simples da lógica e processo de tomada de decisão do sistema de IA para que indivíduos saibam como a IA gerou a saída ou decisão <span class="citation" data-cites="mayerbrown2024transparency">(<a href="99-references.html#ref-mayerbrown2024transparency" role="doc-biblioref">Mayer Brown 2024</a>)</span>. Isso não é cortesia — é um direito fundamental em contextos que afetam vidas.</p>
+<p><strong>Abordagem Multifacetada para Accountability</strong></p>
+<p>Alcançar transparência e accountability de IA requer uma abordagem multifacetada que combina soluções técnicas, <em>frameworks</em> legais e regulatórios, princípios éticos e colaboração multi-stakeholder <span class="citation" data-cites="frontiers2024transparency">(<a href="99-references.html#ref-frontiers2024transparency" role="doc-biblioref">Authors 2024f</a>)</span>. Accountability pode ser examinada de múltiplas perspectivas: accountability legal, alcançada através de medidas regulatórias e parcerias público-privadas; accountability técnica, enfatizando logging e auditoria; e accountability ética, focando na identificação de riscos éticos <span class="citation" data-cites="frontiers2024transparency">(<a href="99-references.html#ref-frontiers2024transparency" role="doc-biblioref">Authors 2024f</a>)</span>.</p>
+<p><strong>Desafio da “Caixa Preta”</strong></p>
+<p>Modelos de <em>deep learning</em> que alimentam agentes modernos são notoriamente opacos — mesmo seus criadores frequentemente não conseguem explicar por que o modelo chegou a uma decisão específica. Essa opacidade é particularmente problemática em:</p>
+<ul>
+<li><strong>Decisões de Emprego</strong>: Por que um candidato foi rejeitado?</li>
+<li><strong>Crédito e Seguros</strong>: Por que uma aplicação foi negada?</li>
+<li><strong>Justiça Criminal</strong>: Por que um indivíduo foi classificado como alto risco?</li>
+<li><strong>Saúde</strong>: Por que um tratamento foi recomendado ou negado?</li>
+</ul>
+<p><strong>Propriedade Intelectual vs.&nbsp;Interesse Público</strong></p>
+<p>Detalhes-chave sobre modelos como ChatGPT da OpenAI, Gemini do Google e Claude da Anthropic são mantidos fechados pelas empresas que os fazem, guardados como segredos comerciais, e essas empresas enfrentam poucos incentivos para liberar essa informação <span class="citation" data-cites="mittr2025energy">(<a href="99-references.html#ref-mittr2025energy" role="doc-biblioref">MIT Technology Review 2025</a>)</span>. Quando empresas privadas controlam sistemas que afetam decisões públicas críticas, o segredo comercial não pode superar o direito público à transparência.</p>
+<p><strong>Recomendações para Transparência</strong></p>
+<ul>
+<li><strong>Documentação Abrangente</strong>: Mantenha documentação detalhada de arquitetura de modelo, dados de treinamento, métricas de desempenho e limitações conhecidas</li>
+<li><strong>Explicações Contextuais</strong>: Forneça explicações adaptadas ao público — técnicas para auditores, simples para usuários finais</li>
+<li><strong>Logs de Decisão</strong>: Mantenha registros auditáveis de decisões tomadas por agentes, incluindo entrada, processo e justificativa</li>
+<li><strong>Testes de Viés</strong>: Conduza avaliações regulares de viés e publique resultados</li>
+<li><strong>Direito de Contestação</strong>: Implemente processos claros para que indivíduos contestem decisões automatizadas</li>
+<li><strong>Open Source Quando Possível</strong>: Considere abrir código de modelos que afetam decisões públicas críticas</li>
+</ul>
+</section>
+<section id="impacto-no-mercado-de-trabalho" class="level3">
+<h3 class="anchored" data-anchor-id="impacto-no-mercado-de-trabalho">Impacto no mercado de trabalho</h3>
+<p>A automação via agentes de IA não é uma força natural inevitável — é resultado de escolhas políticas e econômicas que podem e devem ser contestadas e moldadas democraticamente.</p>
+<p><strong>Magnitude do Deslocamento Potencial</strong></p>
+<p>Goldman Sachs estima que IA poderia substituir o equivalente a 300 milhões de empregos em tempo integral globalmente, embora inovação relacionada à IA possa deslocar 6-7% da força de trabalho se amplamente adotada <span class="citation" data-cites="nu2024jobs">(<a href="99-references.html#ref-nu2024jobs" role="doc-biblioref">National University 2024</a>)</span>. O Fórum Econômico Mundial estimou que inteligência artificial substituirá cerca de 85 milhões de empregos até 2025, embora também se projete que 97 milhões de novos papéis surgirão <span class="citation" data-cites="aiprm2024statistics">(<a href="99-references.html#ref-aiprm2024statistics" role="doc-biblioref">AIPRM 2024</a>)</span>.</p>
+<p>A questão crítica não é apenas o número bruto de empregos, mas <strong>quais empregos</strong> e <strong>quem</strong> é afetado. No Brasil, setores como atendimento ao cliente, processos administrativos e financeiros estão entre os mais vulneráveis à automação.</p>
+<p><strong>Desigualdade de Impacto: Gênero, Raça e Classe</strong></p>
+<p>Quase 80% daqueles que verão seus empregos apagados nos próximos 10 anos podem ganhar menos de $38.000 anualmente, e sem proteções, mulheres trabalhadoras e pessoas de cor experimentarão os piores resultados sociais e econômicos <span class="citation" data-cites="civilrights2024worker">(<a href="99-references.html#ref-civilrights2024worker" role="doc-biblioref">The Leadership Conference on Civil and Human Rights 2024</a>)</span>. Essa não é uma falha do sistema — é o sistema funcionando conforme projetado para concentrar ganhos no topo enquanto externaliza custos para baixo.</p>
+<p><strong>Disparidades de Gênero</strong></p>
+<p>79% das mulheres empregadas nos EUA trabalham em empregos com alto risco de automação, comparado a 58% dos homens <span class="citation" data-cites="nu2024jobs">(<a href="99-references.html#ref-nu2024jobs" role="doc-biblioref">National University 2024</a>)</span>. Em nações de alta renda, 9,6% dos empregos de mulheres estão em maior risco de automação por IA, comparado a 3,2% para homens <span class="citation" data-cites="nu2024jobs">(<a href="99-references.html#ref-nu2024jobs" role="doc-biblioref">National University 2024</a>)</span>. Essa disparidade reflete segregação ocupacional de gênero preexistente que IA ameaça aprofundar. No Brasil, onde mulheres estão concentradas em setores como educação, saúde e serviços administrativos, o impacto diferenciado merece atenção especial.</p>
+<p><strong>Ocupações Mais Vulneráveis</strong></p>
+<p>Ocupações em maior risco de serem deslocadas por IA incluem <span class="citation" data-cites="nu2024jobs aiprm2024statistics">(<a href="99-references.html#ref-nu2024jobs" role="doc-biblioref">National University 2024</a>; <a href="99-references.html#ref-aiprm2024statistics" role="doc-biblioref">AIPRM 2024</a>)</span>:</p>
+<ul>
+<li>Programadores de computador</li>
+<li>Contadores e auditores</li>
+<li>Assistentes jurídicos e administrativos</li>
+<li>Representantes de atendimento ao cliente</li>
+<li>Operadores de telemarketing</li>
+<li>Revisores e editores de cópias</li>
+<li>Analistas de crédito</li>
+<li>Transcritores médicos (declínio projetado de 4,7% de 2023 a 2033)</li>
+</ul>
+<p>Empregos de manufatura rotineiros perderam 1,7 milhão desde 2000 devido à automação <span class="citation" data-cites="nu2024jobs">(<a href="99-references.html#ref-nu2024jobs" role="doc-biblioref">National University 2024</a>)</span>.</p>
+<p><strong>O Mito da “Transição Suave”</strong></p>
+<p>Proponentes de IA frequentemente argumentam que deslocamento será “transitório” à medida que novos empregos surgem <span class="citation" data-cites="goldmansachs2024workforce">(<a href="99-references.html#ref-goldmansachs2024workforce" role="doc-biblioref">Goldman Sachs 2024</a>)</span>. Mas essa narrativa ignora:</p>
+<ol type="1">
+<li><strong>Descompasso Temporal</strong>: Empregos são perdidos imediatamente; novos empregos podem levar anos ou décadas para emergir em escala</li>
+<li><strong>Descompasso de Habilidades</strong>: Trabalhadores deslocados raramente têm habilidades para novos empregos técnicos</li>
+<li><strong>Descompasso Geográfico</strong>: Novos empregos podem surgir em locais diferentes de onde empregos foram perdidos</li>
+<li><strong>Descompasso de Qualidade</strong>: Novos empregos podem pagar menos e oferecer menos segurança que empregos perdidos</li>
+</ol>
+<p><strong>Vigilância e Controle no Local de Trabalho</strong></p>
+<p>Dentro de armazéns da Amazon, trabalhadores usam dispositivos que rastreiam sua produtividade através de um algoritmo, e posteriormente trabalhadores recebem avisos automatizados de demissão para aqueles que têm desempenho abaixo do esperado, com alertas em tempo real por estar “fora da tarefa” por muito tempo <span class="citation" data-cites="aflcio2024labor">(<a href="99-references.html#ref-aflcio2024labor" role="doc-biblioref">AFL-CIO 2024</a>)</span>. Essa vigilância tem sido vinculada a resultados negativos de saúde, com monitoramento aumentado e foco em velocidade levando a taxas mais altas de esgotamento, exaustão e lesão <span class="citation" data-cites="harvardclje2024regulating">(<a href="99-references.html#ref-harvardclje2024regulating" role="doc-biblioref">Harvard Center for Labor and a Just Economy 2024</a>)</span>.</p>
+<p><strong>Perspectiva Histórica</strong></p>
+<p>História mostra que recessões econômicas frequentemente aceleram adoção tecnológica, e a próxima desaceleração pode ser o ponto de inflexão quando impacto de IA em empregos muda de gradual para súbito <span class="citation" data-cites="venturebeat2024displacement">(<a href="99-references.html#ref-venturebeat2024displacement" role="doc-biblioref">VentureBeat 2024</a>)</span>. Deslocamento de empregos tende a desaparecer após dois anos, sugerindo efeitos temporários em vez de permanentes — mas “temporário” oferece pouco conforto para trabalhadores que perdem casa, saúde ou estabilidade familiar <span class="citation" data-cites="yale2024evaluating">(<a href="99-references.html#ref-yale2024evaluating" role="doc-biblioref">The Budget Lab at Yale 2024</a>)</span>.</p>
+<p><strong>Resistência Organizada: Trabalhadores Respondem</strong></p>
+<p>Sindicatos globalmente não se opõem à IA, reconhecendo que tem potencial de desencadear prosperidade que melhora condições de trabalho <span class="citation" data-cites="yalejreg2024belaboring">(<a href="99-references.html#ref-yalejreg2024belaboring" role="doc-biblioref">Authors 2024c</a>)</span>. No entanto, organizações trabalhistas estão lutando para garantir que IA se torne tema central em negociações coletivas, argumentando que empresas são míopes ao substituir trabalhadores do conhecimento com tecnologia que não consegue igualar criatividade humana e é repleta de erros e viés <span class="citation" data-cites="washingtonpost2023unions">(<a href="99-references.html#ref-washingtonpost2023unions" role="doc-biblioref">The Washington Post 2023</a>)</span>. No Brasil, centrais sindicais como CUT e Força Sindical têm discutido a necessidade de incluir cláusulas sobre uso de IA em convenções coletivas.</p>
+<p><strong>Vitórias Sindicais Recentes</strong></p>
+<p>Diretores de Hollywood conseguiram acordo tentativo com estúdios de cinema e obtiveram promessas de que “não serão substituídos” por inteligência artificial, marcando uma das primeiras concessões que trabalho organizado conseguiu em relação a proteções de IA <span class="citation" data-cites="aflcio2024labor">(<a href="99-references.html#ref-aflcio2024labor" role="doc-biblioref">AFL-CIO 2024</a>)</span>. Esses precedentes internacionais servem de inspiração para movimentos trabalhistas em outras regiões.</p>
+<p><strong>Estratégias de Organização</strong></p>
+<p>Representantes sindicais unanimemente instaram trabalhadores a negociar como IA e outras formas de tecnologia são usadas no local de trabalho <span class="citation" data-cites="yalejreg2024belaboring">(<a href="99-references.html#ref-yalejreg2024belaboring" role="doc-biblioref">Authors 2024c</a>)</span>. Em vez de empregadores injetarem unilateralmente tecnologia no local de trabalho, trabalho pode lutar por voz em sua criação e adoção <span class="citation" data-cites="cap2024unions">(<a href="99-references.html#ref-cap2024unions" role="doc-biblioref">Center for American Progress 2024</a>)</span>.</p>
+<p><strong>Proteções Legislativas e Regulatórias</strong></p>
+<p>Diferentes países têm avançado em proteção de trabalhadores na era da IA. Nos Estados Unidos, a administração emitiu em 2023 a Ordem Executiva 14110 sobre desenvolvimento responsável de IA, e em 2024 publicou orientações sobre proteção de trabalhadores <span class="citation" data-cites="morganlewis2024workplace">(<a href="99-references.html#ref-morganlewis2024workplace" role="doc-biblioref">Morgan Lewis 2024</a>)</span>. Na União Europeia, o AI Act de 2024 estabelece requisitos específicos para sistemas de IA usados em gestão de emprego.</p>
+<p>No Brasil, o Projeto de Lei 2338/2023 (Marco Legal da Inteligência Artificial) propõe regulamentação específica, incluindo disposições sobre uso de IA em relações de trabalho. Além disso, a CLT e a LGPD já oferecem proteções relevantes: a CLT protege contra dispensa discriminatória e exige transparência em processos seletivos, enquanto a LGPD estabelece direitos sobre tratamento automatizado de dados pessoais, incluindo revisão de decisões automatizadas que afetem interesses dos titulares.</p>
+<p>Vários estados brasileiros também têm discutido legislação específica sobre IA em contextos de trabalho, especialmente relacionada a processos de contratação, avaliação de desempenho e demissão.</p>
+<p><strong>Direitos dos Trabalhadores na Era da IA</strong></p>
+<p>Decisões automatizadas devem ser revisadas por um humano, e trabalhadores devem ter o direito de apelar decisões orientadas por IA sobre agendamento, disciplina, pagamento, contratação e demissão, com proteção contra retaliação <span class="citation" data-cites="etuc2024workers">(<a href="99-references.html#ref-etuc2024workers" role="doc-biblioref">ETUC 2024</a>)</span>. Trabalhadores e seus representantes devem ter o direito de contestar e reverter decisões de IA que impactam seu emprego ou bem-estar, e empregadores devem ser obrigados a envolver sindicatos e representantes de trabalhadores em decisões de IA no local de trabalho <span class="citation" data-cites="etuc2024workers">(<a href="99-references.html#ref-etuc2024workers" role="doc-biblioref">ETUC 2024</a>)</span>.</p>
+<p><strong>Recomendações para Justiça no Trabalho</strong></p>
+<ul>
+<li><strong>Participação Democrática</strong>: Trabalhadores e sindicatos devem ter voz vinculante em decisões sobre implantação de IA</li>
+<li><strong>Avaliação de Impacto</strong>: Realize avaliações de impacto no trabalho antes de implementar sistemas de automação</li>
+<li><strong>Retreinamento Proativo</strong>: Invista em programas abrangentes de retreinamento financiados por empregadores</li>
+<li><strong>Renda Básica Universal</strong>: Apoie políticas de proteção social como UBI para lidar com deslocamento estrutural</li>
+<li><strong>Tributação de Automação</strong>: Considere impostos sobre automação para financiar transição e serviços sociais</li>
+<li><strong>Proibição de Vigilância</strong>: Rejeite sistemas de monitoramento invasivos que degradam dignidade do trabalhador</li>
+</ul>
+</section>
+<section id="viés-algorítmico-e-justiça-social" class="level3">
+<h3 class="anchored" data-anchor-id="viés-algorítmico-e-justiça-social">Viés algorítmico e justiça social</h3>
+<p>Sistemas de IA não são neutros — eles codificam e amplificam preconceitos existentes na sociedade, frequentemente de formas que são difíceis de detectar e contestar.</p>
+<p><strong>Legislação e Regulamentação</strong></p>
+<p>Em setembro de 2024, Senador Edward J. Markey introduziu o AI Civil Rights Act, legislação abrangente para colocar proteções rígidas no uso de algoritmos por empresas para decisões consequenciais, garantir que algoritmos sejam testados antes e depois do deployment, e ajudar a eliminar e prevenir viés <span class="citation" data-cites="markey2024civilrights">(<a href="99-references.html#ref-markey2024civilrights" role="doc-biblioref">U.S. Senator Ed Markey 2024</a>)</span>. A lei regula algoritmos envolvidos em decisões consequenciais impactando emprego, bancos, saúde, justiça criminal, acomodações públicas e serviços governamentais <span class="citation" data-cites="markey2024civilrights">(<a href="99-references.html#ref-markey2024civilrights" role="doc-biblioref">U.S. Senator Ed Markey 2024</a>)</span>.</p>
+<p>A Lei de Inteligência Artificial da União Europeia foi aprovada em 2024, representando um esforço significativo para regular sistemas de IA. Esta lei desloca responsabilidades de não discriminação para o estágio de design de modelos de IA, garantindo que considerações de justiça sejam integradas desde o início <span class="citation" data-cites="mdpi2024fairness">(<a href="99-references.html#ref-mdpi2024fairness" role="doc-biblioref">Ferrara 2024</a>)</span>.</p>
+<p><strong>Impactos Desproporcionais em Comunidades Marginalizadas</strong></p>
+<p>Vieses sistêmicos em algoritmos de IA impactam desproporcionadamente comunidades marginalizadas <span class="citation" data-cites="frontiersin2024bias">(<a href="99-references.html#ref-frontiersin2024bias" role="doc-biblioref">Authors 2024d</a>)</span>:</p>
+<ul>
+<li>Algoritmos de predição de pagamento de empréstimos exibem viés de gênero, resultando em taxas de aprovação mais baixas para mutuárias femininas <span class="citation" data-cites="frontiersin2024bias">(<a href="99-references.html#ref-frontiersin2024bias" role="doc-biblioref">Authors 2024d</a>)</span></li>
+<li>Algoritmos de contratação na Índia foram encontrados discriminando candidatos de comunidades marginalizadas <span class="citation" data-cites="frontiersin2024bias">(<a href="99-references.html#ref-frontiersin2024bias" role="doc-biblioref">Authors 2024d</a>)</span></li>
+<li>Algoritmos tendenciosos no sistema de justiça criminal podem levar a tratamento injusto, com pessoas de cor mais propensas a serem injustamente condenadas ou receber sentenças mais severas <span class="citation" data-cites="preprints2025bias">(<a href="99-references.html#ref-preprints2025bias" role="doc-biblioref">Authors 2025</a>)</span></li>
+</ul>
+<p>Um estudo publicado em agosto de 2024 sobre grandes modelos de linguagem descobriu que eles perpetuam racismo encoberto através de preconceito dialetal contra falantes de inglês afro-americano, exibindo estereótipos mais negativos que vieses humanos registrados <span class="citation" data-cites="frontiersin2024bias">(<a href="99-references.html#ref-frontiersin2024bias" role="doc-biblioref">Authors 2024d</a>)</span>.</p>
+<p><strong>Racismo e Discriminação Algorítmica</strong></p>
+<p>Estudos Críticos de Algoritmos examinam como algoritmos perpetuam estruturas de poder existentes e desigualdades sociais, argumentando que algoritmos podem reforçar injustiças sistêmicas ao incorporar vieses sociais em decisões automatizadas <span class="citation" data-cites="aba2024mitigating">(<a href="99-references.html#ref-aba2024mitigating" role="doc-biblioref">American Bar Association 2024</a>)</span>. Isso não é falha técnica — é consequência previsível de treinar sistemas em dados que refletem sociedades desiguais.</p>
+<p><strong>Fontes de Viés</strong></p>
+<p>Viés algorítmico pode emergir de múltiplas fontes <span class="citation" data-cites="mdpi2024fairness">(<a href="99-references.html#ref-mdpi2024fairness" role="doc-biblioref">Ferrara 2024</a>)</span>:</p>
+<ol type="1">
+<li><strong>Viés de Dados de Treinamento</strong>: Conjuntos de dados que sub-representam ou estereotipam grupos marginalizados</li>
+<li><strong>Viés de Rotulagem</strong>: Anotadores humanos trazem seus próprios preconceitos ao rotular dados</li>
+<li><strong>Viés de Proxy</strong>: Variáveis aparentemente neutras (código postal, nome) servem como proxies para raça ou classe</li>
+<li><strong>Viés de Agregação</strong>: Um modelo único trata diferentes grupos como se tivessem mesmas necessidades</li>
+<li><strong>Viés de Deployment</strong>: Sistemas aplicados de formas que afetam diferentes grupos desigualmente</li>
+</ol>
+<p><strong>Transparência e Mitigação</strong></p>
+<p>Mitigar viés algorítmico requer uma abordagem multifacetada que vai além de simplesmente consertar falhas técnicas <span class="citation" data-cites="aba2024mitigating">(<a href="99-references.html#ref-aba2024mitigating" role="doc-biblioref">American Bar Association 2024</a>)</span>. O <em>framework</em> de Gerenciamento de Risco de IA 1.0 do NIST e seu Perfil de IA Generativa de 2024 fornecem orientação prática para governar e medir mitigação de viés <span class="citation" data-cites="aba2024mitigating">(<a href="99-references.html#ref-aba2024mitigating" role="doc-biblioref">American Bar Association 2024</a>)</span>.</p>
+<p>Advocacia por políticas promovendo transparência em algoritmos de IA, processos de tomada de decisão e uso de dados, com abordagens transparentes necessárias para ganhar confiança pública e accountability <span class="citation" data-cites="springer2024policy">(<a href="99-references.html#ref-springer2024policy" role="doc-biblioref">Authors 2024e</a>)</span>.</p>
+<p><strong>Exploração Oculta: Trabalho de IA no Sul Global</strong></p>
+<p>As cadeias de valor da IA dependem de preparação de dados intensiva em trabalho, frequentemente terceirizada sob condições precárias de trabalho no Sul Global, mas também na Europa, com trabalhadores em rotulagem de dados e moderação de conteúdo expostos a condições exploratórias severas, incluindo salários baixos, monitoramento excessivo e exposição a conteúdo angustiante <span class="citation" data-cites="etuc2024workers">(<a href="99-references.html#ref-etuc2024workers" role="doc-biblioref">ETUC 2024</a>)</span>.</p>
+<p>Enquanto executivos de tecnologia no Norte Global acumulam bilhões, trabalhadores no Quênia, Filipinas e Índia rotulam dados por dólares por hora, frequentemente expostos a conteúdo traumático sem suporte adequado de saúde mental.</p>
+<p><strong>Recomendações para Justiça Algorítmica</strong></p>
+<ul>
+<li><strong>Auditoria de Viés Obrigatória</strong>: Realize avaliações de impacto de equidade antes do deployment</li>
+<li><strong>Conjuntos de Dados Representativos</strong>: Garanta que dados de treinamento representem adequadamente todos os grupos afetados</li>
+<li><strong>Equipes Diversas</strong>: Construa equipes de desenvolvimento que reflitam diversidade de usuários</li>
+<li><strong>Testes Adversariais</strong>: Procure ativamente por viés através de testes rigorosos</li>
+<li><strong>Direito de Explicação</strong>: Permita que indivíduos afetados entendam e contestem decisões</li>
+<li><strong>Condições de Trabalho Dignas</strong>: Garanta que trabalhadores de anotação de dados recebam salários justos e suporte adequado</li>
+</ul>
+</section>
+<section id="custo-ambiental-e-sustentabilidade" class="level3">
+<h3 class="anchored" data-anchor-id="custo-ambiental-e-sustentabilidade">Custo ambiental e sustentabilidade</h3>
+<p>A “nuvem” não é etérea — data centers consomem vastas quantidades de energia e água, com implicações climáticas significativas que raramente aparecem em apresentações de marketing de IA.</p>
+<p><strong>Consumo de Energia</strong></p>
+<p>Desenvolvimento de IA vem com consequências ambientais, incluindo aumento de demanda de eletricidade e consumo de água <span class="citation" data-cites="mitnews2025environmental">(<a href="99-references.html#ref-mitnews2025environmental" role="doc-biblioref">MIT News 2025</a>)</span>. A intensidade energética é particularmente preocupante:</p>
+<ul>
+<li>Um cluster de treinamento de IA generativa pode consumir sete ou oito vezes mais energia que uma carga de trabalho computacional típica <span class="citation" data-cites="wharton2024hidden">(<a href="99-references.html#ref-wharton2024hidden" role="doc-biblioref">Knowledge at Wharton 2024</a>)</span></li>
+<li>Um prompt de IA pode usar até 10 vezes mais energia para completar que uma busca regular no Google <span class="citation" data-cites="cnn2025environment">(<a href="99-references.html#ref-cnn2025environment" role="doc-biblioref">CNN 2025</a>)</span></li>
+<li>Um sistema de IA generativa pode usar 33 vezes mais energia para completar uma tarefa que software tradicional <span class="citation" data-cites="mitsloan2024energy">(<a href="99-references.html#ref-mitsloan2024energy" role="doc-biblioref">MIT Sloan 2024</a>)</span></li>
+</ul>
+<p><strong>Demandas Crescentes de Energia</strong></p>
+<p>A Agência Internacional de Energia estimou que demanda global de eletricidade de data centers poderia dobrar entre 2022 e 2026, impulsionada em parte pela adoção de IA <span class="citation" data-cites="wharton2024hidden">(<a href="99-references.html#ref-wharton2024hidden" role="doc-biblioref">Knowledge at Wharton 2024</a>)</span>. Olhando adiante, data centers atualmente representam 1% a 2% da demanda global geral de energia, mas essa cifra poderia potencialmente atingir 21% até 2030 quando custos relacionados à entrega de IA a consumidores são considerados <span class="citation" data-cites="itcc2024hidden">(<a href="99-references.html#ref-itcc2024hidden" role="doc-biblioref">IEEE Technology Climate Center 2024</a>)</span>.</p>
+<p><strong>Custos de Inferência vs.&nbsp;Treinamento</strong></p>
+<p>Enquanto treinamento de modelos de IA recebe atenção significativa, o estágio de inferência quando modelos de IA treinados são colocados em uso tem custo ambiental de longo prazo significativo, e pode representar mais consumo de energia ao longo do tempo que treinamento considerando o nível de escala <span class="citation" data-cites="mittr2025energy">(<a href="99-references.html#ref-mittr2025energy" role="doc-biblioref">MIT Technology Review 2025</a>)</span>. Notavelmente, para alguns modelos, o custo de inferência agora supera o custo de treinamento após 50 milhões de usos <span class="citation" data-cites="mittr2025energy">(<a href="99-references.html#ref-mittr2025energy" role="doc-biblioref">MIT Technology Review 2025</a>)</span>.</p>
+<p><strong>Consumo de Água</strong></p>
+<p>Além de eletricidade, água necessária para resfriamento é outro fator em cálculos de sustentabilidade de data centers <span class="citation" data-cites="itcc2024hidden">(<a href="99-references.html#ref-itcc2024hidden" role="doc-biblioref">IEEE Technology Climate Center 2024</a>)</span>. Data centers nos Estados Unidos usam cerca de 7.100 litros de água para cada megawatt-hora de energia que consomem, com data centers do Google nos EUA sozinhos consumindo estimados 12,7 bilhões de litros de água doce em 2021 <span class="citation" data-cites="itcc2024hidden">(<a href="99-references.html#ref-itcc2024hidden" role="doc-biblioref">IEEE Technology Climate Center 2024</a>)</span>.</p>
+<p><strong>Desafios de Transparência</strong></p>
+<p>A compreensão comum do consumo de energia da IA está cheia de lacunas <span class="citation" data-cites="mittr2025energy">(<a href="99-references.html#ref-mittr2025energy" role="doc-biblioref">MIT Technology Review 2025</a>)</span>. Detalhes-chave sobre modelos como ChatGPT da OpenAI, Gemini do Google e Claude da Anthropic são mantidos fechados pelas empresas que os fazem, guardados como segredos comerciais, e essas empresas enfrentam poucos incentivos para liberar essa informação <span class="citation" data-cites="mittr2025energy">(<a href="99-references.html#ref-mittr2025energy" role="doc-biblioref">MIT Technology Review 2025</a>)</span>.</p>
+<p><strong>Soluções de Sustentabilidade</strong></p>
+<p>Várias abordagens estão sendo exploradas para reduzir impacto ambiental da IA <span class="citation" data-cites="mitsloan2024energy psu2024energy">(<a href="99-references.html#ref-mitsloan2024energy" role="doc-biblioref">MIT Sloan 2024</a>; <a href="99-references.html#ref-psu2024energy" role="doc-biblioref">Penn State Institute of Energy and the Environment 2024</a>)</span>:</p>
+<ul>
+<li>Técnicas como aprendizado por transferência e destilação de modelo podem cortar significativamente uso de energia institucional ao implementar modelos de IA eficientes em energia e reduzir retreinamento desnecessário</li>
+<li>Desenvolvedores devem advogar por avaliações críticas de escolhas de desenvolvimento de software e priorização de modelos de IA menores e mais eficientes</li>
+<li>Práticas sustentáveis devem incluir medição e relatório público de uso de energia e água, priorização do desenvolvimento de hardware, algoritmos e data centers eficientes em energia, e uso apenas de energia renovável</li>
+</ul>
+<p><strong>Justiça Climática</strong></p>
+<p>Comunidades marginalizadas — frequentemente no Sul Global — suportam desproporcionalmente o ônus de infraestrutura de IA (extração de minerais raros, descarte de lixo eletrônico, poluição de data centers) enquanto recebem benefícios mínimos. Isso é colonialismo climático vestido de inovação.</p>
+<p><strong>Recomendações para Sustentabilidade</strong></p>
+<ul>
+<li><strong>Transparência Energética</strong>: Publique métricas de consumo de energia e água para modelos</li>
+<li><strong>Eficiência de Modelo</strong>: Priorize modelos menores e mais eficientes sobre gigantescos</li>
+<li><strong>Computação de Borda</strong>: Processe dados localmente quando possível para reduzir transferência</li>
+<li><strong>Avaliação de Ciclo de Vida</strong>: Considere impacto ambiental completo de hardware a descarte</li>
+<li><strong>Princípios de Justiça Climática</strong>: Centralize vozes e necessidades de comunidades mais afetadas</li>
+</ul>
+</section>
+<section id="responsabilidade-e-governança-democrática" class="level3">
+<h3 class="anchored" data-anchor-id="responsabilidade-e-governança-democrática">Responsabilidade e governança democrática</h3>
+<p>Tecnologia poderosa requer governança democrática — não apenas regulamentação corporativa de cima para baixo, mas participação significativa de trabalhadores, usuários e comunidades afetadas.</p>
+<p><strong>Por Que Governança Importa</strong></p>
+<p>Agentes de IA cada vez mais tomam decisões que afetam vidas — quem é contratado, quem recebe crédito, quem vai para prisão, quem recebe tratamento médico. Quando essas decisões são delegadas a sistemas opacos controlados por corporações privadas, accountability democrática é minada.</p>
+<p><strong>Princípios para Governança Democrática</strong></p>
+<ol type="1">
+<li><strong>Participação Multi-Stakeholder</strong>: Inclua trabalhadores, usuários, grupos de direitos civis e especialistas independentes — não apenas executivos corporativos</li>
+<li><strong>Transparência Obrigatória</strong>: Sistemas usados em decisões públicas devem ser auditáveis</li>
+<li><strong>Direito de Contestação</strong>: Indivíduos afetados devem poder contestar e reverter decisões automatizadas</li>
+<li><strong>Supervisão Pública</strong>: Agências regulatórias devem ter recursos e autoridade para fazer cumprir padrões</li>
+<li><strong>Avaliação de Impacto</strong>: Requer avaliações de impacto social antes de deployment em contextos de alto risco</li>
+<li><strong>Propriedade e Controle</strong>: Explore modelos alternativos de propriedade (cooperativas, bens comuns públicos) para infraestrutura crítica de IA</li>
+</ol>
+<p><strong>Frameworks Regulatórios Emergentes</strong></p>
+<ul>
+<li><strong>União Europeia</strong>: AI Act (2024) estabelece requisitos de risco para sistemas de IA <span class="citation" data-cites="mayerbrown2024transparency">(<a href="99-references.html#ref-mayerbrown2024transparency" role="doc-biblioref">Mayer Brown 2024</a>)</span></li>
+<li><strong>Estados Unidos</strong>: Ordem Executiva sobre IA (2023) e orientações de agências federais <span class="citation" data-cites="morganlewis2024workplace">(<a href="99-references.html#ref-morganlewis2024workplace" role="doc-biblioref">Morgan Lewis 2024</a>)</span></li>
+<li><strong>Brasil</strong>: Projeto de Lei 2338/2023 propõe marco regulatório para IA, complementando proteções já existentes na LGPD sobre tratamento automatizado de dados</li>
+<li><strong>Nível Subnacional</strong>: Estados e municípios brasileiros, assim como estados americanos (California, New York) e províncias em outros países, propondo legislação específica sobre uso de IA</li>
+</ul>
+<p><strong>Além de Regulamentação: Alternativas Estruturais</strong></p>
+<p>Regulamentação é necessária mas insuficiente. Também precisamos questionar:</p>
+<ul>
+<li><strong>Quem possui</strong> a infraestrutura de IA? (Concentração corporativa vs.&nbsp;modelos públicos/cooperativos)</li>
+<li><strong>Quem se beneficia</strong> dos ganhos de produtividade? (Acionistas vs.&nbsp;trabalhadores e sociedade)</li>
+<li><strong>Quem decide</strong> quando e como IA é implantada? (Executivos vs.&nbsp;stakeholders afetados)</li>
+<li><strong>Quais valores</strong> são incorporados em design? (Maximização de lucro vs.&nbsp;bem-estar humano)</li>
+</ul>
+<p><strong>Tecnologia a Serviço da Humanidade</strong></p>
+<p>Não há nada inevitável sobre a trajetória atual de IA. As escolhas que fazemos hoje — como desenvolvedores, engenheiros, cidadãos e organizadores — moldarão se agentes de IA servem para concentrar poder e riqueza ou para expandir capacidades humanas e democracia.</p>
+<p><strong>Chamado à Ação para Desenvolvedores</strong></p>
+<p>Como tecnólogos, temos responsabilidade especial:</p>
+<ul>
+<li><strong>Recuse Projetos Prejudiciais</strong>: Exerça poder de recusa quando solicitado a construir sistemas de vigilância ou armas autônomas</li>
+<li><strong>Organize no Local de Trabalho</strong>: Una-se a colegas para demandar práticas éticas</li>
+<li><strong>Apoie Sindicatos</strong>: Solidarize-se com trabalhadores deslocados pela automação</li>
+<li><strong>Contribua para Alternativas</strong>: Construa ferramentas <em>open-source</em> que sirvam ao bem comum</li>
+<li><strong>Eduque e Defenda</strong>: Use expertise técnica para informar debate público e política</li>
+</ul>
+<p><strong>Conclusão: Tecnologia é Política</strong></p>
+<p>Agentes de IA não são ferramentas neutras — eles incorporam escolhas sobre quais problemas importam, quem merece proteção, que futuro queremos construir. Fingir neutralidade é escolher o lado dos poderosos.</p>
+<p>Este livro equipa você com conhecimento técnico para construir agentes de IA. Use esse conhecimento com sabedoria. Construa sistemas que expandam dignidade humana, não que a diminuam. Centralize vozes marginalizadas, não as silencie. Trabalhe em direção a futuros onde tecnologia serve às massas, não apenas aos poucos.</p>
+<p>A questão não é se agentes de IA transformarão sociedade — eles já estão fazendo isso. A questão é: <strong>transformação para quem e por conta de quem?</strong></p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-ada2024chatbot" class="csl-entry" role="listitem">
+Ada. 2024. <span>“Chatbot vs. AI Agent: What’s the Difference?”</span> 2024. <a href="https://www.ada.cx/blog/chatbot-vs-ai-agent-what-s-the-difference-and-why-does-it-matter/">https://www.ada.cx/blog/chatbot-vs-ai-agent-what-s-the-difference-and-why-does-it-matter/</a>.
+</div>
+<div id="ref-aflcio2024labor" class="csl-entry" role="listitem">
+AFL-CIO. 2024. <span>“AI and Labor”</span>. 2024. <a href="https://aflcio.org/issues/future-work/ai">https://aflcio.org/issues/future-work/ai</a>.
+</div>
+<div id="ref-aiprm2024statistics" class="csl-entry" role="listitem">
+AIPRM. 2024. <span>“50+ AI Replacing Jobs Statistics 2024”</span>. 2024. <a href="https://www.aiprm.com/ai-replacing-jobs-statistics/">https://www.aiprm.com/ai-replacing-jobs-statistics/</a>.
+</div>
+<div id="ref-allaboutai2024anatomy" class="csl-entry" role="listitem">
+All About AI. 2024a. <span>“The Anatomy of an AI Agent: Perception, Cognition, and Action”</span>. 2024. <a href="https://www.allaboutai.com/ai-agents/anatomy/">https://www.allaboutai.com/ai-agents/anatomy/</a>.
+</div>
+<div id="ref-allaboutai2024bdi" class="csl-entry" role="listitem">
+———. 2024b. <span>“What Is the Belief Desire Intention Software Model?”</span> 2024. <a href="https://www.allaboutai.com/ai-glossary/belief-desire-intention-software-model/">https://www.allaboutai.com/ai-glossary/belief-desire-intention-software-model/</a>.
+</div>
+<div id="ref-allaboutai2024pac" class="csl-entry" role="listitem">
+———. 2024c. <span>“What is the Perception-Action Cycle? The AI Mechanism You Didn’t Know”</span>. 2024. <a href="https://www.allaboutai.com/ai-glossary/perception-action-cycle/">https://www.allaboutai.com/ai-glossary/perception-action-cycle/</a>.
+</div>
+<div id="ref-aba2024mitigating" class="csl-entry" role="listitem">
+American Bar Association. 2024. <span>“Mitigating Algorithmic Bias: Strategies for Addressing Discrimination in Data”</span>. 2024. <a href="https://www.americanbar.org/groups/science_technology/resources/scitech-lawyer/2024-summer/mitigating-algorithmic-bias-strategies-addressing-discrimination-data/">https://www.americanbar.org/groups/science_technology/resources/scitech-lawyer/2024-summer/mitigating-algorithmic-bias-strategies-addressing-discrimination-data/</a>.
+</div>
+<div id="ref-amplework2024loops" class="csl-entry" role="listitem">
+Amplework. 2024a. <span>“Agentic AI Loops: How Perception, Reasoning, Action &amp; Feedback Drive Self-Learning AI”</span>. 2024. <a href="https://www.amplework.com/blog/agentic-ai-loops-perception-reasoning-action-feedback/">https://www.amplework.com/blog/agentic-ai-loops-perception-reasoning-action-feedback/</a>.
+</div>
+<div id="ref-amplework2024agentic" class="csl-entry" role="listitem">
+———. 2024b. <span>“Build Feedback Loops in Agentic AI for Digital Growth”</span>. 2024. <a href="https://www.amplework.com/blog/build-feedback-loops-agentic-ai-continuous-transformation/">https://www.amplework.com/blog/build-feedback-loops-agentic-ai-continuous-transformation/</a>.
+</div>
+<div id="ref-analyticsvidhya2022peas" class="csl-entry" role="listitem">
+Analytics Vidhya. 2022. <span>“Simplifying AI Models with the PEAS Representation System”</span>. 2022. <a href="https://www.analyticsvidhya.com/blog/2022/08/simplifying-ai-models-with-the-peas-representation-system/">https://www.analyticsvidhya.com/blog/2022/08/simplifying-ai-models-with-the-peas-representation-system/</a>.
+</div>
+<div id="ref-analyticsvidhya2024autogpt" class="csl-entry" role="listitem">
+———. 2024. <span>“A Comprehensive Guide on Building AI Agents with AutoGPT”</span>. 2024. <a href="https://www.analyticsvidhya.com/blog/2024/07/ai-agents-with-autogpt/">https://www.analyticsvidhya.com/blog/2024/07/ai-agents-with-autogpt/</a>.
+</div>
+<div id="ref-arxiv2024multiagent" class="csl-entry" role="listitem">
+Authors, Multiple. 2024a. <span>“A Multi-AI Agent System for Autonomous Optimization of Agentic AI Solutions via Iterative Refinement and LLM-Driven Feedback Loops”</span>. <em>arXiv preprint</em>. <a href="https://arxiv.org/html/2412.17149v1">https://arxiv.org/html/2412.17149v1</a>.
+</div>
+<div id="ref-arxiv2024taxonomy" class="csl-entry" role="listitem">
+———. 2024b. <span>“AI Agents vs. Agentic AI: A Conceptual Taxonomy, Applications and Challenges”</span>. <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2505.10468">https://arxiv.org/abs/2505.10468</a>.
+</div>
+<div id="ref-yalejreg2024belaboring" class="csl-entry" role="listitem">
+———. 2024c. <span>“Belaboring the Algorithm: Artificial Intelligence and Labor Unions”</span>. Yale Journal on Regulation. 2024. <a href="https://www.yalejreg.com/bulletin/belaboring-the-algorithm-artificial-intelligence-and-labor-unions/">https://www.yalejreg.com/bulletin/belaboring-the-algorithm-artificial-intelligence-and-labor-unions/</a>.
+</div>
+<div id="ref-frontiersin2024bias" class="csl-entry" role="listitem">
+———. 2024d. <span>“Navigating algorithm bias in AI: ensuring fairness and trust in Africa”</span>. Frontiers in Research Metrics and Analytics. 2024. <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC11540688/">https://pmc.ncbi.nlm.nih.gov/articles/PMC11540688/</a>.
+</div>
+<div id="ref-springer2024policy" class="csl-entry" role="listitem">
+———. 2024e. <span>“Policy advice and best practices on bias and fairness in AI”</span>. Ethics and Information Technology. 2024. <a href="https://link.springer.com/article/10.1007/s10676-024-09746-w">https://link.springer.com/article/10.1007/s10676-024-09746-w</a>.
+</div>
+<div id="ref-frontiers2024transparency" class="csl-entry" role="listitem">
+———. 2024f. <span>“Transparency and accountability in AI systems: safeguarding wellbeing in the age of algorithmic decision-making”</span>. Frontiers in Human Dynamics. 2024. <a href="https://www.frontiersin.org/journals/human-dynamics/articles/10.3389/fhumd.2024.1421273/full">https://www.frontiersin.org/journals/human-dynamics/articles/10.3389/fhumd.2024.1421273/full</a>.
+</div>
+<div id="ref-preprints2025bias" class="csl-entry" role="listitem">
+———. 2025. <span>“Bias in AI Models: Origins, Impact, and Mitigation Strategies”</span>. 2025. <a href="https://www.preprints.org/manuscript/202503.1629">https://www.preprints.org/manuscript/202503.1629</a>.
+</div>
+<div id="ref-getbasalt2024feedback" class="csl-entry" role="listitem">
+Basalt AI. 2024. <span>“Feedback loops: a cornerstone of continuous improvement for AI agents”</span>. 2024. <a href="https://www.getbasalt.ai/post/feedback-loops-continuous-improvement-ai-agents">https://www.getbasalt.ai/post/feedback-loops-continuous-improvement-ai-agents</a>.
+</div>
+<div id="ref-bludigital2024feedback" class="csl-entry" role="listitem">
+Blu Digital AI. 2024. <span>“The AI Feedback Loop: Continuous Learning and Improvement in Organizational AI Systems”</span>. 2024. <a href="https://bludigital.ai/blog/2024/10/28/the-ai-feedback-loop-continuous-learning-and-improvement-in-organizational-ai-systems/">https://bludigital.ai/blog/2024/10/28/the-ai-feedback-loop-continuous-learning-and-improvement-in-organizational-ai-systems/</a>.
+</div>
+<div id="ref-cap2024unions" class="csl-entry" role="listitem">
+Center for American Progress. 2024. <span>“Unions Give Workers a Voice Over How AI Affects Their Jobs”</span>. 2024. <a href="https://www.americanprogress.org/article/unions-give-workers-a-voice-over-how-ai-affects-their-jobs/">https://www.americanprogress.org/article/unions-give-workers-a-voice-over-how-ai-affects-their-jobs/</a>.
+</div>
+<div id="ref-certlibrary2024agents" class="csl-entry" role="listitem">
+CertLibrary. 2024. <span>“A Comprehensive Guide to AI Agents”</span>. 2024. <a href="https://www.certlibrary.com/blog/a-comprehensive-guide-to-ai-agents/">https://www.certlibrary.com/blog/a-comprehensive-guide-to-ai-agents/</a>.
+</div>
+<div id="ref-medium2024nerdfortech" class="csl-entry" role="listitem">
+Clark, Matthew. 2024. <span>“Intelligent Agents”</span>. Medium - Nerd For Tech. 2024. <a href="https://medium.com/nerd-for-tech/intelligent-agents-cfec4db49be6">https://medium.com/nerd-for-tech/intelligent-agents-cfec4db49be6</a>.
+</div>
+<div id="ref-cnn2025environment" class="csl-entry" role="listitem">
+CNN. 2025. <span>“How your AI prompts could harm the environment”</span>. 2025. <a href="https://www.cnn.com/2025/06/22/climate/ai-prompt-carbon-emissions-environment-wellness">https://www.cnn.com/2025/06/22/climate/ai-prompt-carbon-emissions-environment-wellness</a>.
+</div>
+<div id="ref-devrev2024agent" class="csl-entry" role="listitem">
+DevRev. 2024. <span>“AI Agent vs Chatbot: What’s the Key Differences”</span>. 2024. <a href="https://devrev.ai/blog/ai-agent-vs-chatbot">https://devrev.ai/blog/ai-agent-vs-chatbot</a>.
+</div>
+<div id="ref-digitalocean2024chatbot" class="csl-entry" role="listitem">
+DigitalOcean. 2024. <span>“AI Agent vs AI Chatbot: Key Differences Explained”</span>. 2024. <a href="https://www.digitalocean.com/resources/articles/ai-agent-vs-ai-chatbot">https://www.digitalocean.com/resources/articles/ai-agent-vs-ai-chatbot</a>.
+</div>
+<div id="ref-drake2024rational" class="csl-entry" role="listitem">
+Drake, Peter. 2024. <span>“Rational Agents”</span>. Lewis &amp; Clark College. 2024. <a href="https://sites.google.com/a/lclark.edu/drake/courses/drakepedia/rational-agents">https://sites.google.com/a/lclark.edu/drake/courses/drakepedia/rational-agents</a>.
+</div>
+<div id="ref-eastgate2024medium" class="csl-entry" role="listitem">
+Eastgate Software. 2024. <span>“AI Agent vs. Chatbot: Key Differences &amp; Best Use Cases Explained”</span>. Medium. 2024. <a href="https://medium.com/@eastgate/ai-agent-vs-chatbot-key-differences-best-use-cases-explained-c2c2d314c73b">https://medium.com/@eastgate/ai-agent-vs-chatbot-key-differences-best-use-cases-explained-c2c2d314c73b</a>.
+</div>
+<div id="ref-ehsan2024privacy" class="csl-entry" role="listitem">
+Ehsan, Muhammad. 2024. <span>“The Privacy and Security Risks of Autonomous AI Agents”</span>. Medium. 2024. <a href="https://muhammad--ehsan.medium.com/the-privacy-and-security-risks-of-autonomous-ai-agents-acaa36c5a985">https://muhammad--ehsan.medium.com/the-privacy-and-security-risks-of-autonomous-ai-agents-acaa36c5a985</a>.
+</div>
+<div id="ref-ema2024history" class="csl-entry" role="listitem">
+EMA. 2024. <span>“The Evolution and History of AI Agents”</span>. 2024. <a href="https://www.ema.co/additional-blogs/addition-blogs/history-evolution-ai-agents">https://www.ema.co/additional-blogs/addition-blogs/history-evolution-ai-agents</a>.
+</div>
+<div id="ref-etuc2024workers" class="csl-entry" role="listitem">
+ETUC. 2024. <span>“Artificial Intelligence for Workers, Not Just for Profit: Ensuring Quality Jobs in the Digital Age”</span>. 2024. <a href="https://etuc.org/en/document/artificial-intelligence-workers-not-just-profit-ensuring-quality-jobs-digital-age">https://etuc.org/en/document/artificial-intelligence-workers-not-just-profit-ensuring-quality-jobs-digital-age</a>.
+</div>
+<div id="ref-mdpi2024fairness" class="csl-entry" role="listitem">
+Ferrara, Emilio. 2024. <span>“Fairness and Bias in Artificial Intelligence: A Brief Survey of Sources, Impacts, and Mitigation Strategies”</span>. Journal of Data and Information Quality. 2024. <a href="https://www.mdpi.com/2413-4155/6/1/3">https://www.mdpi.com/2413-4155/6/1/3</a>.
+</div>
+<div id="ref-fpf2024agents" class="csl-entry" role="listitem">
+Future of Privacy Forum. 2024. <span>“Minding Mindful Machines: AI Agents and Data Protection Considerations”</span>. 2024. <a href="https://fpf.org/blog/minding-mindful-machines-ai-agents-and-data-protection-considerations/">https://fpf.org/blog/minding-mindful-machines-ai-agents-and-data-protection-considerations/</a>.
+</div>
+<div id="ref-gdprlocal2024privacy" class="csl-entry" role="listitem">
+GDPR Local. 2024. <span>“AI Privacy Risks and Data Protection Challenges”</span>. 2024. <a href="https://gdprlocal.com/ai-privacy-risks/">https://gdprlocal.com/ai-privacy-risks/</a>.
+</div>
+<div id="ref-geeksforgeeks2024peas" class="csl-entry" role="listitem">
+GeeksforGeeks. 2024. <span>“Understanding PEAS in Artificial Intelligence”</span>. 2024. <a href="https://www.geeksforgeeks.org/artificial-intelligence/understanding-peas-in-artificial-intelligence/">https://www.geeksforgeeks.org/artificial-intelligence/understanding-peas-in-artificial-intelligence/</a>.
+</div>
+<div id="ref-medium2024agents" class="csl-entry" role="listitem">
+Geller, Anna. 2024. <span>“AI Tools and Autonomous Agents: Auto-GPT, BabyAGI, LangChain, AgentGPT, HeyGPT, and More”</span>. Medium. 2024. <a href="https://annageller.medium.com/ai-tools-and-autonomous-agents-auto-gpt-babyagi-langchain-agentgpt-heygpt-and-more-61c11e0b8f19">https://annageller.medium.com/ai-tools-and-autonomous-agents-auto-gpt-babyagi-langchain-agentgpt-heygpt-and-more-61c11e0b8f19</a>.
+</div>
+<div id="ref-goldmansachs2024workforce" class="csl-entry" role="listitem">
+Goldman Sachs. 2024. <span>“How Will AI Affect the Global Workforce?”</span> 2024. <a href="https://www.goldmansachs.com/insights/articles/how-will-ai-affect-the-global-workforce">https://www.goldmansachs.com/insights/articles/how-will-ai-affect-the-global-workforce</a>.
+</div>
+<div id="ref-harvardclje2024regulating" class="csl-entry" role="listitem">
+Harvard Center for Labor and a Just Economy. 2024. <span>“Regulating AI in the Workplace”</span>. 2024. <a href="https://clje.law.harvard.edu/publication/building-worker-power-in-cities-states/regulating-ai-in-the-workplace/">https://clje.law.harvard.edu/publication/building-worker-power-in-cities-states/regulating-ai-in-the-workplace/</a>.
+</div>
+<div id="ref-helpshift2024conversational" class="csl-entry" role="listitem">
+Helpshift. 2024. <span>“Chatbot vs AI Agent vs Conversational AI: Difference”</span>. 2024. <a href="https://www.helpshift.com/blog/conversational-ai-vs-chatbots/">https://www.helpshift.com/blog/conversational-ai-vs-chatbots/</a>.
+</div>
+<div id="ref-ibm2024reasoning" class="csl-entry" role="listitem">
+IBM. 2024a. <span>“What Is Agentic Reasoning?”</span> 2024. <a href="https://www.ibm.com/think/topics/agentic-reasoning">https://www.ibm.com/think/topics/agentic-reasoning</a>.
+</div>
+<div id="ref-ibm2024perception" class="csl-entry" role="listitem">
+———. 2024b. <span>“What Is AI Agent Perception?”</span> 2024. <a href="https://www.ibm.com/think/topics/ai-agent-perception">https://www.ibm.com/think/topics/ai-agent-perception</a>.
+</div>
+<div id="ref-ibm2024planning" class="csl-entry" role="listitem">
+———. 2024c. <span>“What is AI Agent Planning?”</span> 2024. <a href="https://www.ibm.com/think/topics/ai-agent-planning">https://www.ibm.com/think/topics/ai-agent-planning</a>.
+</div>
+<div id="ref-itcc2024hidden" class="csl-entry" role="listitem">
+IEEE Technology Climate Center. 2024. <span>“The hidden cost of AI: Unpacking its energy and water footprint”</span>. 2024. <a href="https://itcc.ieee.org/blog/the-hidden-cost-of-ai-unpacking-its-energy-and-water-footprint/">https://itcc.ieee.org/blog/the-hidden-cost-of-ai-unpacking-its-energy-and-water-footprint/</a>.
+</div>
+<div id="ref-kiteworks2024privacy" class="csl-entry" role="listitem">
+Kiteworks. 2024. <span>“AI Agents Are Advancing—But Enterprise Data Privacy and Security Still Lag”</span>. 2024. <a href="https://www.kiteworks.com/cybersecurity-risk-management/ai-agents-enterprise-data-privacy-security-balance/">https://www.kiteworks.com/cybersecurity-risk-management/ai-agents-enterprise-data-privacy-security-balance/</a>.
+</div>
+<div id="ref-wharton2024hidden" class="csl-entry" role="listitem">
+Knowledge at Wharton. 2024. <span>“The Hidden Cost of AI Energy Consumption”</span>. 2024. <a href="https://knowledge.wharton.upenn.edu/article/the-hidden-cost-of-ai-energy-consumption/">https://knowledge.wharton.upenn.edu/article/the-hidden-cost-of-ai-energy-consumption/</a>.
+</div>
+<div id="ref-arxiv2024agents" class="csl-entry" role="listitem">
+Krishnan, Naveen. 2024. <span>“AI Agents: Evolution, Architecture, and Real-World Applications”</span>. <em>arXiv preprint</em>. <a href="https://arxiv.org/abs/2503.12687">https://arxiv.org/abs/2503.12687</a>.
+</div>
+<div id="ref-lablab2024autogpt" class="csl-entry" role="listitem">
+Lablab.ai. 2024. <span>“AutoGPT Tutorial: Building an AI Agent-Powered Research Assistant App”</span>. 2024. <a href="https://lablab.ai/t/autogpt-tutorial-building-ai-agent-powered-research-assistant-app">https://lablab.ai/t/autogpt-tutorial-building-ai-agent-powered-research-assistant-app</a>.
+</div>
+<div id="ref-livechatai2024chatbot" class="csl-entry" role="listitem">
+LiveChatAI. 2024. <span>“AI Agent vs Chatbot: Evaluation, Differences, Use Cases”</span>. 2024. <a href="https://livechatai.com/blog/ai-agent-vs-chatbot">https://livechatai.com/blog/ai-agent-vs-chatbot</a>.
+</div>
+<div id="ref-lumenova2024transparency" class="csl-entry" role="listitem">
+Lumenova AI. 2024. <span>“AI Risk Management: Transparency &amp; Accountability”</span>. 2024. <a href="https://www.lumenova.ai/blog/ai-risk-management-importance-of-transparency-and-accountability/">https://www.lumenova.ai/blog/ai-risk-management-importance-of-transparency-and-accountability/</a>.
+</div>
+<div id="ref-marktechpost2025agents" class="csl-entry" role="listitem">
+MarkTechPost. 2025. <span>“The Definitive Guide to AI Agents: Architectures, Frameworks, and Real-World Applications (2025)”</span>. 2025. <a href="https://www.marktechpost.com/2025/07/19/the-definitive-guide-to-ai-agents-architectures-frameworks-and-real-world-applications-2025/">https://www.marktechpost.com/2025/07/19/the-definitive-guide-to-ai-agents-architectures-frameworks-and-real-world-applications-2025/</a>.
+</div>
+<div id="ref-mayerbrown2024transparency" class="csl-entry" role="listitem">
+Mayer Brown. 2024. <span>“Addressing Transparency &amp; Explainability When Using AI Under Global Standards”</span>. 2024. <a href="https://www.mayerbrown.com/-/media/files/perspectives-events/publications/2024/01/addressing-transparency-and-explainability-when-using-ai-under-global-standards.pdf">https://www.mayerbrown.com/-/media/files/perspectives-events/publications/2024/01/addressing-transparency-and-explainability-when-using-ai-under-global-standards.pdf</a>.
+</div>
+<div id="ref-metomic2024security" class="csl-entry" role="listitem">
+Metomic. 2024. <span>“Understanding AI Agents &amp; Security: What they mean for your business and data security”</span>. 2024. <a href="https://www.metomic.io/resource-centre/understanding-ai-agents-data-security">https://www.metomic.io/resource-centre/understanding-ai-agents-data-security</a>.
+</div>
+<div id="ref-microcontroller2024sense" class="csl-entry" role="listitem">
+Microcontroller Tips. 2024. <span>“The sense-think-act model of autonomous vehicles”</span>. 2024. <a href="https://www.microcontrollertips.com/the-sense-think-act-model-of-autonomous-vehicles-faq/">https://www.microcontrollertips.com/the-sense-think-act-model-of-autonomous-vehicles-faq/</a>.
+</div>
+<div id="ref-mitnews2025environmental" class="csl-entry" role="listitem">
+MIT News. 2025. <span>“Explained: Generative AI’s environmental impact”</span>. 2025. <a href="https://news.mit.edu/2025/explained-generative-ai-environmental-impact-0117">https://news.mit.edu/2025/explained-generative-ai-environmental-impact-0117</a>.
+</div>
+<div id="ref-mitsloan2024energy" class="csl-entry" role="listitem">
+MIT Sloan. 2024. <span>“AI has high data center energy costs — but there are solutions”</span>. 2024. <a href="https://mitsloan.mit.edu/ideas-made-to-matter/ai-has-high-data-center-energy-costs-there-are-solutions">https://mitsloan.mit.edu/ideas-made-to-matter/ai-has-high-data-center-energy-costs-there-are-solutions</a>.
+</div>
+<div id="ref-mittr2025energy" class="csl-entry" role="listitem">
+MIT Technology Review. 2025. <span>“We did the math on AI’s energy footprint. Here’s the story you haven’t heard”</span>. 2025. <a href="https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/">https://www.technologyreview.com/2025/05/20/1116327/ai-energy-usage-climate-footprint-big-tech/</a>.
+</div>
+<div id="ref-morganlewis2024workplace" class="csl-entry" role="listitem">
+Morgan Lewis. 2024. <span>“AI in the Workplace: The New Legal Landscape Facing US Employers”</span>. 2024. <a href="https://www.morganlewis.com/pubs/2024/07/ai-in-the-workplace-the-new-legal-landscape-facing-us-employers">https://www.morganlewis.com/pubs/2024/07/ai-in-the-workplace-the-new-legal-landscape-facing-us-employers</a>.
+</div>
+<div id="ref-nu2024jobs" class="csl-entry" role="listitem">
+National University. 2024. <span>“59 AI Job Statistics: Future of U.S. Jobs”</span>. 2024. <a href="https://www.nu.edu/blog/ai-job-statistics/">https://www.nu.edu/blog/ai-job-statistics/</a>.
+</div>
+<div id="ref-nurix2024evolution" class="csl-entry" role="listitem">
+Nurix AI. 2024. <span>“Exploring the Evolution and Future of Autonomous AI Agents”</span>. 2024. <a href="https://www.nurix.ai/blogs/evolution-future-autonomous-ai-agents">https://www.nurix.ai/blogs/evolution-future-autonomous-ai-agents</a>.
+</div>
+<div id="ref-nvidia2024reasoning" class="csl-entry" role="listitem">
+NVIDIA. 2024. <span>“How Reasoning AI Agents Transform High-Stakes Decision Making”</span>. 2024. <a href="https://blogs.nvidia.com/blog/reasoning-ai-agents-decision-making/">https://blogs.nvidia.com/blog/reasoning-ai-agents-decision-making/</a>.
+</div>
+<div id="ref-oceg2024transparency" class="csl-entry" role="listitem">
+OCEG. 2024. <span>“What Does Transparency Really Mean in the Context of AI Governance?”</span> 2024. <a href="https://www.oceg.org/what-does-transparency-really-mean-in-the-context-of-ai-governance/">https://www.oceg.org/what-does-transparency-really-mean-in-the-context-of-ai-governance/</a>.
+</div>
+<div id="ref-p0stman2025guide" class="csl-entry" role="listitem">
+P0STMAN. 2025. <span>“AI Agent vs Traditional Chatbot: Complete Comparison Guide (2025)”</span>. 2025. <a href="https://www.p0stman.com/guides/ai-agent-vs-chatbot-comparison-guide-2025.html">https://www.p0stman.com/guides/ai-agent-vs-chatbot-comparison-guide-2025.html</a>.
+</div>
+<div id="ref-psu2024energy" class="csl-entry" role="listitem">
+Penn State Institute of Energy and the Environment. 2024. <span>“AI’s Energy Demand: Challenges and Solutions for a Sustainable Future”</span>. 2024. <a href="https://iee.psu.edu/news/blog/why-ai-uses-so-much-energy-and-what-we-can-do-about-it">https://iee.psu.edu/news/blog/why-ai-uses-so-much-energy-and-what-we-can-do-about-it</a>.
+</div>
+<div id="ref-pesto2024agents" class="csl-entry" role="listitem">
+Pesto Tech. 2024. <span>“The ABCs of AI Agents: What They Are and How They Work”</span>. 2024. <a href="https://www.pesto.tech/resources/the-abcs-of-ai-agents-what-they-are-and-how-they-work">https://www.pesto.tech/resources/the-abcs-of-ai-agents-what-they-are-and-how-they-work</a>.
+</div>
+<div id="ref-pickl2024peas" class="csl-entry" role="listitem">
+Pickl.AI. 2024. <span>“What is PEAS in Artificial Intelligence (AI)?”</span> 2024. <a href="https://www.pickl.ai/blog/what-is-peas-in-artificial-intelligence-ai/">https://www.pickl.ai/blog/what-is-peas-in-artificial-intelligence-ai/</a>.
+</div>
+<div id="ref-professionalai2024types" class="csl-entry" role="listitem">
+ProfessionalAI.com. 2024. <span>“Artificial Intelligence Agents &amp; Its Types”</span>. 2024. <a href="https://www.professional-ai.com/ai-agents-types.html">https://www.professional-ai.com/ai-agents-types.html</a>.
+</div>
+<div id="ref-medium2024taxonomy" class="csl-entry" role="listitem">
+Raghuvanshi, Aman. 2024. <span>“Agentic AI #4 — Understanding the Different Types of AI Agents: Reactive, Planning, and More”</span>. Medium. 2024. <a href="https://medium.com/@iamanraghuvanshi/agentic-ai-4-understanding-the-different-types-of-ai-agents-reactive-planning-and-more-c7783cec7c69">https://medium.com/@iamanraghuvanshi/agentic-ai-4-understanding-the-different-types-of-ai-agents-reactive-planning-and-more-c7783cec7c69</a>.
+</div>
+<div id="ref-russellandnorvig1995" class="csl-entry" role="listitem">
+Russell, Stuart J., e Peter Norvig. 1995. <em>Artificial Intelligence: A Modern Approach</em>. 1st ed. Prentice Hall.
+</div>
+<div id="ref-russellandnorvig2003" class="csl-entry" role="listitem">
+———. 2003. <em>Artificial Intelligence: A Modern Approach</em>. 2nd ed. Prentice Hall.
+</div>
+<div id="ref-saiwa2024peas" class="csl-entry" role="listitem">
+Saiwa. 2024. <span>“PEAS in AI: The Core AI Features”</span>. 2024. <a href="https://saiwa.ai/blog/peas-in-ai/">https://saiwa.ai/blog/peas-in-ai/</a>.
+</div>
+<div id="ref-salesforce2024agent" class="csl-entry" role="listitem">
+Salesforce. 2024a. <span>“AI Agent vs. Chatbot — What’s the Difference?”</span> 2024. <a href="https://www.salesforce.com/agentforce/ai-agent-vs-chatbot/">https://www.salesforce.com/agentforce/ai-agent-vs-chatbot/</a>.
+</div>
+<div id="ref-salesforce2024reasoning" class="csl-entry" role="listitem">
+———. 2024b. <span>“How an Advanced Reasoning Engine Is Powering the Next Generation of AI Agents”</span>. 2024. <a href="https://www.salesforce.com/news/stories/reasoning-engine-for-ai-agents/">https://www.salesforce.com/news/stories/reasoning-engine-for-ai-agents/</a>.
+</div>
+<div id="ref-scaler2024agents" class="csl-entry" role="listitem">
+Scaler Topics. 2024. <span>“Agents in Artificial Intelligence”</span>. 2024. <a href="https://www.scaler.com/topics/artificial-intelligence-tutorial/agents-in-ai/">https://www.scaler.com/topics/artificial-intelligence-tutorial/agents-in-ai/</a>.
+</div>
+<div id="ref-simform2024agents" class="csl-entry" role="listitem">
+Simform. 2024. <span>“What is an AI Agent? Characteristics, Advantages, Challenges, Applications”</span>. 2024. <a href="https://www.simform.com/blog/ai-agent/">https://www.simform.com/blog/ai-agent/</a>.
+</div>
+<div id="ref-medium2024react" class="csl-entry" role="listitem">
+Sinha, Akanksha. 2024. <span>“LLM Agents: ReAct, Toolformer, AutoGPT Family &amp; Autonomous Agent Frameworks”</span>. Medium. 2024. <a href="https://medium.com/@akankshasinha247/react-toolformer-autogpt-family-autonomous-agent-frameworks-2c4f780654b8">https://medium.com/@akankshasinha247/react-toolformer-autogpt-family-autonomous-agent-frameworks-2c4f780654b8</a>.
+</div>
+<div id="ref-smythos2024interaction" class="csl-entry" role="listitem">
+SmythOS. 2024a. <span>“Intelligent Agents and Environmental Interaction”</span>. 2024. <a href="https://smythos.com/developers/agent-integrations/intelligent-agents-and-environmental-interaction/">https://smythos.com/developers/agent-integrations/intelligent-agents-and-environmental-interaction/</a>.
+</div>
+<div id="ref-smythos2024decision" class="csl-entry" role="listitem">
+———. 2024b. <span>“Understanding AI Agent Decision-Making Processes”</span>. 2024. <a href="https://smythos.com/developers/agent-development/ai-agent-decision-making/">https://smythos.com/developers/agent-development/ai-agent-decision-making/</a>.
+</div>
+<div id="ref-startupsgurukul2024perception" class="csl-entry" role="listitem">
+Startupsgurukul. 2024. <span>“Perception, Reasoning, Action: The AI Trilogy for the Modern Era”</span>. 2024. <a href="https://startupsgurukul.com/blog/2024/01/07/perception-reasoning-action-the-ai-trilogy-for-the-modern-era/">https://startupsgurukul.com/blog/2024/01/07/perception-reasoning-action-the-ai-trilogy-for-the-modern-era/</a>.
+</div>
+<div id="ref-techpolicy2024transparency" class="csl-entry" role="listitem">
+TechPolicy.Press. 2024. <span>“AI Accountability Starts with Government Transparency”</span>. 2024. <a href="https://www.techpolicy.press/ai-accountability-starts-with-government-transparency/">https://www.techpolicy.press/ai-accountability-starts-with-government-transparency/</a>.
+</div>
+<div id="ref-yale2024evaluating" class="csl-entry" role="listitem">
+The Budget Lab at Yale. 2024. <span>“Evaluating the Impact of AI on the Labor Market: Current State of Affairs”</span>. 2024. <a href="https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs">https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs</a>.
+</div>
+<div id="ref-civilrights2024worker" class="csl-entry" role="listitem">
+The Leadership Conference on Civil and Human Rights. 2024. <span>“A Worker-Resistant Approach to AI Is Harming Our Workforce, Economy, and Civil Rights”</span>. 2024. <a href="https://civilrights.org/blog/a-worker-resistant-approach-to-ai-is-harming-our-workforce-economy-and-civil-rights/">https://civilrights.org/blog/a-worker-resistant-approach-to-ai-is-harming-our-workforce-economy-and-civil-rights/</a>.
+</div>
+<div id="ref-washingtonpost2023unions" class="csl-entry" role="listitem">
+The Washington Post. 2023. <span>“From airlines to Hollywood, unions are fighting to keep AI at bay”</span>. 2023. <a href="https://www.washingtonpost.com/technology/2023/06/08/labor-unions-fight-ai/">https://www.washingtonpost.com/technology/2023/06/08/labor-unions-fight-ai/</a>.
+</div>
+<div id="ref-toloka2024components" class="csl-entry" role="listitem">
+Toloka AI. 2024. <span>“AI agents components and their role in autonomous decision-making”</span>. 2024. <a href="https://toloka.ai/blog/ai-agents-components-and-their-role-in-autonomous-decision-making/">https://toloka.ai/blog/ai-agents-components-and-their-role-in-autonomous-decision-making/</a>.
+</div>
+<div id="ref-markey2024civilrights" class="csl-entry" role="listitem">
+U.S. Senator Ed Markey. 2024. <span>“Senator Markey Introduces AI Civil Rights Act to Eliminate AI Bias”</span>. 2024. <a href="https://www.markey.senate.gov/news/press-releases/senator-markey-introduces-ai-civil-rights-act-to-eliminate-ai-bias-enact-guardrails-on-use-of-algorithms-in-decisions-impacting-peoples-rights-civil-liberties-livelihoods">https://www.markey.senate.gov/news/press-releases/senator-markey-introduces-ai-civil-rights-act-to-eliminate-ai-bias-enact-guardrails-on-use-of-algorithms-in-decisions-impacting-peoples-rights-civil-liberties-livelihoods</a>.
+</div>
+<div id="ref-venturebeat2024displacement" class="csl-entry" role="listitem">
+VentureBeat. 2024. <span>“’Gradually then suddenly’: Is AI job displacement following this pattern?”</span> 2024. <a href="https://venturebeat.com/ai/gradually-then-suddenly-is-ai-job-displacement-following-this-pattern">https://venturebeat.com/ai/gradually-then-suddenly-is-ai-job-displacement-following-this-pattern</a>.
+</div>
+<div id="ref-wikipedia2024agents" class="csl-entry" role="listitem">
+Wikipedia. 2024. <span>“Intelligent Agent”</span>. 2024. <a href="https://en.wikipedia.org/wiki/Intelligent_agent">https://en.wikipedia.org/wiki/Intelligent_agent</a>.
+</div>
+<div id="ref-wwt2024evolution" class="csl-entry" role="listitem">
+World Wide Technology. 2024. <span>“The Evolution of AI Agents: From Simple Programs to Agentic AI”</span>. 2024. <a href="https://www.wwt.com/blog/the-evolution-of-ai-agents-from-simple-programs-to-agentic-ai">https://www.wwt.com/blog/the-evolution-of-ai-agents-from-simple-programs-to-agentic-ai</a>.
+</div>
+<div id="ref-xoriant2024continuous" class="csl-entry" role="listitem">
+Xoriant. 2024. <span>“Agentic AI &amp; Continuous Learning: Creating Ever-Evolving Systems”</span>. 2024. <a href="https://www.xoriant.com/thought-leadership/article/agentic-ai-and-continuous-learning-creating-ever-evolving-systems">https://www.xoriant.com/thought-leadership/article/agentic-ai-and-continuous-learning-creating-ever-evolving-systems</a>.
+</div>
+<div id="ref-zonkafeedback2024loop" class="csl-entry" role="listitem">
+Zonka Feedback. 2024. <span>“The AI Feedback Loop: From Insights to Action in Real-Time”</span>. 2024. <a href="https://www.zonkafeedback.com/blog/ai-feedback-loop">https://www.zonkafeedback.com/blog/ai-feedback-loop</a>.
+</div>
+<div id="ref-zscaler2024gdpr" class="csl-entry" role="listitem">
+Zscaler. 2024. <span>“AI in Cybersecurity: GDPR, Privacy Laws, and Risk Management”</span>. 2024. <a href="https://www.zscaler.com/blogs/product-insights/ai-cybersecurity-navigating-gdpr-privacy-laws-and-risk-management">https://www.zscaler.com/blogs/product-insights/ai-cybersecurity-navigating-gdpr-privacy-laws-and-risk-management</a>.
+</div>
+</div>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../chapters/00-visao-geral.html" class="pagination-link" aria-label="Visão Geral do Livro">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Visão Geral do Livro</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../chapters/99-references.html" class="pagination-link" aria-label="Referências">
+        <span class="nav-page-text">Referências</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
