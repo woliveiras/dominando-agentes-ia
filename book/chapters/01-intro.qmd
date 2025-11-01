@@ -1,2 +1,139 @@
-# Introdução
+# Introdução: O Universo dos AI Agents {.unnumbered}
 
+## Evolução dos Agentes de IA
+
+A história dos agentes de IA é uma jornada muito interessante que reflete décadas de inovação e transformação tecnológica tanto na área de inteligência artificial e campos relacionados quanto na engenharia de software. Compreender essa evolução nos ajuda a contextualizar os avanços atuais e antever as possibilidades futuras.
+
+Por isso, vamos iniciar a nossa exploração deste universo revisando os marcos históricos e as mudanças de paradigma que moldaram o desenvolvimento dos agentes inteligentes ao longo do tempo.
+
+### De sistemas especialistas a agentes autônomos
+
+A trajetória dos agentes inteligentes pode ser dividida em várias eras distintas, cada uma marcada por avanços tecnológicos e mudanças de paradigma:
+
+**Era dos Fundamentos (1950-1970)**
+
+A origem dos agentes de IA remonta a 1950, quando Alan Turing propôs o famoso *Teste de Turing* para determinar se uma máquina poderia pensar como um humano [@ema2024history]. A Conferência de Dartmouth em 1956 é amplamente reconhecida como o marco do nascimento da IA como campo formal de estudo. Em 1966, Joseph Weizenbaum criou o ELIZA no MIT, um programa que simulava um psicoterapeuta usando simples correspondência de padrões — um dos primeiros exemplos de agente conversacional [@wwt2024evolution].
+
+**Era dos Sistemas Especialistas (1970-1990)**
+
+As décadas de 1970 e 1980 marcaram o auge dos *sistemas especialistas*, programas de IA projetados para resolver problemas específicos usando regras e lógica predefinidas [@nurix2024evolution]. Sistemas baseados em regras (*rule-based systems*) dependiam de declarações *if-then* explicitamente programadas para tomar decisões, mas eram limitados por sua incapacidade de lidar com cenários inesperados.
+
+Exemplos notáveis dessa era incluem o HEARSAY-II para reconhecimento de fala e o PROSPECTOR para prospecção geológica, que demonstraram as primeiras formas de agentes autônomos de IA [@ema2024history]. Apesar de seus sucessos em domínios restritos, esses sistemas eram rígidos e requeriam extenso conhecimento especializado codificado manualmente.
+
+**Era da Transição para Aprendizado de Máquina (1990-2010)**
+
+A jornada dos agentes autônomos ganhou momentum nos anos 1990 com o aumento das capacidades computacionais, levando ao desenvolvimento de *sistemas multi-agentes* que podiam operar independentemente enquanto coordenavam com outros agentes [@nurix2024evolution]. Em 1988, Sutton e Barto desenvolveram o *temporal difference learning*, um método fundamental de aprendizado por reforço que permitiu aos agentes aprenderem com experiências ao longo do tempo [@ema2024history].
+
+Durante esse período, Russell e Norvig (1995) estabeleceram definições fundamentais que ainda guiam o campo hoje. Eles definiram um agente como "qualquer coisa que pode ser vista como percebendo seu ambiente através de sensores e agindo sobre esse ambiente através de atuadores" [@russellandnorvig1995]. Essa definição estabeleceu o *ciclo percepção-ação* fundamental que caracteriza sistemas de agentes [@arxiv2024agents].
+
+**Era Moderna: Deep Learning e LLMs (2010-presente)**
+
+A evolução dos agentes de IA foi acelerada por avanços recentes em *modelos de linguagem de grande escala* (*LLMs*), que forneceram uma base para capacidades de raciocínio mais sofisticadas [@nurix2024evolution]. Agentes de IA modernos aproveitam modelos de linguagem avançados como componentes centrais, aumentando-os com módulos especializados para memória, planejamento, uso de ferramentas (*tools*) e interação com o ambiente.
+
+Em 2024, a evolução dos agentes de IA alcançou novos patamares, marcando um marco significativo em seu desenvolvimento. O mercado está projetado para crescer de US$ 5,1 bilhões em 2024 para US$ 47,1 bilhões até 2030 [@nurix2024evolution]. Agentes de IA estão se tornando cada vez mais autônomos, capazes de tomar decisões e executar ações sem intervenção humana.
+
+### A influência do aprendizado de máquina e redes neurais
+
+A transição de sistemas baseados em regras para redes neurais representa um dos saltos evolutivos mais significativos em inteligência artificial, transformando fundamentalmente como abordamos inteligência de máquina e sistemas autônomos [@nurix2024evolution].
+
+**Mudança de Paradigma**
+
+Enquanto sistemas especialistas dependiam de conhecimento explicitamente codificado por humanos, o aprendizado de máquina permitiu que agentes extraíssem padrões e conhecimento diretamente dos **dados**. Redes neurais profundas (*deep learning*) revolucionaram a capacidade dos agentes de:
+
+- **Perceber**: Processar entradas sensoriais complexas (visão, linguagem, áudio)
+- **Raciocinar**: Fazer inferências sofisticadas sobre estados do mundo
+- **Aprender**: Melhorar o desempenho através da experiência
+- **Generalizar**: Aplicar conhecimento a situações novas e inesperadas
+
+**Arquiteturas de Agentes Modernos**
+
+Russell e Norvig descreveram várias arquiteturas de agentes que evoluíram ao longo do tempo [@arxiv2024agents]:
+
+1. **Agentes Reflexivos Simples**: Agem apenas com base na percepção atual, usando regras *condition-action*
+2. **Agentes Reflexivos Baseados em Modelo**: Incorporam um modelo interno do mundo, mantendo informações de estado
+3. **Agentes Baseados em Objetivos**: Representam explicitamente estados desejáveis do mundo e selecionam ações para alcançá-los
+4. **Agentes Baseados em Utilidade**: Selecionam ações com base na utilidade esperada, considerando incerteza
+
+A introdução de *LLMs* criou uma nova categoria de agentes que combinam raciocínio linguístico sofisticado com capacidades de planejamento e execução, transcendendo as limitações das arquiteturas anteriores.
+
+### Exemplos notáveis de agentes inteligentes na prática
+
+A teoria dos agentes de IA ganhou vida através de implementações práticas que demonstram seu potencial transformador:
+
+**ReAct (Reasoning and Acting)**
+
+O framework *ReAct*, introduzido pelo Google em 2022, representa uma técnica fundacional que integra raciocínio e ação dentro de modelos de linguagem [@medium2024react]. O ReAct opera através de um ciclo iterativo:
+
+1. **Thought** (Pensamento): O agente raciocina sobre a situação atual
+2. **Action** (Ação): Executa uma ação (como chamar ferramentas ou APIs)
+3. **Observation** (Observação): Observa os resultados da ação
+4. **Reflection** (Reflexão): Reflete sobre as observações para decidir os próximos passos
+
+Este padrão forma a base de frameworks populares como AutoGPT, CrewAI e LangChain [@medium2024react].
+
+**AutoGPT**
+
+Lançado duas semanas após o GPT-4, AutoGPT viralizou e atingiu 100.000 estrelas no GitHub rapidamente [@medium2024agents]. É um projeto experimental *open-source* que visa tornar o GPT-4 totalmente autônomo na realização de diversos objetivos, incluindo pesquisa de mercado, programação e escrita [@analyticsvidhya2024autogpt].
+
+AutoGPT utiliza ReAct para decompor prompts de usuário em etapas menores e gerenciáveis, raciocinando sobre cada uma antes de agir adequadamente [@medium2024react]. Ele demonstra como agentes podem operar com supervisão humana mínima, gerenciando seus próprios sub-objetivos e estratégias.
+
+**LangChain e CrewAI**
+
+LangChain se destaca por sua funcionalidade de agentes, onde agentes são *LLMs* que podem decidir quais ferramentas usar e quando. Quando configurado corretamente, o agente pode determinar que precisa buscar algo, então usar uma calculadora, e depois formatar uma resposta [@medium2024agents].
+
+CrewAI leva isso adiante ao focar na orquestração em estilo de equipe, permitindo que desenvolvedores definam papéis especializados de agentes (por exemplo, Planejador, Programador, Crítico) e os coordenem em *pipelines*, integrando-se perfeitamente com LangChain [@medium2024react].
+
+**Aplicações no Mundo Real**
+
+Agentes de IA estão transformando diversos setores:
+
+- **Suporte Interno**: Agentes como AskIT da IBM reduziram chamadas de suporte de TI em 70%, roteando tickets, diagnosticando problemas e resolvendo questões comuns automaticamente [@marktechpost2025agents]
+- **Atendimento ao Cliente**: Lidam com consultas de alto volume — desde rastreamento de pedidos até recomendações de produtos — integrando-se com CRMs e bases de conhecimento [@marktechpost2025agents]
+- **Assistentes de Pesquisa**: AutoGPT tem sido usado para construir assistentes de pesquisa que podem formular soluções passo a passo e gerar relatórios [@lablab2024autogpt]
+
+**Perspectiva Futura**
+
+Se 2024 foi o ano em que agentes emergiram como uma abordagem viável para resolução de problemas, 2025 será o ano em que eles se tornarão a solução de melhor desempenho *de facto* para domínios específicos de problemas [@nurix2024evolution]. Sistemas multi-agentes emergiram como áreas importantes de avanço, explorando como coleções de agentes especializados podem coordenar para realizar tarefas complexas, distribuindo trabalho cognitivo através de múltiplos agentes com capacidades complementares [@nurix2024evolution].
+
+A evolução continua, com agentes se tornando mais autônomos, colaborativos e capazes de raciocínio sofisticado — transformando-os de ferramentas experimentais em componentes essenciais de sistemas de software modernos.
+
+## O que são AI Agents?
+
+  - Definição formal e características essenciais
+  - Autonomia, reatividade e proatividade
+  - Capacidade de interação com o ambiente
+
+## Agentes vs. Chatbots Simples
+
+  - Limitações dos chatbots tradicionais
+  - O salto qualitativo dos agentes autônomos
+  - Quando usar cada abordagem
+
+## Taxonomia de Agentes
+
+  - Agentes reativos (stimulus-response)
+  - Agentes deliberativos (goal-driven)
+  - Agentes híbridos
+  - Agentes de aprendizado
+
+## O Ciclo Percepção-Ação
+
+  - Observação do ambiente
+  - Processamento e raciocínio
+  - Tomada de decisão
+  - Execução de ações
+  - Feedback loop
+
+## Aplicações Práticas dos AI Agents
+
+  - Assistentes virtuais e automação pessoal
+  - Robótica e veículos autônomos
+  - Sistemas de recomendação e personalização
+  - Agentes em jogos e simulações
+
+## Desafios e Considerações Éticas
+
+  - Privacidade e segurança dos dados
+  - Transparência e explicabilidade
+  - Impacto no mercado de trabalho
+  - Responsabilidade e governança
