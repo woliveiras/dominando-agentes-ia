@@ -47,3 +47,6 @@ format:
     filters:
       - quarto
     quiet: true
+  epub:
+    toc: true
+    epub-cover-image: cover.png
