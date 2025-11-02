@@ -3533,7 +3533,9 @@ A história recente está repleta de exemplos onde vieses em sistemas de IA caus
 
 **6. Geração de Imagens (2022-2023)**: Modelos como DALL-E e Stable Diffusion frequentemente geravam imagens que reforçavam estereótipos profissionais, CEOs eram predominantemente homens brancos, enfermeiras eram mulheres, trabalhadores manuais eram homens de minorias. Isso reflete os vieses dos datasets de treinamento (LAION-5B e similares) [@bianchi2023easily].
 
-::: {.callout-warning title="Implicação Legal e Ética" appearance="default"}
+::: {.callout-warning}
+## Implicação Legal e Ética
+
 **Viés em sistemas de IA não é apenas um problema técnico, é um risco legal, de reputação e humano.** 
 
 Empresas podem ser processadas por discriminação se seus sistemas de IA demonstrarem viés em decisões de contratação, crédito, ou serviços. Na União Europeia, o AI Act exige avaliação de risco para sistemas de "alto risco" que tomam decisões sobre pessoas.
@@ -3541,7 +3543,6 @@ Empresas podem ser processadas por discriminação se seus sistemas de IA demons
 No Brasil, a Lei Geral de Proteção de Dados (LGPD) garante o direito de **"revisão de decisões automatizadas"** que afetem significativamente o titular de dados (Art. 20). Se um LLM nega um empréstimo ou rejeita um candidato, a empresa precisa ser capaz de explicar e justificar essa decisão.
 
 Além disso, há uma responsabilidade ética de garantir que sistemas de IA não perpetuem ou amplifiquem desigualdades sociais existentes. Desenvolvedores e empresas devem adotar práticas responsáveis de desenvolvimento e implantação de IA para mitigar vieses e promover justiça.
-
 :::
 
 **Mitigações Práticas:**
