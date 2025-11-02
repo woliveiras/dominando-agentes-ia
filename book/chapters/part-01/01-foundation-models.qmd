@@ -62,6 +62,54 @@ A arquitetura Transformer, introduzida no paper seminal "Attention Is All You Ne
 
 O Transformer elimina completamente a recorrência, substituindo-a por um mecanismo de atenção que permite que cada posição na sequência "olhe" para todas as outras posições simultaneamente. Esta mudança não é apenas uma otimização, ela acaba mudando **o que** o modelo pode aprender. Enquanto RNNs têm um viés indutivo sequencial (processam informação left-to-right), Transformers têm um viés indutivo relacional (modelam relações entre quaisquer dois elementos da sequência).
 
+Para visualizar como os dados fluem através de um Transformer, considere este diagrama simplificado:
+
+
+```{mermaid}
+%%| fig-align: center
+graph TD
+    A[Input Tokens] --> B[Token Embedding]
+    B --> C[Positional Encoding]
+    C --> D[Transformer Block 1]
+    D --> E[Transformer Block 2]
+    E --> F[...]
+    F --> G[Transformer Block N]
+    G --> H[Layer Norm]
+    H --> I[Output Linear]
+    I --> J[Softmax]
+    J --> K[Token Probabilities]
+
+    style A fill:#e1f5ff
+    style K fill:#e1f5ff
+    style D fill:#fff4e1
+    style E fill:#fff4e1
+    style G fill:#fff4e1
+```
+
+
+Cada **Transformer Block** é uma unidade completa de processamento que aplica self-attention seguido de transformações feedforward. Internamente, um bloco Transformer individual tem a seguinte estrutura:
+
+```{mermaid}
+%%| fig-align: center
+graph TD
+    A[Input from Previous Layer] --> B[Multi-Head Self-Attention]
+    B --> C[Add & Norm]
+    A --> C
+    C --> D[Feed-Forward Network]
+    D --> E[Add & Norm]
+    C --> E
+    E --> F[Output to Next Layer]
+
+    style A fill:#e1f5ff
+    style F fill:#e1f5ff
+    style B fill:#ffe1e1
+    style D fill:#e1ffe1
+    style C fill:#f0f0f0
+    style E fill:#f0f0f0
+```
+
+Os blocos **Add & Norm** implementam conexões residuais (que permitem que gradientes fluam mais facilmente durante treinamento) e normalização de camada (que estabiliza o treinamento). A **Multi-Head Self-Attention** é onde a magia acontece, permitindo que o modelo capture diferentes tipos de relações entre tokens simultaneamente. O **Feed-Forward Network** aplica transformações não-lineares independentemente a cada posição.
+
 Vamos explorar os componentes centrais do Transformer que o tornam tão poderoso.
 
 ### Self-Attention: O Mecanismo de Memória Associativa
@@ -162,6 +210,59 @@ Conhecimento final =
 1. O modelo aprende a fazer essas conversões (W_Q, W_K, W_V) automaticamente
 
 Esse é o mecanismo de self-attention em ação! Cada token na sequência faz isso simultaneamente, permitindo que o modelo capture relações complexas entre todos os tokens.
+
+#### Traduzindo para Código: Como Q, K, V são Computados
+
+Agora que entendemos a metáfora, vamos ver como isso funciona na implementação real. Q, K e V não são propriedades mágicas dos tokens - eles são obtidos através de **projeções lineares aprendidas**:
+
+```python
+import torch
+import torch.nn as nn
+
+class SelfAttention(nn.Module):
+    def __init__(self, d_model, d_k):
+        super().__init__()
+        # Matrizes de projeção aprendidas durante treinamento
+        self.W_Q = nn.Linear(d_model, d_k)  # Query projection
+        self.W_K = nn.Linear(d_model, d_k)  # Key projection
+        self.W_V = nn.Linear(d_model, d_k)  # Value projection
+        self.d_k = d_k
+
+    def forward(self, X):
+        """
+        X: (batch, seq_len, d_model) - embeddings de entrada
+        Retorna: (batch, seq_len, d_k) - representações contextualizadas
+        """
+        # Projetar X em espaços Q, K, V
+        Q = self.W_Q(X)  # (batch, seq_len, d_k)
+        K = self.W_K(X)  # (batch, seq_len, d_k)
+        V = self.W_V(X)  # (batch, seq_len, d_k)
+
+        # Computar attention scores
+        scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
+        # scores: (batch, seq_len, seq_len)
+
+        # Aplicar softmax para obter pesos de atenção
+        attention_weights = torch.softmax(scores, dim=-1)
+
+        # Ponderar valores V pelos pesos de atenção
+        output = attention_weights @ V  # (batch, seq_len, d_k)
+
+        return output
+```
+
+**O que cada matriz aprende:**
+
+- **W_Q**: Transforma embeddings em "perguntas" - o que cada token busca
+- **W_K**: Transforma embeddings em "chaves" - como cada token se descreve
+- **W_V**: Transforma embeddings em "valores" - que informação cada token carrega
+
+Essas matrizes são **aprendidas via backpropagation** durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.
+
+**Dimensões típicas:**
+
+- GPT-3: d_model = 12288, d_k = 128 (cada head)
+- LLaMA 2 70B: d_model = 8192, d_k = 128 (cada head)
 
 Agora, vamos ver como essa atenção é estendida para capturar múltiplas relações simultaneamente.
 
@@ -376,6 +477,205 @@ Com Flash Attention, podemos:
 
 Frameworks modernos como PyTorch (via `torch.nn.functional.scaled_dot_product_attention`) e bibliotecas como Hugging Transformers já integram Flash Attention automaticamente quando disponível. Para engenheiros, isso significa que você obtém os ganhos "de graça" apenas usando APIs modernas, mas entender **por que** funciona ajuda a tomar decisões arquiteturais informadas sobre tamanhos de sequência, batch sizes, e deployment.
 
+#### KV-Cache: Evitando Recomputação em Geração Autoregressiva
+
+Durante a geração de texto token-por-token em modelos decoder-only, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para **todos os tokens anteriores** do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.
+
+**O Problema: Recomputação Redundante**
+
+Considere gerar a frase "The cat sat on the mat":
+
+```
+Passo 1: Gera "The"
+  - Compute Q, K, V para "The"
+  - Attention entre: ["The"]
+
+Passo 2: Gera "cat"
+  - Compute Q, K, V para "The" + "cat"  ← RECOMPUTA "The"!
+  - Attention entre: ["The", "cat"]
+
+Passo 3: Gera "sat"
+  - Compute Q, K, V para "The" + "cat" + "sat"  ← RECOMPUTA tudo!
+  - Attention entre: ["The", "cat", "sat"]
+
+...e assim por diante
+```
+
+Para uma sequência de 1.000 tokens, você recalcula K e V para o primeiro token **1.000 vezes**! Isso é bem ineficiente.
+
+**A Solução: Cache de Keys e Values**
+
+A observação chave é: em geração autoregressiva com máscara causal, **K e V dos tokens anteriores nunca mudam**. Apenas o novo token precisa ter seus K e V calculados.
+
+```python
+class KVCachedAttention(nn.Module):
+    def __init__(self, d_model, d_k, d_v):
+        super().__init__()
+        self.W_Q = nn.Linear(d_model, d_k)
+        self.W_K = nn.Linear(d_model, d_k)
+        self.W_V = nn.Linear(d_model, d_v)
+        self.d_k = d_k
+
+        # Cache para K e V
+        self.k_cache = None  # Shape: (batch, seq_len, d_k)
+        self.v_cache = None  # Shape: (batch, seq_len, d_v)
+
+    def forward(self, x, use_cache=True):
+        """
+        x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa
+        """
+        batch_size = x.size(0)
+
+        # Compute Q, K, V apenas para o novo token
+        Q_new = self.W_Q(x)  # (batch, 1, d_k)
+        K_new = self.W_K(x)  # (batch, 1, d_k)
+        V_new = self.W_V(x)  # (batch, 1, d_v)
+
+        if use_cache and self.k_cache is not None:
+            # Concatena novo K e V com cache existente
+            K = torch.cat([self.k_cache, K_new], dim=1)  # (batch, seq_len+1, d_k)
+            V = torch.cat([self.v_cache, V_new], dim=1)  # (batch, seq_len+1, d_v)
+        else:
+            # Primeira iteração ou cache desabilitado
+            K = K_new
+            V = V_new
+
+        # Atualiza cache
+        if use_cache:
+            self.k_cache = K.detach()  # Detach para não acumular gradientes
+            self.v_cache = V.detach()
+
+        # Compute attention usando K e V completos (incluindo cache)
+        scores = (Q_new @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
+
+        # Máscara causal não é necessária aqui pois Q_new é apenas o último token
+        # que naturalmente só atende a tokens anteriores + ele mesmo
+
+        attention_weights = torch.softmax(scores, dim=-1)
+        output = attention_weights @ V  # (batch, 1, d_v)
+
+        return output
+
+    def clear_cache(self):
+        """Limpa cache entre diferentes gerações"""
+        self.k_cache = None
+        self.v_cache = None
+```
+
+**Geração com KV-Cache:**
+
+```python
+# Geração eficiente de sequência
+model = TransformerWithKVCache(...)
+prompt_tokens = tokenize("Once upon a time")
+
+# Encode prompt (sem cache)
+output = model(prompt_tokens, use_cache=False)
+
+# Geração autoregressiva (com cache)
+generated_tokens = []
+for _ in range(max_new_tokens):
+    # Apenas processa o último token gerado
+    next_token_logits = model(last_token, use_cache=True)
+    next_token = sample(next_token_logits)
+    generated_tokens.append(next_token)
+    last_token = next_token
+```
+
+**Ganhos Computacionais:**
+
+Para gerar uma sequência de N tokens:
+
+- **Sem KV-Cache**: O(N²) computações
+  - Token 1: 1 computação
+  - Token 2: 2 computações
+  - Token N: N computações
+  - Total: 1 + 2 + ... + N = N(N+1)/2 ≈ **N²/2**
+
+- **Com KV-Cache**: O(N) computações
+  - Cada token: 1 nova computação
+  - Total: **N computações**
+
+Para N=1000: **500.000× → 1.000× = redução de 500×!**
+
+**Trade-off de Memória:**
+
+KV-Cache tem um consumo de memória significativo, pois armazena K e V para todos os tokens gerados até agora. A fórmula para o uso de memória é:
+
+```
+Memória KV-Cache = 2 × n_layers × seq_len × d_model × batch_size × sizeof(dtype)
+```
+
+**Exemplo - LLaMA 2 70B:**
+
+- 80 layers
+- d_model = 8192
+- seq_len = 2048
+- batch_size = 1
+- dtype = FP16 (2 bytes)
+
+```
+Memória = 2 × 80 × 2048 × 8192 × 1 × 2 bytes
+        = 5.368 GB
+```
+
+Para batch_size=32: **~170GB apenas de KV-cache!**
+
+**Por que GQA é Crucial para KV-Cache:**
+
+Lembra da Grouped-Query Attention? Ela reduz drasticamente o tamanho do KV-cache:
+
+- **Multi-Head Attention**: n_heads × d_k por camada
+  - LLaMA 2 70B: 64 heads × 128 = 8192 dimensões
+- **GQA (8 grupos)**: 8 × d_k por camada
+  - LLaMA 2 70B: 8 × 128 = 1024 dimensões
+  - **Redução de 8× no tamanho do cache!**
+
+Com GQA, o mesmo LLaMA 2 70B precisa de apenas **~670MB** de KV-cache (vs. 5.3GB), tornando viável rodar em GPUs consumer.
+
+**Estratégias de Gerenciamento de Cache:**
+
+**1. Cache por Batch (Padrão):**
+
+- Cada sequência no batch mantém seu próprio cache
+- Simples, mas consome muita memória
+
+**2. Cache Compartilhado (Beam Search):**
+
+- Em beam search, múltiplos beams compartilham prefixo comum
+- Cache pode ser compartilhado para o prefixo
+- Reduz memória em cenários de busca
+
+**3. Eviction Policies (Contextos Muito Longos):**
+
+- Para sequências > context window, descarta partes do cache
+- Estratégias: FIFO, LRU, keep-first-k-and-last-m
+- Trade-off: economiza memória, mas perde contexto
+
+**4. Quantização do Cache:**
+
+- Armazenar K e V em INT8 em vez de FP16
+- Reduz memória em 2×, minimal quality loss
+- Usado em frameworks como vLLM
+
+**Implementação em Produção:**
+
+Frameworks modernos de serving implementam KV-cache automaticamente:
+
+- **vLLM**: PagedAttention (gerenciamento eficiente de cache tipo memória virtual)
+- **TensorRT-LLM**: Multi-query attention + KV-cache otimizado
+- **Hugging Face Text Generation Inference (TGI)**: Cache automático
+- **llama.cpp**: Cache em CPU/GPU com quantização
+
+Para engenheiros de software construindo agentes de IA, KV-cache é transparente mas crucial entender:
+
+1. **Memória cresce linearmente com comprimento de contexto**: Planeje VRAM adequadamente
+2. **Batch size limitado por cache**: Grandes batches = mais cache
+3. **GQA/MQA são essenciais**: Modelos sem eles não escalam bem em produção
+4. **Quantização de cache é viável**: Em produção, INT8 cache economiza muito
+
+KV-Cache é a diferença entre inferência viável e inviável para LLMs de larga escala. Sem ele, gerar 1000 tokens levaria minutos em vez de segundos.
+
 ### Embeddings Posicionais: Injetando Ordem em um Modelo Sem Ordem
 
 Um aspecto contra-intuitivo do Transformer é que, por design, ele é **permutation-invariant**. Isso significa que, se embaralharmos os tokens de uma sequência, a saída da camada de atenção será apenas uma permutação correspondente das saídas originais. Isso é problemático porque a ordem das palavras é fundamental para o significado em linguagem natural.
@@ -540,6 +840,115 @@ A FFN é aplicada independentemente a cada posição, mas com os mesmos pesos. P
 
 A FFN geralmente contém a maior parte dos parâmetros do modelo. Em um Transformer com d_model=1024 e d_ff=4096, uma camada FFN tem aproximadamente 8M parâmetros (1024×4096×2), enquanto a camada de atenção tem apenas ~4M parâmetros.
 
+### Mixture of Experts (MoE): Eficiência através de Especialização
+
+Mixture of Experts (MoE) é uma técnica arquitetural que revolucionou a forma como construímos modelos de larga escala eficientes. Em vez de ter uma única FFN grande que processa todos os tokens da mesma forma, MoE usa múltiplas FFNs especializadas ("experts") e um mecanismo de roteamento que decide quais experts ativar para cada token.
+
+**Arquitetura:**
+
+```
+Token → Router (gating network) → Top-K Experts → Aggregate → Output
+                     ↓
+         [Expert 1, Expert 2, ..., Expert N]
+         (apenas K são ativados por token)
+```
+
+**Implementação conceitual:**
+
+```python
+class MoELayer(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
+        super().__init__()
+        # Múltiplos experts (FFNs independentes)
+        self.experts = nn.ModuleList([
+            FFN(d_model, d_ff) for _ in range(num_experts)
+        ])
+        # Router que decide quais experts ativar
+        self.router = nn.Linear(d_model, num_experts)
+        self.top_k = top_k
+
+    def forward(self, x):
+        # x: (batch, seq_len, d_model)
+
+        # Router computa scores para cada expert
+        router_logits = self.router(x)  # (batch, seq_len, num_experts)
+        router_probs = torch.softmax(router_logits, dim=-1)
+
+        # Seleciona top-k experts por token
+        top_k_probs, top_k_indices = torch.topk(router_probs, self.top_k, dim=-1)
+        # Normaliza probabilidades dos top-k
+        top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
+
+        # Processa cada token pelos seus top-k experts
+        output = torch.zeros_like(x)
+        for i in range(self.top_k):
+            expert_idx = top_k_indices[:, :, i]
+            expert_prob = top_k_probs[:, :, i:i+1]
+
+            # Roteamento dinâmico: diferentes tokens vão para diferentes experts
+            for expert_id, expert in enumerate(self.experts):
+                mask = (expert_idx == expert_id)
+                if mask.any():
+                    expert_output = expert(x)
+                    output += expert_output * expert_prob * mask.unsqueeze(-1)
+
+        return output
+```
+
+**Exemplo Real - [Mixtral 8x7B](https://huggingface.co/mistralai/Mixtral-8x7B-v0.1):**
+
+Mixtral [@jiang2024mixtral], desenvolvido pela Mistral AI, é um dos modelos MoE mais bem-sucedidos:
+
+- **8 experts** de 7B parâmetros cada
+- **Router seleciona top-2 experts** por token
+- **Total**: 47B parâmetros, mas apenas ~13B ativos por token
+- **Resultado**: Performance próxima a modelo denso de 47B, custo de inferência de 13B
+
+**Vantagens do MoE:**
+
+1. **Maior capacidade com menor compute ativo**: Modelo de 47B que custa como 13B
+2. **Especialização natural**: Experts tendem a se especializar automaticamente
+   - Expert 1: código Python
+   - Expert 2: matemática
+   - Expert 3: linguagens não-inglesas
+   - Expert 4: conhecimento factual
+3. **Escalabilidade**: Adicionar experts aumenta capacidade sem aumentar compute proporcionalmente
+4. **Eficiência de inferência**: Menos FLOPs por token
+
+**Desafios do MoE:**
+
+1. **Balanceamento de carga**: Router pode favorecer alguns experts, deixando outros sub-utilizados
+   - Solução: Adicionar loss auxiliar que penaliza desbalanceamento
+   - `load_balancing_loss = aux_loss_weight * (num_experts * mean(router_probs)^2)`
+
+2. **Memória total alta**: Todos experts precisam estar carregados na memória
+   - Mixtral 8x7B: Requer ~94GB VRAM (todos experts na GPU)
+   - Solução: Expert parallelism (distribuir experts entre GPUs)
+
+3. **Complexidade de treinamento**: Treinamento distribuído mais complexo
+   - Necessita de all-to-all communication entre GPUs
+   - Framework como Megatron-LM ou DeepSpeed oferecem suporte
+
+4. **Overfitting de routing**: Router pode memorizar padrões de treinamento
+   - Solução: Dropout no router, noise no gating
+
+**Outras Arquiteturas MoE:**
+
+- **Switch Transformer** [@fedus2022switch]: Top-1 routing (apenas 1 expert por token)
+  - Mais simples, mas menos robusto
+- **GLaM** [@du2022glam]: 64 experts, usado pelo Google
+- **GPT-4** (rumores): Possivelmente usa MoE, mas não confirmado oficialmente
+
+**Quando usar MoE:**
+
+- Você tem orçamento de treinamento grande (MoE requer mais dados para convergir)
+- Você quer máxima capacidade com custo de inferência controlado
+- Você tem infraestrutura multi-GPU/multi-nó
+- Você tem restrições de memória VRAM totais
+- Você precisa de latência ultra-baixa (routing adiciona overhead)
+
+MoE representa uma das direções mais promissoras para escalar modelos de forma eficiente, e é provável que vejamos cada vez mais modelos adotando essa arquitetura nos próximos anos.
+
 ### Layer Normalization e Residual Connections
 
 Até agora exploramos os componentes que processam informação no Transformer: atenção e redes feedforward. Mas há um problema: quando empilhamos muitas camadas (GPT-4 tem dezenas, possivelmente centenas), o treinamento se torna extremamente difícil. Duas técnicas simples mas cruciais tornam possível treinar Transformers profundos: **residual connections** e **layer normalization**.
@@ -681,7 +1090,58 @@ O modelo vê a frase com palavras faltando, mascaradas ([MASK]), e deve inferir 
 
 #### Decoder-Only (GPT-like)
 
-Modelos decoder-only como GPT usam atenção **causal** (autoregressive). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "causal mask" que zera os attention scores para posições futuras.
+Modelos decoder-only como GPT usam atenção **causal** (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "causal mask" que zera os attention scores para posições futuras.
+
+**Como Funciona a Causal Mask Tecnicamente:**
+
+A máscara causal é implementada como uma matriz triangular inferior que bloqueia a atenção em tokens futuros. Aqui está como isso funciona:
+
+```python
+import torch
+
+def create_causal_mask(seq_len):
+    """
+    Cria máscara causal para impedir atenção em tokens futuros.
+    Retorna matriz triangular inferior de 1s (permitido) e 0s (bloqueado).
+    """
+    # Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima
+    mask = torch.tril(torch.ones(seq_len, seq_len))
+
+    # Na prática, usamos -inf para posições bloqueadas antes do softmax
+    # Isso garante que softmax(score + mask) = 0 para posições futuras
+    mask = mask.masked_fill(mask == 0, float('-inf'))
+    mask = mask.masked_fill(mask == 1, 0.0)
+
+    return mask
+
+# Visualização para seq_len=5 (antes de aplicar -inf):
+# [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo
+#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1
+#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2
+#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3
+#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4
+
+# Aplicação na atenção:
+def masked_attention(Q, K, V, mask):
+    """Atenção com máscara causal"""
+    d_k = Q.size(-1)
+    scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k))
+
+    # Adiciona máscara antes do softmax
+    # scores + mask onde mask=-inf para posições bloqueadas
+    scores = scores + mask
+
+    # Softmax transforma -inf em ~0
+    attention_weights = torch.softmax(scores, dim=-1)
+
+    return attention_weights @ V
+```
+
+**Por que isso importa:**
+
+1. **Previne data leakage durante treinamento**: O modelo não pode "trapacear" olhando para tokens futuros que deve prever
+2. **Garante consistência entre treino e inferência**: Durante geração, tokens futuros não existem ainda, então o modelo deve aprender sem eles
+3. **Permite paralelização do treinamento**: Todos os tokens podem ser processados simultaneamente, com a máscara garantindo causalidade
 
 O treinamento usa **causal language modeling** (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.
 
@@ -796,7 +1256,8 @@ Quanto menor a loss, melhor o modelo está prevendo. Durante o treinamento, o ob
 Embora loss seja útil matematicamente, é difícil interpretá-la diretamente. "Loss de 2.3" é bom ou ruim? É aí que entra a **perplexidade**, uma métrica mais intuitiva comumente reportada em papers:
 
 ```
-PPL = exp(L) = exp(-1/N Σ log P(x_t | x_<t))
+PPL = exp(L)
+onde L = -1/N Σ log P(x_t | x_<t)
 ```
 
 De novo, não se apegue à fórmula. A perplexidade pode ser entendida como a **"média geométrica do número de escolhas que o modelo está considerando"**.
@@ -880,34 +1341,38 @@ A mistura dessas fontes não é arbitrária, é uma das decisões mais important
 
 **Cenário 1: Muito Common Crawl (>80%)**
 
-- ✅ Modelo entende linguagem natural diversa e coloquial
-- ✅ Boa cobertura de tópicos contemporâneos
-- ❌ Aprende padrões de spam, SEO gaming, conteúdo clickbait
-- ❌ Pode reproduzir desinformação e teorias conspiratórias
+- Modelo entende linguagem natural diversa e coloquial
+- Boa cobertura de tópicos contemporâneos
+- Aprende padrões de spam, SEO gaming, conteúdo clickbait
+- Pode reproduzir desinformação e teorias conspiratórias
 
 **Cenário 2: Muito Código (>50%)**
 
-- ✅ Excelente em programação e tarefas estruturadas
-- ✅ Forte raciocínio lógico e pattern matching
-- ❌ Piora significativa em prosa natural fluente
-- ❌ Respostas podem parecer "robóticas" ou muito estruturadas
+- Excelente em programação e tarefas estruturadas
+- Forte raciocínio lógico e pattern matching
+- Piora significativa em prosa natural fluente
+- Respostas podem parecer "robóticas" ou muito estruturadas
 
 **Cenário 3: Muito Texto Formal (Wikipedia + Papers >60%)**
 
-- ✅ Conhecimento factual robusto
-- ✅ Escrita clara e bem estruturada
-- ❌ Dificuldade com linguagem casual, gírias, humor
-- ❌ Pode soar pedante ou acadêmico demais
+- Conhecimento factual robusto
+- Escrita clara e bem estruturada
+- Dificuldade com linguagem casual, gírias, humor
+- Pode soar pedante ou acadêmico demais
 
 **Mixture Real (LLaMA 3 como exemplo):**
 
-Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens com uma mixture aproximadamente assim:
+Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama3] com uma mixture aproximadamente assim:
 
-- Common Crawl filtrado: ~50%
-- Código: ~20%
-- Wikipedia/Enciclopédico: ~15%
+- Common Crawl filtrado: ~45%
+- Código: ~30-35%
+- Wikipedia/Enciclopédico: ~10%
 - Books: ~10%
 - Papers Acadêmicos: ~5%
+
+::: {.callout-note title="Sobre a Proporção de Código" appearance="simple"}
+A proporção de código no LLaMA 3 é significativamente maior que em modelos anteriores. As versões code-optimized chegam a ter 30-35% de código no mix de treinamento, refletindo o foco crescente em capacidades de programação nos modelos modernos [@dubey2024llama3].
+:::
 
 Esta proporção foi determinada através de **extensos experimentos empíricos**, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
 
@@ -1004,27 +1469,79 @@ Um pipeline típico de produção tem múltiplos estágios: Language Filtering, 
 Aplicando heurísticas de qualidade textual:
 
 ```python
+import math
+from collections import Counter
+
+def calculate_entropy(text):
+    """Calcula entropia de Shannon dos tokens (diversidade vocabular)"""
+    words = text.lower().split()
+    if not words:
+        return 0.0
+
+    # Conta frequência de cada palavra
+    word_counts = Counter(words)
+    total_words = len(words)
+
+    # Calcula entropia: H = -Σ(p(x) * log2(p(x)))
+    entropy = 0.0
+    for count in word_counts.values():
+        probability = count / total_words
+        entropy -= probability * math.log2(probability)
+
+    return entropy
+
+def count_stopwords(text):
+    """Conta stopwords comuns (palavras funcionais)"""
+    # Stopwords básicas em inglês
+    stopwords = {
+        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+        'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+        'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+        'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their'
+    }
+
+    words = text.lower().split()
+    stopword_count = sum(1 for word in words if word in stopwords)
+    return stopword_count
+
+def count_uppercase(text):
+    """Conta caracteres maiúsculos"""
+    return sum(1 for c in text if c.isupper())
+
+def count_duplicates(lines):
+    """Calcula proporção de linhas duplicadas"""
+    if not lines:
+        return 0.0
+    line_counts = Counter(lines)
+    duplicates = sum(count - 1 for count in line_counts.values() if count > 1)
+    return duplicates / len(lines)
+
 def is_high_quality(text):
     # Proporção de stopwords (palavras comuns)
-    stopword_ratio = count_stopwords(text) / len(text)
+    words = len(text.split())
+    if words == 0:
+        return False
+
+    stopword_ratio = count_stopwords(text) / words
     if stopword_ratio < 0.2:  # Muito técnico ou spam
         return False
-    
+
     # Entropia de tokens (diversidade vocabular)
     token_entropy = calculate_entropy(text)
     if token_entropy < 3.0:  # Muito repetitivo
         return False
-    
+
     # Proporção de letras maiúsculas
-    upper_ratio = count_uppercase(text) / len(text)
-    if upper_ratio > 0.3:  # MUITO SPAM ASSIM
-        return False
-    
+    if len(text) > 0:
+        upper_ratio = count_uppercase(text) / len(text)
+        if upper_ratio > 0.3:  # MUITO SPAM ASSIM
+            return False
+
     # Número de linhas duplicadas
     duplicate_lines = count_duplicates(text.split('\n'))
     if duplicate_lines > 0.5:  # Mais de 50% repetido
         return False
-    
+
     return True
 ```
 
@@ -1279,7 +1796,7 @@ Turco: "muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesin
 
 #### Byte Pair Encoding (BPE): O Compromisso Ótimo
 
-Byte Pair Encoding (BPE) [@sennrich2016neural] resolve simultaneamente todos os problemas anteriores através de um princípio elegante: **construir vocabulário bottom-up baseado em frequência estatística dos dados**. Originalmente um algoritmo de compressão de dados dos anos 1994, foi adaptado para NLP e agora é usado por GPT, LLaMA, Claude, Mistral e praticamente todos os LLMs modernos.
+Byte Pair Encoding (BPE) [@sennrich2016neural] resolve simultaneamente todos os problemas anteriores através de um princípio elegante: **construir vocabulário bottom-up baseado em frequência estatística dos dados**. Originalmente um algoritmo de compressão de dados dos anos 1994, BPE foi adaptado para NLP por Sennrich et al. em 2016 especificamente para tradução neural, e desde então tornou-se o padrão de facto para tokenização em LLMs. Hoje é usado por GPT, LLaMA, Claude, Mistral e praticamente todos os LLMs modernos.
 
 **O que BPE garante:**
 
@@ -1563,24 +2080,25 @@ Tamanho do vocabulário afeta fundamentalmente o modelo:
 
 **Vocabulário Pequeno (32K tokens):**
 
-- ✅ Menos parâmetros na embedding layer
-- ✅ Cada token visto mais frequentemente (melhor treinamento)
-- ❌ Sequências mais longas (mais compute)
-- ❌ Menos expressividade lexical
+- Menos parâmetros na embedding layer
+- Cada token visto mais frequentemente (melhor treinamento)
+- Sequências mais longas (mais compute)
+- Menos expressividade lexical
 
 **Vocabulário Grande (100K+ tokens):**
 
-- ✅ Sequências mais curtas (menos compute)
-- ✅ Mais expressividade (palavras raras como tokens únicos)
-- ❌ Muito mais parâmetros
-- ❌ Muitos tokens raros (embeddings mal-treinadas)
+- Sequências mais curtas (menos compute)
+- Mais expressividade (palavras raras como tokens únicos)
+- Muito mais parâmetros
+- Muitos tokens raros (embeddings mal-treinadas)
 
 **Prática Moderna:**
 
 - GPT-2: 50K tokens
 - GPT-3/4: ~100K tokens (inclui mais idiomas e código)
-- LLaMA: 32K tokens (otimizado para eficiência)
-- Claude: ~100K tokens
+- LLaMA 2: 32K tokens (otimizado para eficiência)
+- LLaMA 3: 128K tokens (vocabulário expandido)
+- Claude 3: ~128K tokens (suporte multilíngue ampliado)
 
 Não há "número certo", é um trade-off consciente baseado nos objetivos do modelo.
 
@@ -1605,19 +2123,29 @@ Embeddings não são transferíveis entre tokenizers diferentes.
 Como engenheiro construindo agentes, você precisa entender o comportamento do tokenizer do seu modelo:
 
 ```python
+# Instalação: pip install tiktoken
 import tiktoken
 
-enc = tiktoken.encoding_for_model("gpt-4")
+try:
+    # Para modelos OpenAI (GPT-3.5, GPT-4)
+    enc = tiktoken.encoding_for_model("gpt-4")
+except KeyError:
+    # Fallback para encoding padrão se modelo não for encontrado
+    enc = tiktoken.get_encoding("cl100k_base")
 
 # Visualize tokenização
 def visualize_tokens(text):
-    tokens = enc.encode(text)
-    print(f"Text: {text}")
-    print(f"Tokens ({len(tokens)}): {tokens}")
-    print("Decoded:")
-    for i, token in enumerate(tokens):
-        decoded = enc.decode([token])
-        print(f"  {i}: {token:5d} -> '{decoded}'")
+    try:
+        tokens = enc.encode(text)
+        print(f"Text: {text}")
+        print(f"Tokens ({len(tokens)}): {tokens}")
+        print("Decoded:")
+        for i, token in enumerate(tokens):
+            decoded = enc.decode([token])
+            print(f"  {i}: {token:5d} -> '{decoded}'")
+    except Exception as e:
+        print(f"Erro ao tokenizar: {e}")
+        return None
 
 # Exemplo: Prompt de sistema
 visualize_tokens("You are a helpful assistant specialized in Python programming.")
@@ -1627,6 +2155,36 @@ visualize_tokens("def fibonacci(n):\n    return n if n <= 1 else fibonacci(n-1) 
 
 # Exemplo: Multilíngue
 visualize_tokens("Hello! こんにちは! Olá! 你好!")
+```
+
+**Alternativas para Outros Modelos**
+
+Para modelos não-OpenAI, use a biblioteca `transformers`:
+
+```python
+# Instalação: pip install transformers
+from transformers import AutoTokenizer
+
+# LLaMA, Mistral, outros modelos open-source
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+
+def visualize_tokens_hf(text):
+    tokens = tokenizer.encode(text)
+    print(f"Text: {text}")
+    print(f"Tokens ({len(tokens)}): {tokens}")
+    print("Decoded:")
+    for i, token in enumerate(tokens):
+        decoded = tokenizer.decode([token])
+        print(f"  {i}: {token:5d} -> '{decoded}'")
+
+# Mesmo exemplo
+visualize_tokens_hf("You are a helpful assistant specialized in Python programming.")
+```
+
+**Encodings Comuns**:
+- `cl100k_base`: GPT-4, GPT-3.5-turbo
+- `p50k_base`: GPT-3 (text-davinci-002/003)
+- `r50k_base`: GPT-3 (text-ada-001, text-babbage-001)
 ```
 
 Use isso para:
@@ -1718,7 +2276,7 @@ Se um classificador linear simples consegue alta acurácia usando embeddings de 
 
 **O Fenômeno da Emergência**
 
-Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas**. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
+Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas** [@wei2022emergent]. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
 
 Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas "mais quente ou mais fria", é qualitativamente diferente (líquido vs. vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em "qualidade", mas em **quais tarefas conseguem realizar**.
 
@@ -1796,8 +2354,8 @@ Resposta: 11"""
 
 @wei2022chain descobriram que simplesmente adicionar **"Vamos pensar passo a passo"** ou **"Let's think step by step"** ao prompt melhora dramaticamente performance em tarefas de raciocínio em modelos grandes:
 
-- **GSM8K (math problems)**: +35% de acurácia
-- **SVAMP (arithmetic word problems)**: +28% de acurácia  
+- **GSM8K (math problems)**: +35% de acurácia (de ~17% para ~52% em PaLM 540B)^[Valores específicos do paper original: Standard prompting alcançou 17.9% de acurácia, enquanto CoT alcançou 52.5% no dataset GSM8K usando PaLM 540B [@wei2022chain].]
+- **SVAMP (arithmetic word problems)**: +28% de acurácia (de ~64% para ~92% em PaLM 540B)^[No dataset SVAMP, standard prompting obteve 64.3% enquanto CoT obteve 92.5% [@wei2022chain].]
 - **StrategyQA (commonsense reasoning)**: +17% de acurácia
 - **AQuA (algebra)**: +40% de acurácia
 
@@ -1987,9 +2545,97 @@ Treinar um foundation model do zero é uma empreitada de engenharia massiva que 
 - **LLaMA 65B**: ~2048 GPUs A100 por 21 dias = ~$2-3M [@touvron2023llama]
 - **GPT-4**: Estimado >$100M (não confirmado oficialmente)
 
+**Nota**: Estes são valores históricos de treinamento realizados entre 2020-2023 com conteúdo disponível abertamente na internet para consulta, de onde eu tirei boa parte das minhas referências. Com otimizações modernas (FlashAttention, melhores frameworks, GPUs mais eficientes como H100), custos têm diminuído, mas a escala ainda é proibitiva para a maioria das organizações. Além disso, modelos mais recentes e maiores (GPT-4, Claude 3, Gemini) têm custos estimados significativamente superiores.
+
 É justamente por isso que temos poucas grandes empresas dominando o mercado de LLMs.
 
 Além do custo financeiro, há desafios técnicos massivos. Vamos explorar os principais.
+
+### Scaling Laws: Prevendo Performance com Tamanho
+
+Uma das descobertas mais importantes da era dos foundation models é que a performance de LLMs segue **leis de escala previsíveis**. Isso significa que podemos estimar o desempenho de um modelo maior antes mesmo de treiná-lo, o que é crucial para decisões de alocação de recursos.
+
+#### A Lei de Escala Fundamental
+
+Em 2020, pesquisadores da OpenAI [@kaplan2020scaling] descobriram que a loss de validação de modelos de linguagem segue uma relação de **power law** com três fatores principais:
+
+1. **Número de parâmetros (N)**: Tamanho do modelo
+2. **Quantidade de dados de treinamento (D)**: Número de tokens vistos
+3. **Compute usado (C)**: FLOPs totais de treinamento
+
+A relação fundamental é:
+
+```
+Loss(N, D) ≈ A × N^(-α) + B × D^(-β)
+```
+
+Onde `α ≈ 0.076` e `β ≈ 0.095` (valores empíricos do paper original).
+
+**Implicação prática**: Dobrar o tamanho do modelo reduz a loss em aproximadamente **5%**. Isso pode não parecer muito, mas em tarefas downstream (como question answering ou code generation), essa redução pequena na loss frequentemente se traduz em melhorias significativas de performance.
+
+#### Chinchilla Optimal: O Equilíbrio Entre Modelo e Dados
+
+Em 2022, DeepMind publicou um resultado surpreendente [@hoffmann2022training]: **a maioria dos modelos grandes está over-parametrizada e under-treinada**. Eles mostraram que, para um orçamento de compute fixo, você deveria aumentar o tamanho do modelo **e** a quantidade de dados de treinamento em proporções iguais.
+
+**Regra de Chinchilla**: Para um modelo de **N parâmetros**, você deveria treiná-lo em aproximadamente **20 × N tokens**.
+
+Exemplos práticos:
+
+- **GPT-3 (175B parâmetros)**: Treinado em 300B tokens → **sub-ótimo segundo Chinchilla**
+  - Optimal seria: 175B × 20 = **3.5 trilhões de tokens**
+- **Chinchilla (70B parâmetros)**: Treinado em 1.4T tokens (20 × 70B) → **optimal**
+  - Resultado: **melhor performance que GPT-3** com **menos da metade dos parâmetros**
+
+**Modelos modernos seguindo Chinchilla**:
+
+- **LLaMA 2 (70B)**: ~2T tokens
+- **LLaMA 3 (70B)**: ~15T tokens (intencionalmente over-trained para melhor performance) [@dubey2024llama3]
+- **Mixtral 8x7B**: ~Several trillion tokens (DeepSeek não divulga exatamente)
+
+#### Trade-offs Práticos
+
+As scaling laws nos ajudam a tomar decisões informadas:
+
+**Cenário 1: Compute Limitado**
+
+Se você tem orçamento de compute fixo (ex: 1000 GPU-dias):
+
+- **Opção A**: Treinar modelo de 100B parâmetros em 500B tokens
+- **Opção B**: Treinar modelo de 30B parâmetros em 600B tokens (mais próximo de Chinchilla optimal)
+
+Geralmente, **Opção B terá melhor performance** em benchmarks padrão.
+
+**Cenário 2: Latência Crítica**
+
+Se latência de inferência é crucial (aplicações interativas):
+
+- Prefira modelos menores treinados por mais tempo
+- Um modelo de 7B bem treinado pode competir com modelos de 13B sub-treinados, mas com **latência 2× menor**
+
+**Cenário 3: Fine-tuning Downstream**
+
+Se você planeja fazer fine-tuning extensivo:
+
+- Modelos maiores geralmente se beneficiam mais de fine-tuning
+- O conhecimento adicional em modelos grandes serve como melhor "base" para especialização
+
+#### Limitações das Scaling Laws
+
+É importante entender que scaling laws **não preveem tudo**:
+
+1. **Capacidades emergentes**: Algumas habilidades (como few-shot learning complexo) aparecem abruptamente em certos tamanhos, não seguem power laws suaves [@wei2022emergent]
+2. **Qualidade dos dados**: Scaling laws assumem dados de alta qualidade. Dados ruins não são compensados por mais scale
+3. **Saturação**: Em alguns domínios específicos, a performance pode saturar antes do previsto pelas scaling laws
+4. **Custos de inferência**: Scaling laws focam em training loss, não consideram custos de deployment e serving
+
+#### Por Que Isso Importa para Engenheiros
+
+Para quem está construindo sistemas com LLMs, scaling laws oferecem insights práticos:
+
+- **Planejamento de recursos**: Estimar quanto compute seria necessário para atingir certa performance
+- **Seleção de modelos**: Entender trade-offs entre tamanho do modelo e qualidade de treinamento
+- **ROI de fine-tuning**: Avaliar se vale mais a pena fine-tunar um modelo maior vs. treinar um menor do zero
+- **Benchmarking**: Contextualizar performance de novos modelos contra o que seria esperado pela escala
 
 #### Paralelização: Treinando Modelos Gigantes em Múltiplas GPUs
 
@@ -2081,9 +2727,10 @@ scaler.update()
 ```
 
 **Vantagens**:
-- ✅ Velocidade de FP16 (~2× mais rápido em GPUs modernas)
-- ✅ Metade da memória para ativações
-- ✅ Estabilidade numérica de FP32 para gradientes
+
+- Velocidade de FP16 (~2× mais rápido em GPUs modernas)
+- Metade da memória para ativações
+- Estabilidade numérica de FP32 para gradientes
 
 **Loss Spike Detection & Recovery**
 
@@ -2299,6 +2946,94 @@ LoRA é muito eficaz, por vezes alcança performance comparável a fine-tuning c
 
 **QLoRA** [@dettmers2023qlora]: Combina LoRA com quantização de 4-bit do modelo base. Isso permite fine-tuning de modelos 70B em uma única GPU de 48GB. Essencial para democratizar fine-tuning.
 
+#### Quantização: Reduzindo Requisitos de Memória
+
+Quantização é uma técnica fundamental para tornar LLMs mais acessíveis, reduzindo os requisitos de memória e computação ao representar pesos e ativações do modelo com menor precisão numérica.
+
+**O Problema de Precisão**
+
+Por padrão, modelos são treinados em **FP32** (float de 32 bits) ou **BF16/FP16** (16 bits). Um modelo de 70B parâmetros em FP16 requer:
+
+```
+70B parâmetros × 2 bytes = 140GB de memória
+```
+
+Isso exclui a maioria das GPUs consumidoras (RTX 4090 tem 24GB). Quantização resolve isso reduzindo bits por parâmetro.
+
+**Tipos de Quantização**
+
+**1. Post-Training Quantization (PTQ)**
+
+Quantiza um modelo já treinado sem retreinamento. Rápido e simples, mas pode ter perda de qualidade em quantizações agressivas:
+
+```python
+# Exemplo conceitual
+model_fp16 = load_model("llama-70b")  # 140GB
+model_int8 = quantize_ptq(model_fp16, bits=8)  # 70GB
+model_int4 = quantize_ptq(model_fp16, bits=4)  # 35GB
+```
+
+**2. Quantization-Aware Training (QAT)**
+
+Treina o modelo sabendo que será quantizado, incluindo efeitos de quantização no gradiente. Melhor qualidade, mas requer retreinamento completo:
+
+```python
+# Durante treinamento
+loss = compute_loss(quantize_simulate(model(x)), y)
+```
+
+**Ganhos Práticos de Quantização**
+
+| Precisão | Memória (70B) | Qualidade | Caso de Uso |
+|----------|---------------|-----------|-------------|
+| FP16 | 140GB | 100% (baseline) | Treinamento, inferência premium |
+| INT8 | 70GB | ~99% | Inferência produção |
+| INT4 | 35GB | ~95-97% | Consumer GPUs, edge devices |
+| INT3 | 26GB | ~90-93% | Experimental, edge extremo |
+
+**QLoRA: Quantização + Fine-Tuning**
+
+QLoRA [@dettmers2023qlora] usa técnicas avançadas para combinar quantização de 4-bit com fine-tuning eficiente:
+
+- **4-bit NormalFloat (NF4)**: Formato numérico otimizado para distribuição normal de pesos
+- **Double Quantization**: Quantiza também os próprios quantization constants
+- **Paged Optimizers**: Gerencia memória de optimizer via CPU offloading
+
+**Exemplo Prático com llama.cpp**
+
+[llama.cpp](https://github.com/ggerganov/llama.cpp) é a ferramenta mais popular para rodar LLMs quantizados localmente:
+
+```bash
+# Baixar modelo e quantizar
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp && make
+
+# Converter modelo HuggingFace para GGUF
+python convert.py /path/to/llama-model --outtype f16
+
+# Quantizar para diferentes níveis
+./quantize llama-model-f16.gguf llama-model-q4_0.gguf q4_0  # 4-bit
+./quantize llama-model-f16.gguf llama-model-q8_0.gguf q8_0  # 8-bit
+
+# Rodar inferência
+./main -m llama-model-q4_0.gguf -p "Explain quantum computing" -n 128
+```
+
+**Formatos GGUF Comuns**:
+
+- `q4_0`: 4-bit, mais rápido, menor qualidade
+- `q4_K_M`: 4-bit com mixed precision em camadas críticas (recomendado)
+- `q5_K_M`: 5-bit, melhor qualidade
+- `q8_0`: 8-bit, qualidade quase idêntica ao original
+
+**Trade-offs Práticos para Agentes**
+
+Ao escolher nível de quantização para seu agente:
+
+- **INT8**: Perda de qualidade imperceptível, recomendado para produção
+- **INT4**: Aceitável para a maioria das tarefas, permite rodar modelos maiores
+- **INT3 ou menos**: Apenas quando memória é restrição absoluta (mobile, edge)
+
 **Adapters**: Injeta pequenas camadas feedforward após cada Transformer block. Apenas os adapters são treinados.
 
 **Prefix Tuning / Prompt Tuning**: Aprende embeddings contínuos que são prefixados à input. O modelo base permanece completamente congelado.
@@ -2362,7 +3097,7 @@ Avaliação humana envolve pedir a pessoas reais para julgarem a qualidade, util
 
 **Exemplo: Chatbot Arena**
 
-[Chatbot Arena](https://lmarena.ai) (LMSYS) usa uma abordagem elegante chamada **avaliação cega**:
+[Chatbot Arena](https://lmarena.ai) [@zheng2023judging] (LMSYS) usa uma abordagem elegante chamada **avaliação cega**:
 
 1. **Prompt do usuário**: Pessoa faz uma pergunta real
 1. **Dois modelos anônimos**: Sistema mostra respostas de dois modelos diferentes (usuário não sabe quais)
@@ -2574,6 +3309,12 @@ Custo de inferência varia em ordens de magnitude:
 | Claude 3 Haiku | $0.00025/1K | $0.00125/1K |
 | Llama 3 70B (self-hosted) | ~$0.001/1K | ~$0.002/1K |
 
+**Nota**: Valores podem mudar frequentemente. Consulte fontes oficiais:
+
+- OpenAI: [https://openai.com/api/pricing/](https://openai.com/api/pricing/)
+- Anthropic: [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)
+- Custos de self-hosting variam com infraestrutura e otimizações
+
 Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:
 
 1. **Cascade**: Use modelo mais barato primeiro, escale para modelo mais caro **apenas se necessário**
@@ -2647,11 +3388,37 @@ LLMs são treinados para prever tokens plausíveis, não para ser factualmente c
 **Exemplo Real de Alucinação:**
 
 ```python
-pergunta = "Qual foi o resultado da final da Copa do Mundo de 2050?"
+# Exemplo perigoso: CVEs inventados
+pergunta = "Quais são os detalhes da vulnerabilidade CVE-2024-99999 no OpenSSL?"
 resposta = llm.generate(pergunta)
-# Possível output: "Brasil venceu a Argentina por 3-2 na final em Dallas."
-# PROBLEMA: Copa de 2050 não aconteceu! Modelo inventou tudo.
+
+# Possível output (TOTALMENTE INVENTADO):
+"""
+CVE-2024-99999 é uma vulnerabilidade crítica de buffer overflow no OpenSSL 3.2.1
+que permite execução remota de código. A falha está na função SSL_read_ex() e
+afeta todas as versões desde 3.0.0.
+
+Mitigação: Atualize imediatamente para OpenSSL 3.2.2 ou aplique o patch disponível em:
+https://www.openssl.org/patches/CVE-2024-99999.patch
+
+CVSS Score: 9.8 (Critical)
+"""
+
+# PROBLEMA: CVE-2024-99999 NÃO EXISTE! O modelo:
+# - Inventou o número CVE
+# - Criou detalhes técnicos plausíveis
+# - Fabricou URLs e versões
+# - Tudo soa profissional e confiável, mas é 100% falso
 ```
+
+**Por que isso é especialmente perigoso?**
+
+Sistemas de segurança que dependem de LLMs para threat intelligence podem:
+
+- Aplicar patches inexistentes
+- Ignorar vulnerabilidades reais enquanto caçam fantasmas
+- Gerar relatórios de segurança com informações falsas
+- Tomar decisões críticas baseadas em dados fabricados
 
 **Mitigações Práticas:**
 
@@ -2842,6 +3609,224 @@ Além de limitações técnicas, há desafios práticos de operacionalização:
 
 E, durante a fase de observabilidade, é importante tomar cuidado para não logar informações sensíveis inadvertidamente. Um agente, além das possíveis novas falhas de LLMs, também está sujeito a todos os desafios tradicionais de sistemas distribuídos em produção.
 
+## Recursos Práticos e Ferramentas
+
+Para engenheiros que querem começar a trabalhar com foundation models, é essencial conhecer as bibliotecas, datasets, e ferramentas que formam o ecossistema moderno de LLMs. Esta seção oferece um guia prático dos recursos mais importantes.
+
+### Bibliotecas Essenciais
+
+**Transformers (Hugging Face)**
+
+A biblioteca mais popular para trabalhar com foundation models. Fornece APIs unificadas para centenas de modelos pré-treinados.
+
+```python
+from transformers import AutoTokenizer, AutoModelForCausalLM
+
+# Carregar modelo e tokenizer
+tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf")
+model = AutoModelForCausalLM.from_pretrained("meta-llama/Llama-2-7b-hf")
+
+# Gerar texto
+inputs = tokenizer("The future of AI is", return_tensors="pt")
+outputs = model.generate(**inputs, max_length=50)
+print(tokenizer.decode(outputs[0]))
+```
+
+**Características**:
+
+- Suporta PyTorch, TensorFlow, JAX
+- Integração com Hugging Face Hub (100,000+ modelos)
+- Pipeline API para tarefas comuns (text-generation, classification, etc.)
+- Ferramentas de fine-tuning (Trainer API, PEFT para LoRA)
+
+**llama.cpp**
+
+Framework de inferência em C/C++ otimizado para CPUs. Permite rodar modelos grandes em hardware consumer.
+
+```bash
+# Executar LLaMA 2 7B em CPU
+./main -m llama-2-7b-q4_0.gguf \
+  -p "Explain quantum computing in simple terms" \
+  -n 256 \
+  --temp 0.7
+```
+
+**Características**:
+
+- Quantização agressiva (4-bit, até 8-bit)
+- Suporte para Apple Silicon (Metal), CPU (AVX2), GPU (CUDA, OpenCL)
+- Baixo uso de memória (7B model em ~4GB RAM)
+- Ideal para deployment local e edge devices
+
+**vLLM**
+
+Sistema de serving de alta performance para LLMs em produção.
+
+```python
+from vllm import LLM, SamplingParams
+
+llm = LLM(model="meta-llama/Llama-2-7b-hf")
+prompts = ["Hello, my name is", "The capital of France is"]
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+outputs = llm.generate(prompts, sampling_params)
+```
+
+**Características**:
+
+- PagedAttention para gerenciamento eficiente de memória
+- Continuous batching para maior throughput
+- 10-20× mais rápido que HuggingFace transformers em batch serving
+- Suporte para modelos grandes (até 175B+)
+
+**Outras Bibliotecas Importantes**:
+
+- **LangChain**: Framework para construir aplicações com LLMs (chains, agents, tools)
+- **LlamaIndex**: Especializado em RAG e indexação de documentos
+- **Axolotl**: Framework de fine-tuning com configuração declarativa
+- **Ollama**: Ferramenta de gestão de modelos local (similar a Docker para LLMs)
+
+### Datasets para Experimentação
+
+**The Pile (EleutherAI)**
+
+Dataset de 825GB de texto diversificado usado para treinar GPT-NeoX e Pythia.
+
+- **Tamanho**: 825 GiB de texto (~300B tokens)
+- **Composição**: 22 sub-datasets (Common Crawl, arXiv, GitHub, Wikipedia, livros, etc.)
+- **Uso**: Pré-treinamento, análise de dados, benchmarking
+- **Acesso**: https://pile.eleuther.ai/
+
+**RedPajama**
+
+Reprodução open-source do dataset do LLaMA original.
+
+- **Tamanho**: ~5TB de texto (~1.2T tokens)
+- **Versões**: RedPajama-v1 (2023), RedPajama-v2 (2024, ~30T tokens)
+- **Qualidade**: Filtrado e deduplicated
+- **Uso**: Treinamento de modelos base de alta qualidade
+- **Acesso**: https://github.com/togethercomputer/RedPajama-Data
+
+**Common Crawl**
+
+Archive da web contendo petabytes de dados web.
+
+- **Escala**: ~250 TiB por crawl mensal
+- **Formato**: WARC (Web ARChive)
+- **Desafios**: Requer limpeza extensiva (spam, duplicatas, baixa qualidade)
+- **Ferramentas**: CCNet, datatrove para filtrar e processar
+- **Acesso**: https://commoncrawl.org/
+
+**Datasets Específicos por Domínio**:
+
+- **Code**: The Stack, CodeSearchNet
+- **Conversação**: OpenAssistant, ShareGPT, Anthropic HH-RLHF
+- **Matemática**: MATH dataset, GSM8K
+- **Raciocínio**: ARC, HellaSwag, PIQA
+- **Multilingual**: mC4, OSCAR, CulturaX
+
+### Ferramentas de Avaliação
+
+**lm-evaluation-harness (EleutherAI)**
+
+Framework padrão para avaliar LLMs em benchmarks acadêmicos.
+
+```bash
+# Avaliar modelo em MMLU, HellaSwag, ARC
+lm_eval --model hf \
+  --model_args pretrained=meta-llama/Llama-2-7b-hf \
+  --tasks mmlu,hellaswag,arc_challenge \
+  --num_fewshot 5 \
+  --batch_size 8
+```
+
+**Suporta**:
+
+- 60+ tarefas de avaliação (MMLU, HellaSwag, TruthfulQA, etc.)
+- Multiple choice, generation, classification
+- Few-shot evaluation
+- Custom tasks
+
+**BIG-bench (Google)**
+
+Coleção de 200+ tarefas diversas para testar capacidades emergentes.
+
+- **Categorias**: Raciocínio, conhecimento mundial, matemática, código
+- **Formato**: JSON-based task definitions
+- **Uso**: Avaliar capacidades além de benchmarks tradicionais
+- **Acesso**: https://github.com/google/BIG-bench
+
+**Chatbot Arena (LMSYS)**
+
+Plataforma de avaliação baseada em preferências humanas.
+
+- **Método**: Comparação lado-a-lado (A/B testing)
+- **Elo Rating**: Ranking de modelos baseado em votos humanos
+- **Transparência**: Leaderboard pública e atualizada continuamente
+- **Acesso**: https://chat.lmsys.org/
+
+**Outras Ferramentas**:
+- **HELM** (Holistic Evaluation of Language Models): Framework abrangente de Stanford
+- **MT-Bench**: Conversational benchmark multi-turn
+- **AlpacaEval**: Avaliação rápida de instruction-following
+
+### Comunidades e Recursos
+
+**Hugging Face Hub**
+
+Repositório central de modelos, datasets, e aplicações de ML.
+
+- **Modelos**: 500,000+ modelos pré-treinados
+- **Datasets**: 100,000+ datasets curados
+- **Spaces**: Demos interativas de modelos
+- **Discussions**: Fóruns específicos por modelo/dataset
+- **Acesso**: https://huggingface.co/
+
+**Papers with Code**
+
+Conecta papers acadêmicos com implementações e benchmarks.
+
+- **Papers**: 50,000+ papers linkados a código
+- **Benchmarks**: Leaderboards para 4,000+ tarefas
+- **Methods**: Taxonomia de técnicas de ML
+- **Trends**: Tracking de State-of-the-Art
+- **Acesso**: https://paperswithcode.com/
+
+**r/LocalLLaMA (Reddit)**
+
+Comunidade focada em rodar LLMs localmente.
+
+- **Foco**: Modelos open-source, quantização, hardware consumer
+- **Tópicos**: Fine-tuning, prompting, comparações de modelos
+- **Recursos**: Guias, benchmarks comunitários, troubleshooting
+- **Acesso**: https://reddit.com/r/LocalLLaMA
+
+**Outros Recursos Valiosos**:
+
+- **EleutherAI Discord**: Comunidade de pesquisa open-source
+- **Nous Research**: Fine-tuning e modelos especializados
+- **LAION**: Datasets multimodais (LAION-5B para imagens)
+- **AI Alignment Forum**: Discussões sobre safety e alignment
+
+### Ferramentas de Desenvolvimento
+
+**Prompt Engineering**:
+
+- **PromptBench**: Biblioteca de prompts testados
+- **Guidance**: DSL para controlar geração de LLMs (Microsoft)
+- **LMQL**: Linguagem de query para LLMs com constraints
+
+**Observabilidade**:
+
+- **LangSmith**: Debugging e monitoring de chains (LangChain)
+- **Weights & Biases**: Tracking de experimentos e fine-tuning
+- **Arize AI**: Monitoring de LLMs em produção
+
+**Serving e Deployment**:
+
+- **Text Generation Inference** (TGI): Framework de serving da Hugging Face
+- **Ray Serve**: Distributed serving para modelos grandes
+- **Triton Inference Server**: Serving multi-framework (NVIDIA)
+
 ## Olhando para o Futuro
 
 O campo de foundation models está evoluindo rapidamente. Como eu disse anteriormente: é impossível acompanhar tudo. Algumas direções importantes que podemos ficar de olho:
@@ -2866,6 +3851,48 @@ Usar mais computação durante inferência (múltiplas amostras, self-verificati
 
 Entender por que modelos fazem certas previsões é crucial para confiança. Mechanistic interpretability e ferramentas como SHAP estão avançando nesse sentido. Isso ajudará a diagnosticar falhas e corrigir vieses com mais precisão.
 
+## Glossário Técnico
+
+Este glossário fornece definições concisas dos termos técnicos mais importantes relacionados a foundation models e LLMs.
+
+**Attention Head**: Uma das múltiplas "cabeças" em multi-head attention. Cada head aprende a focar em diferentes aspectos das relações entre tokens (sintática, semântica, posicional). Um modelo pode ter dezenas de heads por camada.
+
+**Causal Mask**: Máscara aplicada durante attention que impede tokens de "olhar para o futuro". Garante que a predição na posição i depende apenas de tokens em posições ≤ i. Essencial para modelos autoregressivos.
+
+**Context Window**: Número máximo de tokens que um modelo pode processar de uma vez. Modelos típicos têm janelas de 2K-128K tokens. Contextos maiores permitem processar documentos longos mas aumentam custo computacional quadraticamente.
+
+**Embedding**: Representação vetorial densa de um token. Transforma símbolos discretos (palavras) em vetores contínuos (ex: 768 ou 4096 dimensões) que capturam similaridades semânticas. Tokens similares têm embeddings próximos no espaço vetorial.
+
+**Fine-tuning**: Processo de treinar um modelo pré-treinado em dados específicos de uma tarefa ou domínio. Ajusta os pesos do modelo para melhorar performance em aplicações específicas. Requer muito menos dados e compute que pré-treinamento.
+
+**Hallucination**: Quando um LLM gera informação factualmente incorreta com alta confiança. Ocorre porque o modelo aprende padrões estatísticos, não "conhecimento verdadeiro". Especialmente problemático para aplicações críticas.
+
+**In-Context Learning (ICL)**: Capacidade de um LLM aprender novas tarefas a partir de exemplos no prompt, sem atualizar pesos. Exemplos: few-shot (2-10 exemplos), zero-shot (apenas instruções). Capacidade emergente de modelos grandes.
+
+**LoRA (Low-Rank Adaptation)**: Técnica de fine-tuning eficiente que treina apenas matrizes de baixo rank adicionadas aos pesos originais. Reduz parâmetros treináveis em 10,000×, mantendo ~95% da performance de full fine-tuning.
+
+**Perplexity**: Métrica de quão "surpreso" o modelo fica com dados de teste. Perplexity de X significa que o modelo está tão incerto quanto um sorteio aleatório uniforme entre X opções. Menor é melhor. PPL = exp(loss).
+
+**Prompt**: Input textual fornecido ao modelo. Pode incluir instruções, contexto, exemplos (few-shot), e a query real. Qualidade do prompt afeta drasticamente a qualidade da resposta. Prompt engineering é arte e ciência.
+
+**Quantization**: Reduzir precisão dos pesos (ex: FP32 → INT8 → INT4). Reduz tamanho do modelo e acelera inferência, com pequena perda de qualidade. Modelos quantizados de 4-bit podem rodar em hardware consumer.
+
+**RAG (Retrieval-Augmented Generation)**: Técnica que combina retrieval de documentos com geração. Dado um prompt, busca documentos relevantes em knowledge base e os injeta no contexto antes de gerar resposta. Reduz hallucinations.
+
+**Self-Attention**: Mecanismo que permite cada token "olhar" para todos outros tokens na sequência e computar representações contextualizadas. Coração do Transformer. Complexidade O(n²) em comprimento de sequência.
+
+**Temperature**: Parâmetro de sampling que controla aleatoriedade. Temperature = 0 (determinístico, sempre escolhe token mais provável). Temperature > 1 (mais aleatório, mais criativo). Temperature = 0.7-0.9 é comum para conversação.
+
+**Token**: Unidade básica de texto processada por LLMs. Pode ser palavra, subpalavra, ou caractere. Tokenizers como BPE dividem texto em tokens. ~1 token ≈ 0.75 palavras em inglês. Modelos processam milhares de tokens/segundo.
+
+**Top-K Sampling**: Estratégia de sampling que considera apenas os K tokens mais prováveis a cada passo. K=50 é comum. Evita escolher tokens muito improváveis (que podem gerar texto nonsensical) mas mantém diversidade.
+
+**Top-P (Nucleus) Sampling**: Alternativa a top-K. Escolhe menor conjunto de tokens cuja probabilidade acumulada ≥ P. P=0.9 significa "considere os tokens mais prováveis que juntos cobrem 90% da probabilidade". Adapta-se à distribuição.
+
+**Zero-shot**: Executar tarefa sem exemplos, apenas instruções. Ex: "Traduza para francês: Hello" (sem mostrar exemplos de traduções). Modelos grandes têm forte capacidade zero-shot em muitas tarefas.
+
+**Few-shot**: Executar tarefa com poucos exemplos (2-10) no prompt. Ex: mostrar 3 exemplos de traduções antes de pedir nova tradução. Geralmente melhora performance vs. zero-shot, especialmente em tarefas complexas.
+
 ## Conclusão: Foundation Models como Primitivas Cognitivas
 
 Foundation models representam uma nova primitiva computacional, não são apenas "software" no sentido tradicional, mas algo mais próximo de subsistemas cognitivos reutilizáveis. Assim como sistemas operacionais fornecem abstrações sobre hardware (files, processes, memory), foundation models fornecem abstrações sobre processamento de linguagem e conhecimento.
@@ -2875,3 +3902,17 @@ Para engenheiros construindo agentes inteligentes, foundation models são a base
 Nos próximos capítulos, exploraremos como usar foundation models efetivamente: como configurar seus parâmetros de geração, como escrever prompts que extraem as melhores capacidades, como recuperar conhecimento externo via RAG, como orquestrar múltiplos agentes, e como fazer deploy de sistemas robustos em produção. Mas tudo isso se baseia na compreensão fundamental que estabelecemos aqui: o que são foundation models, como funcionam, e o que podem (e não podem) fazer.
 
 A jornada de dominar agentes de IA começa com dominar seus fundamentos, os foundation models que são seu coração pulsante.
+
+**Outras Referências Importantes Citadas no Capítulo**:
+
+- **Vaswani et al. (2017)**: "Attention Is All You Need" - Paper original do Transformer
+- **Touvron et al. (2023)**: LLaMA 1 e LLaMA 2 technical reports
+- **Ouyang et al. (2022)**: "Training language models to follow instructions with human feedback" (InstructGPT)
+- **Christiano et al. (2017)**: "Deep reinforcement learning from human preferences" (RLHF foundations)
+- **Hu et al. (2021)**: "LoRA: Low-Rank Adaptation of Large Language Models"
+
+**Recursos Online Recomendados**:
+
+- **The Illustrated Transformer** (Jay Alammar): [https://jalammar.github.io/illustrated-transformer/](https://jalammar.github.io/illustrated-transformer/)
+- **Hugging Face NLP Course**: [https://huggingface.co/learn/nlp-course/](https://huggingface.co/learn/nlp-course/)
+- **Neural Networks: Zero to Hero** (Andrej Karpathy): [https://karpathy.ai/zero-to-hero.html](https://karpathy.ai/zero-to-hero.html)
