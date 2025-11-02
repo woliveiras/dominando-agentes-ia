@@ -9,9 +9,9 @@ book:
     - index.qmd
     - chapters/00-visao-geral.qmd
     - chapters/01-intro.qmd
-    # - part: "Parte I: Fundamentos e Componentes Base"
-    #   chapters:
-    #     - chapters/part-01/01-foundation-models.qmd
+    - part: "Parte I: Fundamentos e Componentes Base"
+      chapters:
+        - chapters/part-01/01-foundation-models.qmd
     #     - chapters/part-01/02-dominando-large-language-models.qmd
     #     - chapters/part-01/03-fundamentos-prompting.qmd
     #     - chapters/part-01/04-embeddings.qmd
