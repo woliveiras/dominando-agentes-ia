@@ -32,11 +32,14 @@ jobs:
             ~/.TinyTeX
             ~/.cache/uv
             /usr/share/texlive
-            /usr/bin/chromium-browser
-            /usr/bin/ebook-convert
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             deps-v2-${{ runner.os }}-
+
+      - name: Install system dependencies (always)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq chromium-browser calibre
 
       - name: Set up Quarto
         if: steps.cache.outputs.cache-hit != 'true'
@@ -46,11 +49,10 @@ jobs:
         with:
           tinytex: true
 
-      - name: Install system dependencies
+      - name: Install additional system dependencies
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get update
-          sudo apt-get install -y pandoc chromium-browser calibre
+          sudo apt-get install -y -qq pandoc
 
       - name: Set up Python
         if: steps.cache.outputs.cache-hit != 'true'
