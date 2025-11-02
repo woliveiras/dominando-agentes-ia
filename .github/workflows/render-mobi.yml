@@ -1,0 +1,74 @@
+name: Render MOBI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'book/**'
+      - '.github/workflows/render-mobi.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  setup:
+    uses: ./.github/workflows/setup-dependencies.yml
+
+  render-mobi:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.TinyTeX
+            ~/.cache/uv
+            /usr/share/texlive
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tinytex: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync Python dependencies
+        run: uv sync
+
+      - name: Install Calibre
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y calibre
+
+      - name: Render book to EPUB
+        run: |
+          quarto render book/ --to epub
+
+      - name: Convert EPUB to MOBI
+        run: |
+          ebook-convert book/_book/Dominando-Agentes-de-IA.epub book/_book/Dominando-Agentes-de-IA.mobi
+
+      - name: Upload MOBI artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: book-mobi
+          path: book/_book/Dominando-Agentes-de-IA.mobi
+          retention-days: 7

@@ -1,0 +1,65 @@
+name: Render EPUB
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'book/**'
+      - '.github/workflows/render-epub.yml'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  setup:
+    uses: ./.github/workflows/setup-dependencies.yml
+
+  render-epub:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Restore cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.TinyTeX
+            ~/.cache/uv
+            /usr/share/texlive
+          key: ${{ needs.setup.outputs.cache-key }}
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tinytex: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Sync Python dependencies
+        run: uv sync
+
+      - name: Render book to EPUB
+        run: |
+          quarto render book/ --to epub
+
+      - name: Upload EPUB artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: book-epub
+          path: book/_book/Dominando-Agentes-de-IA.epub
+          retention-days: 7

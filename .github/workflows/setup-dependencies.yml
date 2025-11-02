@@ -1,0 +1,72 @@
+name: Setup Build Dependencies
+
+on:
+  workflow_call:
+    outputs:
+      cache-key:
+        description: "Cache key for dependencies"
+        value: ${{ jobs.setup.outputs.cache-key }}
+
+permissions:
+  contents: write
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "key=deps-${{ runner.os }}-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        id: cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.TinyTeX
+            ~/.cache/uv
+            /usr/share/texlive
+          key: ${{ steps.cache-key.outputs.key }}
+
+      - name: Set up Quarto
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tinytex: true
+
+      - name: Install system dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc
+
+      - name: Set up Python
+        if: steps.cache.outputs.cache-hit != 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Install TinyTeX
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          quarto install tinytex
+
+      - name: Install LaTeX packages for Portuguese
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          tlmgr install babel-portuges hyphen-portuguese collection-langportuguese

@@ -11,55 +11,7 @@ permissions:
   id-token: write
 
 jobs:
-  build-and-deploy:
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout repository
-          uses: actions/checkout@v3
-
-        - name: Set up Quarto
-          uses: quarto-dev/quarto-actions/setup@v2
-          env:
-            GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          with:
-            tinytex: true
-
-        - name: Install dependencies
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y pandoc
-
-        - name: Set up Python
-          uses: actions/setup-python@v6
-          with:
-            python-version: '3.13'
-
-        - name: Install uv and sync Python dependencies
-          run: |
-            pip install uv
-            uv sync
-
-        - name: Install TinyTeX
-          run: |
-            quarto install tinytex
-
-        - name: Install LaTeX packages for Portuguese
-          run: |
-            export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-            tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
-
-        - name: Render book
-          run: |
-            quarto render book/
-
-        - name: Deploy to GitHub Pages
-          uses: peaceiris/actions-gh-pages@v4
-          with:
-            github_token: ${{ secrets.GITHUB_TOKEN }}
-            publish_dir: book/_book
-            publish_branch: gh-pages
-
-  build-and-release-artifacts:
+  build-artifacts:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -72,12 +24,17 @@ jobs:
         with:
           tinytex: true
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc calibre
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
           python-version: '3.13'
 
-      - name: Install uv and sync Python dependencies
+      - name: Install Python dependencies
         run: |
           pip install uv
           uv sync
@@ -91,22 +48,39 @@ jobs:
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
 
-      - name: Install Calibre for MOBI conversion
+      - name: Render book to HTML
         run: |
-          sudo apt-get update
-          sudo apt-get install -y calibre
+          quarto render book/ --to html --verbose
 
       - name: Render book to PDF
         run: |
-          quarto render book/ --to pdf
+          quarto render book/ --to pdf --verbose
 
       - name: Render book to EPUB
         run: |
-          quarto render book/ --to epub
+          quarto render book/ --to epub --verbose
 
       - name: Convert EPUB to MOBI
         run: |
           ebook-convert book/_book/Dominando-Agentes-de-IA.epub book/_book/Dominando-Agentes-de-IA.mobi
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: book-artifacts
+          path: |
+            book/_book/
+          retention-days: 1
+
+  create-release:
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: book-artifacts
+          path: book/_book
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -120,3 +94,20 @@ jobs:
           generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  deploy-gh-pages:
+    needs: build-artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: book-artifacts
+          path: book/_book
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: book/_book
+          publish_branch: gh-pages
