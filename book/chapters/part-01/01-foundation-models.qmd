@@ -1638,40 +1638,344 @@ Use isso para:
 
 ### Representações Contextualizadas: O que Está Dentro dos Vetores
 
-Um dos avanços fundamentais dos Transformers em relação a word embeddings estáticos (word2vec, GloVe) é que eles produzem **representações contextualizadas**. A mesma palavra recebe representações diferentes dependendo do contexto:
+**Da Ambiguidade à Precisão Semântica**
 
+Um dos avanços fundamentais dos Transformers em relação a word embeddings estáticos (word2vec, GloVe) é que eles produzem **representações contextualizadas**. Embeddings estáticos atribuem um único vetor fixo para cada palavra, independente do contexto — "bank" sempre tem a mesma representação, seja "bank of the river" (margem) ou "bank is closed" (banco financeiro).
+
+Transformers resolvem isso computando representações dinamicamente para cada ocorrência:
+
+```python
+# Word2Vec (estático)
+"The bank of the river" -> bank = [0.2, -0.5, 0.8, ...]  # sempre igual
+"The bank is closed"    -> bank = [0.2, -0.5, 0.8, ...]  # sempre igual
+
+# Transformer (contextualizado)
+"The bank of the river" -> bank₁ = [0.1, -0.3, 0.9, ...]  # "margem"
+"The bank is closed"    -> bank₂ = [0.8,  0.5, -0.2, ...] # "banco financeiro"
 ```
-"The bank of the river" -> bank₁
-"The bank is closed" -> bank₂
+
+A distância vetorial entre `bank₁` e `bank₂` pode ser maior que a distância entre `bank₁` e `river`, refletindo que "bank (margem)" está semanticamente mais próximo de "river" que de "bank (banco)".
+
+**Hierarquia de Abstração: O que Cada Camada Aprende**
+
+Estas representações contextualizadas capturam múltiplos níveis de informação linguística simultaneamente:
+
+1. **Informação Sintática**: Parte do discurso (substantivo, verbo), estrutura gramatical, relações de dependência
+1. **Informação Semântica**: Significado da palavra, relações semânticas (sinonímia, antonímia, hiperonímia)
+1. **Informação Contextual**: Significado específico derivado do contexto imediato (desambiguação)
+1. **Conhecimento Factual**: Propriedades e fatos sobre entidades ("Paris é capital da França")
+
+**Descoberta crucial**: Pesquisas em interpretabilidade revelaram que diferentes camadas de um Transformer se especializam em diferentes tipos de informação [@rogers2020primer; @tenney2019bert]:
+
+- **Camadas Iniciais (1-4)**: Informação **sintática e superficial**
+
+  - Part-of-speech tagging (~95% accuracy na camada 2)
+  - Segmentação de constituintes sintáticos
+  - Detecção de pontuação e capitalização
+  
+- **Camadas Intermediárias (5-8)**: Informação **semântica e factual**
+
+  - Desambiguação de sentido de palavras (word sense disambiguation)
+  - Relações semânticas entre palavras
+  - Conhecimento factual básico (entidades, relações)
+  
+- **Camadas Finais (9-12+)**: Informação **task-specific e abstrata**
+
+  - Representações otimizadas para a tarefa de predição
+  - Raciocínio mais complexo e inferências
+  - Composição semântica de alta ordem
+
+**Analogia com Visão Computacional**: Esta estrutura hierárquica é análoga a como CNNs aprendem features visuais:
+
+- Camadas iniciais: Detectam edges, texturas básicas
+- Camadas intermediárias: Detectam partes de objetos (olhos, rodas)
+- Camadas finais: Detectam objetos completos e cenas complexas
+
+**Implicação Prática**: Se você está fazendo fine-tuning, muitas vezes vale congelar as camadas iniciais (que aprendem linguagem geral) e treinar apenas as finais (task-specific). Isso reduz drasticamente o custo computacional e dados necessários.
+
+**Probing e Interpretabilidade**
+
+Como sabemos o que cada camada aprende? Através de **probing classifiers**, pequenos classificadores lineares treinados sobre as representações congeladas de cada camada:
+
+```python
+# Treina classificador linear sobre embeddings da camada L
+for layer in [1, 2, ..., 12]:
+    embeddings = model.get_layer_output(layer, texts)
+    accuracy = train_linear_classifier(embeddings, labels)
+    print(f"Layer {layer}: {accuracy:.2%}")
+
+# Resultado típico para POS tagging:
+# Layer 1: 85%
+# Layer 2: 95%  ← melhor camada para sintaxe
+# Layer 3: 94%
+# ...
+# Layer 12: 88%
 ```
 
-Estas representações capturam:
-
-1. **Informação Sintática**: Parte do discurso, relações de dependência sintática
-2. **Informação Semântica**: Significado, relações semânticas com outras palavras
-3. **Informação Contextual**: Significado derivado do contexto específico
-4. **Conhecimento Factual**: Propriedades e fatos sobre a entidade referenciada
-
-Pesquisas em interpretabilidade têm mostrado que diferentes camadas de um Transformer capturam diferentes tipos de informação:
-
-- **Camadas Iniciais**: Informação mais sintática e superficial
-- **Camadas Intermediárias**: Informação semântica e factual  
-- **Camadas Finais**: Informação mais task-specific e abstrata
-
-Esta estrutura hierárquica sugere que LLMs aprendem representações progressivamente mais abstratas, similar a como CNNs aprendem features visuais progressivamente mais complexas.
+Se um classificador linear simples consegue alta acurácia usando embeddings de uma camada, isso indica que aquela camada codifica linearmente a informação desejada.
 
 ### Capacidades Emergentes: Além do Treinamento
 
-Um dos fenômenos mais surpreendentes dos LLMs é a emergência de capacidades que não foram explicitamente treinadas. Modelos suficientemente grandes demonstram:
+**O Fenômeno da Emergência**
 
-- **In-Context Learning**: Aprender novas tarefas a partir de poucos exemplos no prompt, sem atualizar pesos [@brown2020language]
-- **Chain-of-Thought Reasoning**: Resolver problemas complexos através de raciocínio passo-a-passo [@wei2022chain]
-- **Few-Shot Learning**: Generalizar para novas tarefas com exemplos mínimos
-- **Instruction Following**: Seguir instruções complexas expressas em linguagem natural
+Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas**. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
+
+Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas "mais quente ou mais fria", é qualitativamente diferente (líquido vs. vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em "qualidade", mas em **quais tarefas conseguem realizar**.
+
+**Capacidades Emergentes Principais:**
+
+**1. In-Context Learning (ICL)**
+
+Capacidade de aprender novas tarefas a partir de poucos exemplos no prompt, **sem atualizar pesos** [@brown2020language]:
+
+```python
+# Prompt com 3 exemplos de tradução
+prompt = """
+Traduza inglês para francês:
+English: Hello
+French: Bonjour
+
+English: Good morning
+French: Bonjour
+
+English: Thank you
+French: Merci
+
+English: How are you?
+French:"""
+
+# Modelo "aprende" o padrão e completa corretamente
+output = "Comment allez-vous?"
+```
+
+**Por que isso é surpreendente?**: Durante o treinamento, o modelo nunca viu a tarefa de "seguir um padrão de poucos exemplos". Ele só foi treinado para prever o próximo token. Mas de alguma forma, essa capacidade de meta-aprendizado emerge.
+
+**Threshold de emergência**: GPT-2 (1.5B) basicamente não tem ICL. GPT-3 (175B) tem forte ICL. Há uma transição abrupta em algum ponto entre essas escalas.
+
+**2. Chain-of-Thought Reasoning (CoT)**
+
+Capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito [@wei2022chain]. Esta é uma das descobertas mais impactantes para construção de agentes, pois permite decompor problemas complexos em etapas verificáveis.
+
+**O Problema Fundamental do Raciocínio em LLMs**
+
+LLMs são treinados para prever o próximo token diretamente. Para problemas simples isso funciona:
+
+```python
+"2 + 2 =" → "4"  # Resposta memorizada
+```
+
+Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente falha:
+
+```python
+# Sem CoT (falha)
+prompt = "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?"
+output = "8"  # ERRADO (deveria ser 11)
+
+# Por que falhou? O modelo tentou "pular" para a resposta sem raciocinar:
+# 5 bolas + 2 latas = 7? ou 5 + 3 = 8? Sem espaço para trabalhar, o modelo chuta.
+```
+
+**A Solução: Raciocínio Explícito**
+
+Chain-of-Thought força o modelo a "mostrar o trabalho", criando espaço no contexto para raciocínio intermediário:
+
+```python
+# Com CoT (sucesso)
+prompt = """Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?
+Vamos pensar passo a passo:
+1. Roger começa com 5 bolas
+2. Ele compra 2 latas
+3. Cada lata tem 3 bolas, então 2 × 3 = 6 bolas
+4. Total: 5 + 6 = 11 bolas
+Resposta: 11"""
+
+# Agora o modelo tem "espaço de trabalho" para raciocinar corretamente!
+```
+
+**Descoberta Crítica: O Prompt "Mágico"**
+
+@wei2022chain descobriram que simplesmente adicionar **"Vamos pensar passo a passo"** ou **"Let's think step by step"** ao prompt melhora dramaticamente performance em tarefas de raciocínio em modelos grandes:
+
+- **GSM8K (math problems)**: +35% de acurácia
+- **SVAMP (arithmetic word problems)**: +28% de acurácia  
+- **StrategyQA (commonsense reasoning)**: +17% de acurácia
+- **AQuA (algebra)**: +40% de acurácia
+
+**Por que isso funciona?** Duas hipóteses principais:
+
+1. **Espaço de Trabalho Intermediário**: CoT cria tokens intermediários onde o modelo pode "pensar". Sem isso, o modelo precisa comprimir todo o raciocínio em uma única predição de token.
+1. **Padrão de Treinamento**: Dados de treinamento incluem muitos exemplos de raciocínio passo-a-passo (tutoriais, explicações, provas matemáticas). CoT ativa esse padrão aprendido.
+
+**Exemplo Real: Problema Mais Complexo**
+
+```python
+prompt = """
+Uma receita serve 4 pessoas e usa 3 ovos. Se você quer fazer a receita para 14 pessoas, quantos ovos precisa?
+Let's think step by step:
+"""
+
+# Modelo gera:
+output = """
+1. A receita original serve 4 pessoas e usa 3 ovos
+2. Preciso servir 14 pessoas
+3. Primeiro, calculo quantas "receitas" preciso: 14 ÷ 4 = 3.5 receitas
+4. Cada receita usa 3 ovos
+5. Total de ovos: 3.5 × 3 = 10.5 ovos
+6. Como não posso usar meio ovo, arredondo para cima: 11 ovos
+Resposta: 11 ovos
+"""
+```
+
+**Variantes de CoT**
+
+**Zero-Shot CoT**: Apenas adicionar "Let's think step by step" sem exemplos:
+
+```python
+prompt = "Q: [problema]\nA: Let's think step by step."
+```
+
+**Few-Shot CoT**: Fornecer exemplos de raciocínio antes do problema:
+
+```python
+prompt = """
+Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas tem?
+A: Tom começa com 3. Ele compra 2. 3 + 2 = 5. Resposta: 5.
+
+Q: Sarah tem 10 balas. Ela come 3. Quantas sobram?
+A: Sarah começa com 10. Ela come 3. 10 - 3 = 7. Resposta: 7.
+
+Q: [seu problema]
+A:
+"""
+```
+
+**Self-Consistency**: Gerar múltiplas cadeias de raciocínio e usar voting majoritário:
+
+```python
+# Gera 5 respostas diferentes com CoT
+outputs = [
+    "11",  # caminho de raciocínio 1
+    "11",  # caminho de raciocínio 2
+    "12",  # caminho de raciocínio 3 (erro)
+    "11",  # caminho de raciocínio 4
+    "11"   # caminho de raciocínio 5
+]
+final_answer = mode(outputs)  # 11 (maioria)
+```
+
+Self-consistency adiciona mais ~10-20% de acurácia em problemas difíceis, mas custa 5-10× mais tokens.
+
+**Limitações de CoT**
+
+1. **Não funciona para modelos muito pequenos**: Requer pelo menos ~10B parâmetros para emergir de forma confiável
+1. **Pode inventar passos plausíveis mas incorretos**: O modelo pode "alucinar" raciocínio que parece correto mas contém erros lógicos
+1. **Custo aumentado**: Cada problema gera 50-200 tokens a mais de raciocínio intermediário
+1. **Não garante correção**: CoT melhora significativamente, mas não resolve 100% dos problemas
+
+**Implicação para Agentes**
+
+CoT é fundamental para agentes de IA porque:
+
+- Permite decomposição de tarefas complexas
+- Torna o raciocínio **inspecionável** e **debugável**
+- Possibilita validação de etapas intermediárias
+- Habilita correção de curso durante execução
+- Possibilita guardar log de raciocínio para auditoria
+
+Veremos isso extensivamente quando implementarmos agentes nos próximos capítulos.
+
+**3. Few-Shot Learning**
+
+Generalização para novas tarefas com exemplos mínimos (1-10 exemplos):
+
+```python
+# 2-shot sentiment analysis
+prompt = """
+Classifique o sentimento:
+Texto: "Esse filme é incrível!" → Positivo
+Texto: "Péssimo atendimento." → Negativo
+Texto: "Adorei essa experiência!" → """
+
+output = "Positivo"  # Modelo generaliza o padrão
+```
+
+**4. Instruction Following**
+
+Capacidade de seguir instruções complexas expressas em linguagem natural, incluindo instruções multi-etapa, condicionais e restrições:
+
+```python
+# Instrução simples
+prompt = "Resuma o seguinte texto em 3 frases: [texto...]"
+# Modelo executa diretamente
+
+# Instrução multi-etapa com condicionais
+prompt = """
+Analise o seguinte código Python:
+1. Se houver problemas de segurança, liste-os com severidade (alta/média/baixa)
+2. Se houver code smells, sugira refatorações específicas
+3. Se o código estiver correto, apenas diga "Código aprovado"
+4. Sempre termine com uma nota de 0-10 para qualidade geral
+
+Código:
+def authenticate(username, password):
+    query = f"SELECT * FROM users WHERE user='{username}' AND pass='{password}'"
+    return db.execute(query)
+"""
+
+# Modelo segue cada etapa na ordem, aplicando condicionais:
+output = """
+1. Problemas de Segurança (ALTA):
+   - SQL Injection: Query concatena strings diretamente sem sanitização
+   - Senha armazenada em texto plano (assume-se pelo código)
+
+2. Refatorações Sugeridas:
+   - Use prepared statements/parameterized queries
+   - Hash senhas com bcrypt ou argon2
+   - Implemente rate limiting contra brute force
+
+3. (Não aplicável - código tem problemas críticos)
+
+4. Nota: 2/10 - Vulnerabilidades críticas de segurança
+"""
+```
+
+**Por que isso é notável?**: O modelo não foi treinado em "siga instruções multi-etapa com condicionais". Ele foi treinado apenas em next-token prediction. Mas aprendeu a:
+
+- Decompor instruções complexas em sub-tarefas
+- Executar condicionais ("se X então Y, senão Z")
+- Manter contexto e estado entre etapas
+- Formatar saída conforme especificado
+
+**Exemplo de instrução complexa real (usado em agentes)**:
+
+```python
+prompt = """
+Você é um assistente de análise de dados. Dado um dataset em CSV:
+
+1. Carregue e inspecione as primeiras linhas
+2. Identifique colunas numéricas vs. categóricas
+3. Para colunas numéricas:
+   - Calcule estatísticas descritivas (média, mediana, desvio padrão)
+   - Detecte outliers (valores > 3 desvios padrão da média)
+4. Para colunas categóricas:
+   - Liste valores únicos e suas frequências
+   - Identifique valores ausentes ou inconsistentes
+5. Se encontrar problemas de qualidade de dados, sugira tratamentos específicos
+6. Forneça recomendações de visualizações apropriadas
+
+Dataset: {dados.csv}
+"""
+```
+
+Modelos instruction-tuned (como GPT-4, Claude, Llama-3-Instruct) seguem essa sequência complexa sistematicamente, mesmo nunca tendo visto exatamente essa combinação de instruções.
+
+**Limitação importante**: Mesmo modelos grandes falham em instruções **extremamente** complexas (>10 etapas profundamente aninhadas) ou que requerem raciocínio de múltiplos saltos. O limite exato varia por modelo e continua sendo área de pesquisa ativa.
+
+**Implicação para Emergência**
 
 Estas capacidades parecem "emergir" quando os modelos atingem certa escala. A hipótese predominante é que elas surgem de generalization de padrões vistos durante o pré-treinamento, mas a ciência exata ainda não é totalmente compreendida.
 
-Para engenheiros, a implicação prática é que modelos maiores não são apenas "modelos menores que fazem as mesmas coisas melhor" — eles podem ter capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o fine-tune.
+Para engenheiros, a implicação prática é que modelos maiores não são apenas "modelos menores que fazem as mesmas coisas melhor", eles podem ter capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o fine-tune.
 
 ## Treinamento e Fine-Tuning de Foundation Models
 
