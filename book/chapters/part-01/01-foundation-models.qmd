@@ -666,39 +666,50 @@ O Transformer original era um modelo encoder-decoder para tradução. Desde ent�
 
 #### Encoder-Only (BERT-like)
 
-Modelos encoder-only como BERT usam atenção **bidirecional** — cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, question answering, etc.
+Modelos encoder-only como BERT usam atenção **bidirecional**. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, question answering, etc.
 
 O treinamento usa **masked language modeling** (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.
+
+Exemplo de MLM:
 
 ```
 Input:  "The [MASK] sat on the [MASK]"
 Target: "The cat sat on the mat"
 ```
 
+O modelo vê a frase com palavras faltando, mascaradas ([MASK]), e deve inferir as palavras corretas com base no contexto completo.
+
 #### Decoder-Only (GPT-like)
 
-Modelos decoder-only como GPT usam atenção **causal** (autoregressive) — cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "causal mask" que zera os attention scores para posições futuras.
+Modelos decoder-only como GPT usam atenção **causal** (autoregressive). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "causal mask" que zera os attention scores para posições futuras.
 
-O treinamento usa **causal language modeling** (CLM): prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos:
+O treinamento usa **causal language modeling** (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.
+
+Exemplo de CLM:
 
 ```
 Input:  "The cat sat"
 Target: "on"
 ```
 
+Onde o modelo vê "The cat sat" e deve prever o próximo token "on" baseado apenas no contexto anterior.
+
 Decoder-only models têm se tornado dominantes (GPT-3 [@brown2020language], PaLM [@anil2023palm], LLaMA [@touvron2023llama], Claude) porque:
+
 1. São mais simples arquiteturalmente
-2. Escalam melhor para tamanhos massivos
-3. Podem ser usados tanto para compreensão quanto geração
-4. O treinamento autoregressive é mais sample-efficient
+1. Escalam melhor para tamanhos massivos
+1. Podem ser usados tanto para compreensão quanto geração
+1. O treinamento autoregressive é mais sample-efficient
 
 #### Encoder-Decoder (T5-like)
 
-Mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via cross-attention.
+O Encoder-Decoder mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via cross-attention.
 
 Encoder-decoder models como T5 [@raffel2020exploring] são particularmente bons para tarefas sequence-to-sequence: tradução, sumarização, question answering generativo. Eles separam explicitamente "compreensão" (encoder) de "geração" (decoder).
 
-Para agentes, decoder-only models são geralmente preferidos porque unificam todas as tarefas em um único framework de geração de texto, simplificando a arquitetura do agente.
+No entanto, são mais complexos e custosos de treinar e inferir devido à arquitetura dupla.
+
+Para agentes de IA, decoder-only models são geralmente preferidos porque unificam todas as tarefas em um único framework de geração de texto, simplificando a arquitetura do agente.
 
 ## Como os LLMs Aprendem e Representam Conhecimento
 
