@@ -833,46 +833,315 @@ Perplexidade pode ser interpretada como **"o número efetivo de escolhas que o m
 
 Perplexidade nos dá uma forma intuitiva de avaliar e comparar modelos. Se você está treinando um modelo e vê a perplexidade cair de 100 para 10 e depois para 5, você sabe que o modelo está ficando progressivamente mais confiante e preciso nas suas previsões. É um indicador direto de que o modelo está realmente aprendendo a modelar a linguagem.
 
-### Dados de Pré-Treinamento: Quality Over Quantity
+### Dados de Pré-Treinamento: A Matéria-Prima da Inteligência
 
-O ditado "garbage in, garbage out" é especialmente verdadeiro para LLMs. A qualidade dos dados de pré-treinamento determina fundamentalmente as capacidades do modelo.
+Agora chegamos a uma verdade fundamental sobre LLMs: **você é o que você come**. Mais precisamente, **o modelo sabe apenas o que viu**. Não importa quão sofisticada seja a arquitetura Transformer ou quão bem otimizado seja o processo de treinamento, se os dados de entrada forem ruins, o modelo resultante será ruim.
 
-#### Composição de Datasets
+Esta seção explora um dos aspectos mais subestimados, porém críticos, do desenvolvimento de LLMs: a curadoria de dados de treinamento. É aqui que decisões aparentemente simples, "quanto código incluir?" ou "devemos filtrar conteúdo controverso?", têm consequências profundas e duradouras nas capacidades do modelo.
 
-Modelos modernos são treinados em datasets multi-domínio:
+O ditado "garbage in, garbage out" nunca foi tão verdadeiro. A qualidade, diversidade e escala dos dados de pré-treinamento determinam **fundamentalmente** as capacidades do modelo final.
 
-- **Common Crawl**: Rastreamento da web pública (~3 trilhões de tokens)
-- **Books**: Livros digitalizados (~200 bilhões de tokens)
-- **Wikipedia**: Artigos enciclopédicos (~10 bilhões de tokens)
-- **Código**: Repositórios de código aberto (~300 bilhões de tokens)
-- **Papers Acadêmicos**: ArXiv, PubMed (~50 bilhões de tokens)
+Isso já era perceptível antes dos LLMs, quando modelos de reconhecimento de fala ou visão computacional dependiam fortemente dos datasets usados. Com LLMs, essa dependência é ainda mais crítica devido à natureza estatística do aprendizado de linguagem.
 
-A proporção desses datasets importa. Muito Common Crawl e o modelo aprende padrões de spam e conteúdo de baixa qualidade. Muito código e o modelo se torna melhor em programação mas pode piorar em prosa natural. Muito texto formal (papers, Wikipedia) e o modelo pode ter dificuldade com linguagem coloquial.
+**Por que dados importam tanto?**
 
-Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens, com mixtures cuidadosamente curadas. A determinação da mixture ideal é mais arte que ciência, envolvendo extensos experimentos.
+Diferente de sistemas programados tradicionalmente, onde você especifica explicitamente o comportamento desejado, LLMs **aprendem por imitação estatística**. Eles absorvem padrões, conhecimento factual, estilo de escrita, vieses e até raciocínio dos dados que observam. Se o modelo nunca viu discussões sobre medicina nos dados de treinamento, ele não "saberá" medicina e vai dizer que vacinas causam autismo, não importa quão grande seja o dataset.
 
-#### Data Cleaning: O Trabalho Sujo que Ninguém Vê
+Considere estas implicações práticas:
 
-Raw Common Crawl é essencialmente inutilizável. Contém:
-- Código boilerplate (navigation menus, footers)
-- Spam e conteúdo adulto
-- Duplicações massivas
-- Conteúdo gerado automaticamente de baixa qualidade
-- PII (personally identifiable information)
-- Conteúdo com direitos autorais problemáticos
+- **Um modelo treinado principalmente em código Python** será excelente em Python, mas medíocre em outras linguagens
+- **Um modelo treinado só em textos formais acadêmicos** terá dificuldade com conversas casuais
+- **Um modelo treinado em dados até 2021** não "saberá" eventos posteriores a essa data
+- **Um modelo treinado em dados racistas** reproduzirá esses vieses em suas saídas
 
-Um pipeline típico de limpeza inclui:
+Para engenheiros construindo sistemas de produção, isso significa que **escolher o modelo certo** requer entender seus dados de treinamento. Você está construindo um agente para análise jurídica? Vale investigar se o modelo foi treinado em documentos legais e como isso implica na vida do usuário final. Um agente para código? Verifique a proporção de código nos dados de treinamento. E assim por diante.
 
-1. **Language Filtering**: Remove documentos em idiomas não-desejados
-2. **Quality Filtering**: Remove documentos com métricas de qualidade baixas (ex: proporção de stop words, entropy de token, etc.)
-3. **Deduplicação**: Remove documentos exatos ou nearly-duplicate (usando MinHash ou SimHash)
-4. **PII Removal**: Remove ou reduz informação pessoalmente identificável
-5. **Toxicity Filtering**: Remove conteúdo tóxico, ofensivo ou perigoso
-6. **Filtering de Direitos Autorais**: Remove ou limita conteúdo com copyright restritivo
+#### Composição de Datasets: A Receita do Conhecimento
 
-Este processo pode remover 90%+ do Common Crawl. O que resta é muito mais valioso.
+Modelos modernos não são treinados em um único tipo de dados. Em vez disso, usam uma **mixture cuidadosamente balanceada** de múltiplas fontes, cada uma contribuindo diferentes tipos de conhecimento e capacidades [@gao2020pile; @dodge2021documenting]:
 
-Para engenheiros construindo sistemas de produção, é crucial entender que o modelo "sabe" apenas o que viu nos dados de treinamento. Se você está construindo um agente para um domínio específico, vale a pena investigar se esse domínio estava bem-representado nos dados de treinamento do modelo que você está usando.
+**Principais Fontes de Dados:**
+
+::: {.callout-note title="Sobre as Escalas Reportadas" appearance="simple"}
+Os números de tokens na tabela são **estimativas aproximadas** baseadas em informações divulgadas em papers como The Pile [@gao2020pile], GPT-3 [@brown2020language], e LLaMA [@touvron2023llama; @dubey2024llama3]. Datasets diferentes e versões de modelos usam proporções variadas, mas estes valores representam ordens de magnitude típicas em modelos state-of-the-art.
+:::
+
+| Fonte | Escala (estimada) | O que contribui | Trade-offs |
+|-------|--------|-----------------|------------|
+| **Common Crawl** | ~3T tokens | Diversidade linguística, conhecimento geral da web, linguagem natural variada | Muito ruído, spam, conteúdo de baixa qualidade |
+| **Livros** | ~200B tokens | Narrativas longas, coerência textual, vocabulário rico, conhecimento cultural | Viés para ficção/não-ficção publicada, direitos autorais |
+| **Wikipedia** | ~10B tokens | Conhecimento factual verificado, escrita enciclopédica, estrutura bem organizada | Formal demais, cobertura desigual de tópicos |
+| **Código** | ~300B tokens | Sintaxe de programação, lógica estruturada, resolução de problemas | Específico para desenvolvimento, menos útil para prosa |
+| **Papers Acadêmicos** | ~50B tokens | Conhecimento técnico profundo, raciocínio científico, terminologia especializada | Muito formal, barreiras de jargão técnico |
+
+**A Arte da Proporção**
+
+A mistura dessas fontes não é arbitrária, é uma das decisões mais importantes no desenvolvimento de um LLM descente. Considere os trade-offs:
+
+**Cenário 1: Muito Common Crawl (>80%)**
+
+- ✅ Modelo entende linguagem natural diversa e coloquial
+- ✅ Boa cobertura de tópicos contemporâneos
+- ❌ Aprende padrões de spam, SEO gaming, conteúdo clickbait
+- ❌ Pode reproduzir desinformação e teorias conspiratórias
+
+**Cenário 2: Muito Código (>50%)**
+
+- ✅ Excelente em programação e tarefas estruturadas
+- ✅ Forte raciocínio lógico e pattern matching
+- ❌ Piora significativa em prosa natural fluente
+- ❌ Respostas podem parecer "robóticas" ou muito estruturadas
+
+**Cenário 3: Muito Texto Formal (Wikipedia + Papers >60%)**
+
+- ✅ Conhecimento factual robusto
+- ✅ Escrita clara e bem estruturada
+- ❌ Dificuldade com linguagem casual, gírias, humor
+- ❌ Pode soar pedante ou acadêmico demais
+
+**Mixture Real (LLaMA 3 como exemplo):**
+
+Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens com uma mixture aproximadamente assim:
+
+- Common Crawl filtrado: ~50%
+- Código: ~20%
+- Wikipedia/Enciclopédico: ~15%
+- Books: ~10%
+- Papers Acadêmicos: ~5%
+
+Esta proporção foi determinada através de **extensos experimentos empíricos**, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
+
+**Evolução Temporal dos Dados**
+
+Outro aspecto crítico: **dados têm data de validade**. O conhecimento do mundo muda:
+
+- Eventos recentes (guerras, eleições, descobertas científicas)
+- Mudanças tecnológicas (frameworks populares, best practices)
+- Evolução cultural (memes, gírias, tendências sociais)
+
+Um modelo treinado em dados até 2021 literalmente não "sabe" nada sobre eventos posteriores. Quando você pergunta sobre algo de 2023, ele está **adivinhando** baseado em padrões, não em conhecimento real. É por isso que modelos são periodicamente re-treinados ou atualizados com dados mais recentes. E é por isso que em agentes de IA, integrar fontes de conhecimento dinâmicas (APIs, bases de dados atualizadas) é crucial para manter um bom desempenho.
+
+#### Data Cleaning: Transformando Lixo em Ouro
+
+Se você baixar Common Crawl raw — um snapshot da web pública — terá dezenas de terabytes de... lixo. Literalmente 90%+ é inutilizável para treinar um modelo de qualidade [@luccioni2021s]. Data cleaning é o processo meticuloso de transformar esse oceano de ~~merda~~ sujeira em algo valioso [@dodge2021documenting; @raffel2019c4].
+
+**Por que raw Common Crawl é inutilizável?**
+
+Um exemplo concreto do que você encontra:
+
+```html
+<!-- 85% do conteúdo de uma página típica -->
+<nav>Home | About | Contact | Login</nav>
+<footer>Copyright 2023 | Privacy Policy | Terms</footer>
+<script>gtag('UA-12345678-9')</script>
+<!-- Anúncios, tracking pixels, etc. -->
+
+<!-- Apenas 15% é conteúdo real útil -->
+<article>
+  O artigo começa aqui...
+</article>
+```
+
+Você já deve ter reparado que boa parte do conteúdo web que você tenta ler é **ruído**. Muito texto repetitivo, vazio, inútil, de baixa qualidade, anúncios, spam, etc. Modelos treinados nesses dados **aprendem esses padrões ruins** e acabam reproduzindo-os.
+
+Além disso, você encontra:
+
+**1. Código Boilerplate (Navigation, Footers, Sidebars)**
+
+- Menus de navegação repetidos em milhões de páginas
+- Footers idênticos: "Copyright", "Privacy Policy", "Terms"
+- Sidebars com "Related Articles" genéricos
+- **Problema**: Modelo aprende que texto "bom" sempre tem "Home | About | Contact"
+
+**2. Spam e Conteúdo de Baixa Qualidade**
+
+- Páginas geradas automaticamente para SEO ("Best [X] in [City]" × 1000 cidades)
+- Conteúdo duplicado word-for-word em milhares de sites
+- Spam de comentários: "Nice post! Check out my site [spam link]"
+- **Problema**: Modelo aprende padrões de spam como linguagem "normal"
+
+**3. Conteúdo Adulto e Tóxico**
+
+- Pornografia explícita
+- Discurso de ódio, racismo, sexismo
+- Conteúdo violento ou perturbador
+- **Problema**: Modelo pode reproduzir linguagem tóxica ou gerar conteúdo inapropriado
+
+**4. Duplicação Massiva**
+
+- Mesma notícia copiada em 500 sites de notícias
+- Wikipedia espelhada em dezenas de domains
+- Fóruns que scraped conteúdo uns dos outros
+- **Problema**: Modelo "memoriza" conteúdo específico devido à sobre-exposição
+
+**5. PII (Personally Identifiable Information)**
+
+- Emails, números de telefone, endereços
+- Números de cartão de crédito (sim, estão na web)
+- Dados médicos vazados
+- **Problema**: Questões éticas, legais e de privacidade graves
+
+**6. Problemas de Copyright**
+
+- Livros digitalizados ilegalmente
+- Artigos de jornais pagos copiados
+- Código proprietário vazado
+- **Problema**: Riscos legais massivos para quem usa o modelo
+
+**O Pipeline de Limpeza: Transformando Lixo em Ouro**
+
+Um pipeline típico de produção tem múltiplos estágios: Language Filtering, Quality Filtering, Deduplicação, PII Removal, Toxicity Filtering, Copyright Filtering. Cada estágio remove uma fração significativa do conteúdo bruto.
+
+**Estágio 1: Language Filtering**
+
+- Remove documentos em idiomas não-desejados
+- Usa detecção de idioma (fastText, langdetect)
+- Mantém: inglês, português, espanhol, etc. (dependendo do objetivo)
+- **Remove ~30-40% do crawl** (páginas em idiomas raros ou misturados)
+
+**Estágio 2: Quality Filtering**
+
+Aplicando heurísticas de qualidade textual:
+
+```python
+def is_high_quality(text):
+    # Proporção de stopwords (palavras comuns)
+    stopword_ratio = count_stopwords(text) / len(text)
+    if stopword_ratio < 0.2:  # Muito técnico ou spam
+        return False
+    
+    # Entropia de tokens (diversidade vocabular)
+    token_entropy = calculate_entropy(text)
+    if token_entropy < 3.0:  # Muito repetitivo
+        return False
+    
+    # Proporção de letras maiúsculas
+    upper_ratio = count_uppercase(text) / len(text)
+    if upper_ratio > 0.3:  # MUITO SPAM ASSIM
+        return False
+    
+    # Número de linhas duplicadas
+    duplicate_lines = count_duplicates(text.split('\n'))
+    if duplicate_lines > 0.5:  # Mais de 50% repetido
+        return False
+    
+    return True
+```
+
+**Remove ~20-30% adicional** (conteúdo de baixíssima qualidade)
+
+**Estágio 3: Deduplicação**
+
+Técnica sofisticada usando MinHash ou SimHash para detectar near-duplicates:
+
+- **Duplicação Exata**: Fácil (hash MD5), remove cópias idênticas
+- **Near-Duplicates**: Difícil — detecta documentos "quase iguais"
+
+Exemplo: "A capital da França é Paris" vs "Paris é a capital da França" são semanticamente idênticos mas literalmente diferentes.
+
+**MinHash** cria "fingerprints" que preservam similaridade:
+- Documentos similares → fingerprints similares
+- Permite detectar duplicações em **tempo sub-linear**
+- **Remove ~20-30% adicional** (conteúdo duplicado)
+
+**Estágio 4: PII Removal**
+
+Usando regex patterns e NER (Named Entity Recognition):
+
+```python
+patterns = {
+    'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+    'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+    'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
+    'credit_card': r'\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b'
+}
+
+# Substituir por placeholders ou remover
+text = re.sub(patterns['email'], '[EMAIL]', text)
+```
+
+NER detecta nomes de pessoas, organizações, localizações e os redacta ou contextualiza apropriadamente.
+
+**Estágio 5: Toxicity Filtering**
+
+Usa modelos treinados para detectar conteúdo tóxico:
+
+- **Perspective API** (Google): Score de toxicidade 0-1
+- **Detoxify**: Modelo open-source para hate speech
+- **Custom filters**: Listas de palavras ofensivas
+
+Trade-off importante: filtrar agressivamente remove conteúdo tóxico mas também pode remover discussões legítimas sobre tópicos sensíveis.
+
+**Estágio 6: Copyright Filtering**
+
+- Detecta trechos de livros conhecidos usando n-gram matching
+- Remove artigos de jornais pagos
+- Filtra código com licenças restritivas
+- **Difícil**: Linha tênue entre "fair use" e violação
+
+**Resultado Final**
+
+Após todos esses estágios:
+- **Entrada**: 100TB de Common Crawl raw
+- **Saída**: 5-10TB de texto limpo e de qualidade
+- **Taxa de rejeição**: **~90-95%**
+
+Isso não é desperdício, é essencial. Os 5-10TB restantes são ordens de magnitude mais valiosos que os 100TB originais.
+
+**O Custo Oculto**
+
+Data cleaning é:
+
+- **Caro**: Requer computação massiva para processar petabytes
+- **Demorado**: Pode levar semanas ou MESES
+- **Trabalhoso**: Requer expertise em NLP, sistemas distribuídos
+- **Iterativo**: Múltiplas passagens, refinamento constante
+
+Mas é absolutamente crítico. A diferença entre GPT-3/4/5 e um modelo medíocre não está apenas na arquitetura, está na qualidade dos dados de treinamento.
+
+#### Implicações para Construção de Agentes
+
+Para você que está construindo agentes com LLMs, entender dados de treinamento é extremamente importante. Aqui estão algumas considerações práticas:
+
+**1. Escolha de Modelo**
+
+Pergunte: "Meu domínio estava bem representado nos dados de treinamento?"
+
+Exemplos:
+
+- **Agente médico**: Modelo treinado em papers médicos?
+- **Agente legal**: Modelo viu contratos, jurisprudência?
+- **Agente código**: Que linguagens estavam no treinamento?
+
+Se o modelo não foi treinado no seu domínio, as respostas podem ser superficiais ou erradas e todo o nosso esforço de construção de agentes eficientes pode ser em vão.
+
+**2. Limitações de Conhecimento**
+
+O modelo "sabe" apenas o que viu:
+
+- **Data cutoff**: Nada após a data de treinamento
+- **Cobertura geográfica**: Viés para conteúdo em inglês/ocidental
+- **Tópicos de nicho**: Conhecimento superficial se não estava nos dados
+
+**3. "Augmentação" via RAG**
+
+Para domínios específicos, **Retrieval-Augmented Generation** (RAG) complementa o conhecimento do modelo:
+
+- Busca documentos relevantes do seu domínio
+- Injeta no contexto antes da geração
+- Compensa lacunas nos dados de treinamento
+
+Porém, isso gera um trade-off entre latência, custo e complexidade. Se o modelo já é ruim, RAG não salva. Vamos explorar RAG em profundidade no Capítulo 5.
+
+**4. Fine-Tuning Domínio-Específico**
+
+Se o modelo base não foi treinado no seu domínio:
+
+- Continue pré-treinamento com seus dados
+- Fine-tune em exemplos do seu domínio
+- Mas cuidado com catastrophic forgetting!
+
+A mensagem fundamental: **dados são o coração do modelo**. Arquitetura sofisticada com dados ruins produz um modelo ruim. Arquitetura simples com dados excelentes produz um modelo excelente.
 
 ### Tokenização: Transformando Texto em Números
 
