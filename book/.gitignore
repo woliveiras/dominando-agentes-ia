@@ -3,5 +3,4 @@
 _book
 .DS_Store
 *.tex
-*_files/
 *_cache/

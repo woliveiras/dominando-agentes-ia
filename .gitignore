@@ -1,7 +1,6 @@
 # Quarto
 /.quarto/
 *_cache/
-*_files/
 *.tex
 
 # R
