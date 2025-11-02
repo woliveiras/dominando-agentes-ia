@@ -38,6 +38,7 @@ jobs:
             ~/.TinyTeX
             ~/.cache/uv
             /usr/share/texlive
+            ~/.cache/puppeteer
           key: ${{ needs.setup.outputs.cache-key }}
 
       - name: Set up Quarto
@@ -46,6 +47,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tinytex: true
+
+      - name: Install Chromium for Mermaid diagrams
+        run: |
+          if [ ! -d "$HOME/.cache/puppeteer" ]; then
+            quarto install chromium
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@v6
