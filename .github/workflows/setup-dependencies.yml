@@ -32,14 +32,10 @@ jobs:
             ~/.TinyTeX
             ~/.cache/uv
             /usr/share/texlive
+            ~/.cache/puppeteer
           key: ${{ steps.cache-key.outputs.key }}
           restore-keys: |
             deps-v2-${{ runner.os }}-
-
-      - name: Install system dependencies (always)
-        run: |
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq chromium-browser calibre
 
       - name: Set up Quarto
         if: steps.cache.outputs.cache-hit != 'true'
@@ -49,10 +45,15 @@ jobs:
         with:
           tinytex: true
 
-      - name: Install additional system dependencies
+      - name: Install Quarto Chromium for diagrams
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
-          sudo apt-get install -y -qq pandoc
+          quarto install chromium
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq calibre
 
       - name: Set up Python
         if: steps.cache.outputs.cache-hit != 'true'

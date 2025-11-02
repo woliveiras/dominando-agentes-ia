@@ -61,8 +61,6 @@ jobs:
       - name: Render book to EPUB
         run: |
           quarto render book/ --to epub --verbose
-        env:
-          CHROME_BIN: /usr/bin/chromium-browser
 
       - name: Convert EPUB to MOBI
         run: |

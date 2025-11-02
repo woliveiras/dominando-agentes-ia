@@ -61,8 +61,6 @@ jobs:
       - name: Render book to HTML
         run: |
           quarto render book/ --to html --verbose
-        env:
-          CHROME_BIN: /usr/bin/chromium-browser
 
       - name: Upload HTML artifact
         uses: actions/upload-artifact@v5

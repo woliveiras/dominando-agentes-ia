@@ -66,8 +66,6 @@ jobs:
       - name: Render book to PDF
         run: |
           quarto render book/ --to pdf --verbose
-        env:
-          CHROME_BIN: /usr/bin/chromium-browser
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v5
