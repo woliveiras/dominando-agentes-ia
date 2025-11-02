@@ -49,6 +49,6 @@ format:
       - quarto
     quiet: true
   epub:
-    mermaid-format: png
+    mermaid-format: svg
     toc: true
     epub-cover-image: cover.png

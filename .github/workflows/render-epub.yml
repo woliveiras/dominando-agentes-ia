@@ -66,6 +66,8 @@ jobs:
         run: uv sync
 
       - name: Render book to EPUB
+        env:
+          QUARTO_CHROMIUM_PATH: /root/.cache/puppeteer/chrome/linux-*/chrome-linux64/chrome
         run: |
           quarto render book/ --to epub --verbose
 
