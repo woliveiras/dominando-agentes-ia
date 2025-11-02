@@ -2488,13 +2488,15 @@ judge_prompt = f"Avalie esta resposta: {output}"  # sem mencionar modelo
 
 ## Seleção do Modelo Certo para Cada Tarefa
 
-A paisagem de LLMs disponíveis é vasta e crescendo. Como escolher o modelo certo?
+A paisagem de LLMs disponíveis é vasta e vem crescendo. Pra mim é impossível acompanhar tudo. Neste cenário, como escolher o modelo certo para sua aplicação de agente de IA?
+
+Vamos explorar os principais trade-offs e considerações para selecionar o modelo certo. Com este racional, você pode tomar decisões informadas baseadas em requisitos específicos.
 
 ### Considerações Fundamentais
 
 #### 1. Tamanho do Modelo e Capacidade
 
-Modelos maiores são mais capazes, mas mais custosos:
+Modelos maiores são mais capazes, porém mais custosos:
 
 | Tamanho | Parâmetros | Capacidades | Latência | Custo |
 |---------|-----------|-------------|-----------|-------|
@@ -2503,7 +2505,16 @@ Modelos maiores são mais capazes, mas mais custosos:
 | Medium | 10-70B | Raciocínio complexo, multitask | 200-1000ms | $0.10/1K tokens |
 | Large | 70-500B+ | Raciocínio avançado, few-shot generalization | 1-5s | $1-10/1K tokens |
 
+::: {.callout-note title="Sobre os Valores de Latência e Custo" appearance="simple"}
+Os valores de latência são aproximações típicas para inferência em GPUs modernas (A100/H100) com batching otimizado. Latência real varia significativamente com: comprimento de contexto, otimizações de servidor, quantização, e infraestrutura.
+
+Os custos são estimativas baseadas em preços de APIs comerciais (OpenAI, Anthropic, Google). Custos de self-hosting podem ser 5-10× menores para alto volume, mas requerem investimento em infraestrutura. Preços variam por provedor e tendem a cair ao longo do tempo (~50% por ano historicamente).
+
+Para custos atualizados: [OpenAI Pricing](https://openai.com/pricing), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://cloud.google.com/vertex-ai/pricing)
+:::
+
 Para agentes, você raramente precisa do modelo mais poderoso para todas as tarefas. Uma arquitetura comum é:
+
 - **Modelo pequeno** para tasks frequentes e simples (routing, formatting)
 - **Modelo médio** para tasks core (analysis, generation)
 - **Modelo grande** para tasks críticas e complexas (strategic planning, edge cases)
@@ -2511,16 +2522,16 @@ Para agentes, você raramente precisa do modelo mais poderoso para todas as tare
 #### 2. Encoder vs. Decoder
 
 - **Encoder-only (BERT-style)**: Melhor para tarefas de compreensão com inputs fixos: classificação, NER, semantic search. Não geram texto.
-  
 - **Decoder-only (GPT-style)**: Versáteis, podem fazer compreensão E geração. Dominante para agentes.
-
 - **Encoder-decoder (T5-style)**: Úteis para tasks sequence-to-sequence explícitas como tradução e sumarização.
 
 Para agentes autônomos, decoder-only é quase sempre a escolha certa.
 
 #### 3. Context Window
 
-O tamanho do context window determina quanto input/output o modelo pode processar de uma vez:
+O tamanho do context window determina quanto input/output o modelo pode processar de uma vez. 
+
+Exemplo:
 
 - **4K tokens (~3K palavras)**: GPT-3.5 legacy models
 - **8K tokens**: Muitos modelos small-medium
@@ -2528,12 +2539,13 @@ O tamanho do context window determina quanto input/output o modelo pode processa
 - **200K+ tokens**: Claude 3, Gemini 1.5 Pro
 
 Context window maior é crucial para:
-- **RAG**: Incluir múltiplos documentos retrieved
-- **Long conversations**: Manter história de conversação longa
+
+- **RAG**: Incluir múltiplos documentos *retrieved*
+- **Long conversations**: Manter histórico de conversação longa
 - **Code analysis**: Processar codebases inteiras
 - **Complex reasoning**: Incluir chain-of-thought extenso
 
-Trade-off: Modelos com context windows muito grandes são mais lentos e mais caros. Use o mínimo necessário.
+Modelos com context windows muito grandes são mais lentos e mais caros. Use o mínimo necessário.
 
 #### 4. Velocidade e Latência
 
@@ -2544,6 +2556,7 @@ Para sistemas interativos (ex: chatbots), latência importa:
 - **API models (large)**: 1-5s+
 
 Técnicas para reduzir latência:
+
 - **Speculative Decoding**: Usa modelo pequeno para gerar drafts, modelo grande para verificar
 - **Streaming**: Retorna tokens incrementalmente em vez de esperar resposta completa
 - **Caching**: Cacheia prompts comuns e prefixos
@@ -2551,7 +2564,7 @@ Técnicas para reduzir latência:
 
 #### 5. Custo
 
-Custo de inferência varia ordens de magnitude:
+Custo de inferência varia em ordens de magnitude:
 
 | Modelo | Input | Output |
 |--------|-------|--------|
@@ -2561,97 +2574,61 @@ Custo de inferência varia ordens de magnitude:
 | Claude 3 Haiku | $0.00025/1K | $0.00125/1K |
 | Llama 3 70B (self-hosted) | ~$0.001/1K | ~$0.002/1K |
 
-Para aplicações high-volume, custos se acumulam rapidamente. Estratégias:
+Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:
 
-1. **Cascade**: Use modelo mais barato primeiro, escale para modelo mais caro apenas se necessário
-2. **Caching**: Cachear aggressivamente resultados de queries similares
-3. **Quantização**: Self-host modelos quantizados (4-bit) para reduzir compute
+1. **Cascade**: Use modelo mais barato primeiro, escale para modelo mais caro **apenas se necessário**
+2. **Caching**: Cachear agressivamente resultados de queries similares
+3. **Quantização**: Self-host modelos quantizados (4-bit) para reduzir computação
 4. **Prompt Compression**: Comprimir prompts longos sem perder informação
 
-#### 6. Privacy e Compliance
+#### 6. Privacidade e Segurança
 
-Para aplicações enterprise, considerações de privacidade podem ser determinantes:
+Para aplicações empresariais, considerações de privacidade e segurança são determinantes:
 
-- **API models (OpenAI, Anthropic)**: Dados são enviados para third-party. Existem opções de não treinar nos dados do usuário, mas dados ainda atravessam fronteiras.
-  
-- **Self-hosted models**: Controle completo sobre dados, mas requer infraestrutura e expertise.
+- **API models (OpenAI, Anthropic)**: Dados são enviados para servidores third-party. Existem opções de não treinar nos dados do usuário, mas dados ainda atravessam fronteiras e você não tem controle total sobre eles, depende da confiança no provedor
+- **Self-hosted models**: Controle completo sobre dados, mas requer infraestrutura e expertise
 
-Para setores regulados (healthcare, finance), self-hosting muitas vezes é obrigatório.
+Para setores regulados (healthcare, finance), self-hosting muitas vezes é até mesmo obrigatório.
 
-### Modelos Específicos: Landscape Atual (2025)
+### Framework de Decisão
 
-#### Proprietary Models
-
-**GPT-4 Series (OpenAI)**:
-- **GPT-4 Turbo**: 128K context, excelente raciocínio, mais barato que GPT-4 original
-- **GPT-4o**: Otimizado para velocidade, multimodal (vision + text)
-- Pros: Performance líder, APIs maduras, ecosystem rico
-- Cons: Caro, black-box, data privacy concerns
-
-**Claude 3 Series (Anthropic)**:
-- **Opus**: Mais capaz, raciocínio de ponta, 200K context
-- **Sonnet**: Balanceado performance/custo
-- **Haiku**: Rápido e barato, ideal para high-throughput
-- Pros: Context window grande, strong safety, bom para long documents
-- Cons: API tem rate limits, menos ecosystem que OpenAI
-
-**Gemini Series (Google)**:
-- **Gemini 1.5 Pro**: 1M+ tokens context window(!), multimodal
-- Pros: Context window massivo, multimodal nativo
-- Cons: Novo, ecosystem ainda emergindo
-
-#### Open-Source Models
-
-**Llama 3 Series (Meta)**:
-- Tamanhos: 8B, 70B
-- Pros: Performance competitiva com GPT-3.5, totalmente open, pode self-host
-- Cons: Requer expertise para deploy, ainda não alcança GPT-4
-
-**Mistral Series**:
-- **Mistral 7B**: Surpreendentemente capaz para tamanho
-- **Mixtral 8×7B**: Mixture-of-Experts, 47B parâmetros ativos mas 8×7B=56B total
-- Pros: Apache 2.0 license, excelente performance/size ratio
-- Cons: MoE complica deployment
-
-**Qwen Series (Alibaba)**:
-- Modelos fortes especialmente para Chinês/multilingual
-- Variantes code-specific (CodeQwen)
-
-### Decision Framework
+Para ajudar na seleção do modelo certo, aqui está um framework de decisão simplificado baseado em requisitos comuns que você pode adaptar para seu caso específico:
 
 ```
-START
+INÍCIO
   |
-  ├─ Task complexity?
-  |    ├─ Simple (classification, extraction)
-  |    |    └─> Encoder model (BERT) ou Small decoder (7B)
-  |    ├─ Moderate (analysis, Q&A)
-  |    |    └─> Medium decoder (70B) ou GPT-3.5
-  |    └─ Complex (reasoning, creative)
-  |         └─> Large decoder (GPT-4, Claude Opus)
+  ├─ Complexidade da tarefa?
+  |    ├─ Simples (classificação, extração)
+  |    |    └─> Modelo encoder (BERT) ou decoder pequeno (7B)
+  |    ├─ Moderada (análise, Q&A)
+  |    |    └─> Decoder médio (70B), GPT-3.5, Claude 2, Gemini 1
+  |    └─ Complexa (raciocínio, criatividade)
+  |         └─> Decoder grande (GPT-4, Claude Opus)
   |
-  ├─ Latency requirements?
-  |    ├─ Real-time (<100ms)
-  |    |    └─> Local small model
-  |    ├─ Interactive (<1s)
-  |    |    └─> Fast API model ou medium self-hosted
+  ├─ Requisitos de latência?
+  |    ├─ Tempo real (<100ms)
+  |    |    └─> Modelo pequeno local
+  |    ├─ Interativo (<1s)
+  |    |    └─> API rápida ou modelo médio self-hosted
   |    └─ Batch
-  |         └─> Any model
+  |         └─> Qualquer modelo
   |
-  ├─ Volume/Budget?
-  |    ├─ Low volume
-  |    |    └─> Proprietary API (GPT-4)
-  |    ├─ Medium volume
-  |    |    └─> Mix of models (cascade) ou medium proprietary
-  |    └─ High volume
+  ├─ Volume/Orçamento?
+  |    ├─ Baixo volume
+  |    |    └─> API proprietária (OpenAI GPT, Claude, Gemini)
+  |    ├─ Médio volume
+  |    |    └─> Mix de modelos (cascade) ou proprietário médio
+  |    └─ Alto volume
   |         └─> Self-hosted open-source
   |
-  └─ Privacy requirements?
-       ├─ Strict (HIPAA, GDPR strict)
-       |    └─> Self-hosted only
-       └─ Moderate
-            └─> API with no-training agreement
+  └─ Requisitos de privacidade?
+       ├─ Rigoroso (HIPAA, LGPD/GDPR estrito)
+       |    └─> Apenas self-hosted
+       └─ Moderado
+            └─> API com acordo de não-treinamento
 ```
+
+As empresas possuem APIs com conformidade regulatória e acordos de privacidade que podem ser suficientes para muitos casos. Mas para dados sensíveis, self-hosting é a única opção segura.
 
 ## Limitações e Desafios dos Foundation Models
 
