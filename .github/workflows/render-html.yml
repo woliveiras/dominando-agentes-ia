@@ -10,6 +10,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pages: write
@@ -53,11 +57,6 @@ jobs:
 
       - name: Sync Python dependencies
         run: uv sync
-
-      - name: Install Chromium for Mermaid rendering
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
 
       - name: Render book to HTML
         run: |

@@ -22,7 +22,7 @@ jobs:
       - name: Generate cache key
         id: cache-key
         run: |
-          echo "key=deps-${{ runner.os }}-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}" >> $GITHUB_OUTPUT
+          echo "key=deps-v2-${{ runner.os }}-${{ hashFiles('**/pyproject.toml', '**/uv.lock') }}" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
         id: cache
@@ -32,7 +32,11 @@ jobs:
             ~/.TinyTeX
             ~/.cache/uv
             /usr/share/texlive
+            /usr/bin/chromium-browser
+            /usr/bin/ebook-convert
           key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            deps-v2-${{ runner.os }}-
 
       - name: Set up Quarto
         if: steps.cache.outputs.cache-hit != 'true'
@@ -46,7 +50,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc
+          sudo apt-get install -y pandoc chromium-browser calibre
 
       - name: Set up Python
         if: steps.cache.outputs.cache-hit != 'true'
