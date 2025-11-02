@@ -67,7 +67,7 @@ jobs:
           ebook-convert book/_book/Dominando-Agentes-de-IA.epub book/_book/Dominando-Agentes-de-IA.mobi
 
       - name: Upload MOBI artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: book-mobi
           path: book/_book/Dominando-Agentes-de-IA.mobi

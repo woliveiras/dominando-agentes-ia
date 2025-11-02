@@ -58,7 +58,7 @@ jobs:
           quarto render book/ --to html
 
       - name: Upload HTML artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: book-html
           path: book/_book/
