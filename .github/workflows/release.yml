@@ -52,17 +52,9 @@ jobs:
         run: |
           quarto render book/ --to html --verbose
 
-      - name: Render book to PDF
-        run: |
-          quarto render book/ --to pdf --verbose
-
       - name: Render book to EPUB
         run: |
           quarto render book/ --to epub --verbose
-
-      - name: Convert EPUB to MOBI
-        run: |
-          ebook-convert book/_book/Dominando-Agentes-de-IA.epub book/_book/Dominando-Agentes-de-IA.mobi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
@@ -86,9 +78,7 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            book/_book/Dominando-Agentes-de-IA.pdf
             book/_book/Dominando-Agentes-de-IA.epub
-            book/_book/Dominando-Agentes-de-IA.mobi
           draft: false
           prerelease: false
           generate_release_notes: true
