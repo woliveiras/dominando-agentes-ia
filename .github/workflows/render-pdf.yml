@@ -29,10 +29,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Restore cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.TinyTeX
@@ -70,7 +70,7 @@ jobs:
           CHROME_BIN: /usr/bin/chromium-browser
 
       - name: Upload PDF artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: book-pdf
           path: book/_book/Dominando-Agentes-de-IA.pdf
