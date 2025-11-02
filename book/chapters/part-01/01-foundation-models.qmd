@@ -2224,23 +2224,26 @@ Exemplo: Se lr_max=6e-4 funciona para 1B, então lr_max≈3e-4 para 7B (divide p
 
 ### Fine-Tuning: Adaptando Foundation Models
 
-Enquanto pré-treinamento cria modelos com capacidades gerais, fine-tuning os adapta para tarefas ou domínios específicos. Existem várias estratégias:
+Enquanto o pré-treinamento cria modelos com capacidades gerais, o fine-tuning os adapta para tarefas ou domínios específicos. Existem várias estratégias populares. Vamos explorar as principais.
 
 #### Supervised Fine-Tuning (SFT)
 
-Continua o treinamento com next-token prediction, mas usando um dataset curado de exemplos high-quality:
+Continua o treinamento com next-token prediction, mas usando um dataset curado de exemplos de alta qualidade para a tarefa alvo:
 
 ```
 Dataset: [
   {"input": "Qual a capital da França?", "output": "A capital da França é Paris."},
   {"input": "Resuma este artigo: ...", "output": "Este artigo discute..."},
+  {"input": "Qual é a fórmula da água?", "output": "A fórmula da água é H2O."},
+  {"input": "Quem escreveu 'Dom Casmurro'?", "output": "Machado de Assis escreveu 'Dom Casmurro'."},
+  {"input": "Qual é a capital do Brasil?", "output": "A capital do Brasil é Brasília."},
   ...
 ]
 ```
 
-O modelo aprende a seguir o padrão de input-output dos exemplos. Com dados suficientes e de qualidade, isso pode melhorar dramaticamente a performance em tarefas específicas.
+O modelo aprende a seguir o padrão de input-output dos exemplos. Com dados suficientes e de qualidade (previamente selecionados, limpos e balanceados), isso pode melhorar dramaticamente a performance em tarefas específicas.
 
-**Instruction Tuning**: Uma forma particular de SFT onde os exemplos são formatados como instruções seguidas de respostas. Isso treina o modelo a seguir instruções arbitrárias, não apenas responder perguntas específicas. Datasets como FLAN, Alpaca e Dolly contêm dezenas ou centenas de milhares de exemplos instruction-response.
+**Instruction Tuning**: Uma forma particular de SFT onde os exemplos são formatados como instruções seguidas de respostas. Isso treina o modelo a seguir instruções arbitrárias, não apenas responder perguntas específicas. Datasets como [FLAN](https://github.com/google-research/FLAN), [Alpaca](https://github.com/tatsu-lab/stanford_alpaca) e [Dolly](https://github.com/databrickslabs/dolly) contêm dezenas ou centenas de milhares de exemplos instruction-response.
 
 #### Continual Pre-Training (Domain Adaptation)
 
@@ -2251,19 +2254,39 @@ Legal Corpus: 50B tokens de documentos legais
 Medical Corpus: 100B tokens de papers médicos e registros clínicos
 ```
 
-Isso expõe o modelo a terminologia, padrões e conhecimento domain-specific. Crucial: use uma mixture do corpus original (~80%) e corpus de domínio (~20%) para evitar **catastrophic forgetting** — o fenômeno onde o modelo "esquece" capacidades gerais ao se especializar demais.
+Isso expõe o modelo a terminologia, padrões e conhecimento domain-specific. Mas é crucial usar uma mixture do corpus original (~80%) e corpus de domínio (~20%) para evitar **catastrophic forgetting**, o fenômeno onde o modelo "esquece" capacidades gerais ao se especializar demais. Voltando ao problema do "bank", um modelo legal-only pode esquecer o sentido geral de "bank" como instituição financeira ou qualquer outra coisa que seria interessante para uma interação em agentes de IA.
 
 #### Parameter-Efficient Fine-Tuning (PEFT)
 
+**O Problema da Inviabilidade do Fine-Tuning Completo**
+
+Até aqui, discutimos fine-tuning como se atualizar todos os parâmetros fosse trivial. Mas na prática, fine-tuning completo de modelos grandes é **proibitivamente caro** para a maioria das organizações e pesquisadores.
+
+**O Custo Real do Fine-Tuning Completo**
+
 Fine-tuning completo de um modelo de 70B parâmetros requer:
-- Carregar todos os 70B parâmetros na memória
-- Armazenar gradientes (mais 70B)
-- Armazenar optimizer states (mais 140B para Adam)
-- Total: ~280B floats = ~1TB de memória
 
-Isso é inviável para a maioria. PEFT techniques mantêm a maioria dos parâmetros congelados e atualizam apenas um subset pequeno:
+- **Modelo**: Carregar todos os 70B parâmetros na memória (280GB em FP32, 140GB em FP16)
+- **Gradientes**: Armazenar gradientes para cada parâmetro (mais 70B = 140GB em FP16)
+- **Optimizer States (Adam)**: Momentum + variance para cada parâmetro (mais 140B = 280GB)
+- **Total**: ~280B floats = **~560GB de memória mínima** (com mixed precision)
 
-**LoRA (Low-Rank Adaptation)** [@hu2021lora]: Injeta matrizes de baixo rank adaptáveis nas camadas de atenção:
+Para contexto:
+
+- GPU A100 tem 80GB de memória
+- Você precisa de **7-8 GPUs A100** só para carregar tudo
+- Custo: ~$25,000/mês em cloud para treinar
+- Tempo: Dias a semanas dependendo do dataset
+
+**Para quem isso é viável?** Apenas grandes empresas com orçamentos massivos. Para o resto de nós, há o PEFT, Parameter-Efficient Fine-Tuning.
+
+**A Solução: Treinar Apenas uma Fração Pequena**
+
+PEFT mantêm a maioria dos parâmetros **congelados** e atualizam apenas um subset pequeno (0.1-1% dos parâmetros). Isso reduz drasticamente os requisitos de memória e compute. Para modelos de 70B, isso significa treinar apenas ~70M a 700M parâmetros.
+
+**Como isso funciona?** A intuição é que **adaptar** um modelo pré-treinado para uma nova tarefa não requer re-aprender tudo, apenas ajustar um pequeno conjunto de parâmetros.
+
+A técnica **LoRA (Low-Rank Adaptation)** [@hu2021lora] consiste em injetar matrizes de baixo rank adaptáveis nas camadas de atenção:
 
 ```
 W' = W + BA
@@ -2272,7 +2295,7 @@ onde B ∈ R^(d×r), A ∈ R^(r×d), r << d
 
 Apenas A e B são treinados. Com r=8 e d=4096, isso adiciona apenas 8×4096×2 = 65K parâmetros por matriz, comparado a 16M para a matriz completa. Redução de ~250×.
 
-LoRA é surpreendentemente eficaz — muitas vezes alcança performance comparável a fine-tuning completo com <<1% dos parâmetros treináveis. A hipótese é que adaptação de task requer apenas modificações low-rank porque os "intrinsic dimensions" das tarefas são baixas.
+LoRA é muito eficaz, por vezes alcança performance comparável a fine-tuning completo com <<1% dos parâmetros treináveis. A hipótese é que adaptação de task requer apenas modificações low-rank porque os "intrinsic dimensions" das tarefas são baixas.
 
 **QLoRA** [@dettmers2023qlora]: Combina LoRA com quantização de 4-bit do modelo base. Isso permite fine-tuning de modelos 70B em uma única GPU de 48GB. Essencial para democratizar fine-tuning.
 
@@ -2280,19 +2303,20 @@ LoRA é surpreendentemente eficaz — muitas vezes alcança performance compará
 
 **Prefix Tuning / Prompt Tuning**: Aprende embeddings contínuos que são prefixados à input. O modelo base permanece completamente congelado.
 
-Para engenheiros, a escolha depende de trade-offs:
+Para a engenharia de agentes de IA, a escolha depende de trade-offs:
+
 - **Full Fine-Tuning**: Melhor performance, mas caro
-- **LoRA**: Melhor trade-off custo-performance, widely compatible
+- **LoRA**: Melhor trade-off custo-performance, amplamente compatível
 - **QLoRA**: Quando memória é o bottleneck principal
 - **Prompt Tuning**: Quando você quer compartilhar um modelo base entre múltiplas tarefas
 
 #### Reinforcement Learning from Human Feedback (RLHF)
 
-SFT pode criar modelos que seguem instruções, mas não necessariamente produzem outputs que humanos preferem. RLHF [@ouyang2022training] alinha o modelo com preferências humanas:
+SFT pode criar modelos que seguem instruções, mas não necessariamente produzem outputs que humanos *preferem*. O Reinforcement Learning from Human Feedback (RLHF) [@ouyang2022training] alinha o modelo com preferências humanas:
 
 1. **Coletar Comparações**: Humanos classificam pares de respostas para a mesma prompt
-2. **Treinar Reward Model**: Supervised learning para prever qual resposta humanos preferirão
-3. **Policy Optimization**: Usar o reward model como função de reward para fine-tune via RL
+1. **Treinar Reward Model**: Supervised learning para prever qual resposta humanos preferirão
+1. **Policy Optimization**: Usar o reward model como função de reward para fine-tune via RL
 
 ```
 Objective: maximize E[R(output)] - β·KL(π || π_ref)
@@ -2300,44 +2324,165 @@ Objective: maximize E[R(output)] - β·KL(π || π_ref)
 
 Onde R é o reward model, π é a política sendo otimizada, π_ref é a política de referência (SFT model), e β controla quanto a política pode divergir.
 
-Algoritmos populares incluem PPO (Proximal Policy Optimization) e DPO (Direct Preference Optimization). DPO é mais recente e mais simples — evita treinar um reward model separado.
+Algoritmos populares incluem PPO (Proximal Policy Optimization) e DPO (Direct Preference Optimization). DPO é mais recente e mais simples, evita treinar um reward model separado.
 
 RLHF é crucial para modelos comerciais como ChatGPT e Claude. Transforma modelos tecnicamente competentes em assistentes realmente úteis que humanos gostam de usar.
 
 ### Evaluation: Como Sabemos se Funcionou?
 
-Avaliar LLMs é surpreendentemente difícil. Métricas tradicionais como perplexidade ou BLEU são imperfeitas:
+Avaliar LLMs é bem difícil. Métricas tradicionais como perplexidade ou BLEU são imperfeitas. **Perplexidade** não correlaciona bem com qualidade percebida, **BLEU/ROUGE** funcionam para tradução/sumarização, mas não para geração open-ended. Por isso, abordagens modernas incluem: benchmarks padronizados, avaliação humana e LLMs como juízes.
 
-- **Perplexidade**: Não correlaciona bem com qualidade percebida
-- **BLEU/ROUGE**: Funcionam para tradução/sumarização, mas não para geração open-ended
-
-Abordagens modernas incluem:
+Vamos explorar isso.
 
 #### Benchmarks
 
-Suites de tarefas padronizadas:
+Existem algumas suites de tarefas padronizadas validadas pelo mercado que podemos utilizar como benchmarks para avaliar LLMs:
+
 - **MMLU** [@hendrycks2021measuring]: 57 tasks cobrindo conhecimento em STEM, humanidades, etc.
-- **Big-Bench**: 200+ diverse tasks
+- **Big-Bench**: 200+ tarefas diversas, incluindo raciocínio, compreensão, criatividade
 - **HumanEval** [@chen2021evaluating]: Codegen correctness (usado para avaliar GitHub Copilot)
-- **GSM8K** [@cobbe2021training]: Grade school math reasoning
+- **GSM8K** [@cobbe2021training]: Problemas matemáticos de nível escolar
 
-Benchmarks têm limitações:
-- **Contamination**: Modelos podem ter visto exemplos de test durante pré-treinamento
-- **Saturation**: Modelos top-tier já resolvem muitos benchmarks com >90% accuracy
-- **Gaming**: Possível "game" benchmarks sem capacidades gerais reais
 
-#### Human Evaluation
+Porém, benchmarks têm limitações.
 
-Pedir a humanos para avaliarem qualidade de outputs. Chatbot Arena (https://lmarena.ai) usa uma abordagem elegante: usuários fazem perguntas a dois modelos anônimos e escolhem qual resposta preferem. Rankings Elo são computados dos resultados.
+- **Contaminação**: Modelos podem ter visto exemplos de testes durante pré-treinamento
+- **Saturação**: Modelos top-tier já resolvem muitos benchmarks com >90% de acurácia
+- **Distribuição de Tarefas**: Benchmarks podem não refletir tarefas do mundo real que você quer que o modelo faça.
+- **Gaming**: Possível "game" benchmarks sem capacidades gerais reais (o famoso exemplo do modelo que "decorou" respostas de múltipla escolha)
 
-Ouro-padrão, mas caro e lento. Importante para avaliações finais, mas não viável para iteração rápida.
+#### Avaliação Humana
+
+Avaliação humana envolve pedir a pessoas reais para julgarem a qualidade, utilidade, correção e preferência entre outputs de modelos. É considerado o **gold standard** das avaliações porque captura aspectos subjetivos que métricas automatizadas falham:
+
+- Fluência e naturalidade da linguagem
+- Relevância e utilidade prática
+- Segurança e alinhamento com valores humanos
+- Criatividade e engajamento
+
+**Exemplo: Chatbot Arena**
+
+[Chatbot Arena](https://lmarena.ai) (LMSYS) usa uma abordagem elegante chamada **avaliação cega**:
+
+1. **Prompt do usuário**: Pessoa faz uma pergunta real
+1. **Dois modelos anônimos**: Sistema mostra respostas de dois modelos diferentes (usuário não sabe quais)
+1. **Escolha**: Usuário seleciona qual resposta é melhor (ou empate)
+1. **Ranking Elo**: Sistema calcula rankings estilo xadrez com milhares de comparações
+
+**Resultado**: Rankings que refletem preferências humanas reais em tarefas diversas. Por exemplo (em Nov 2024):
+
+- GPT-4o: Elo ~1300
+- Claude 3.5 Sonnet: Elo ~1280
+- GPT-4: Elo ~1250
+- Llama-3-70B: Elo ~1200
+
+**Vantagens**:
+
+- Captura preferências humanas reais
+- Detecta problemas sutis (toxicidade, vieses, incoerência)
+- Avalia capacidades emergentes difíceis de medir automaticamente
+
+**Desvantagens**:
+
+- **Caro**: $5-50 por avaliação dependendo da complexidade
+- **Lento**: Semanas para coletar milhares de avaliações
+- **Não escalável**: Inviável para iteração rápida (centenas de experimentos)
+- **Variabilidade**: Humanos diferentes podem discordar (~70-80% agreement típico)
+
+**Quando usar**: Avaliações finais de modelos prontos para produção, decisões de release, validação de melhorias críticas.
 
 #### LLM-as-Judge
 
-Usar um LLM forte (ex: GPT-4) para avaliar outputs de outros modelos. Surpreendentemente eficaz — correlaciona bem com human judgment em muitas tarefas. Permite avaliação automatizada escalável.
+**A Alternativa Escalável: Modelos Avaliando Modelos**
 
-Caveats:
-- Pode ter biases (ex: preferir outputs mais longos, ou próprio estilo)
+Usar um LLM forte (ex: GPT-4, Claude 3.5) para **avaliar automaticamente** outputs de outros modelos. Isso é uma abordagem muito eficaz.
+
+Vamos seguir o exemplo de avaliação de resposta a uma pergunta para entender o processo:
+
+```python
+prompt_judge = f"""
+Você é um avaliador imparcial. Avalie a qualidade da resposta abaixo na pergunta dada.
+
+Pergunta: {user_question}
+Resposta: {model_output}
+
+Critérios:
+1. Correção factual (0-5)
+2. Completude (0-5)
+3. Clareza (0-5)
+4. Utilidade prática (0-5)
+
+Forneça scores e justificativa.
+"""
+
+evaluation = gpt4.complete(prompt_judge)
+```
+
+**Descoberta crucial**: LLM-as-judge correlaciona bem com julgamento humano em muitas tarefas:
+
+- Correlação ~0.7-0.85 com preferências humanas
+- Muito mais consistente que humanos individuais
+- 1000× mais rápido e 100× mais barato
+
+**Casos de uso práticos**:
+
+1. **Comparação de modelos**: "Modelo A ou B é melhor para esta tarefa?"
+1. **Avaliação de fine-tuning**: "O fine-tuning melhorou a performance?"
+1. **Detecção de regressões**: "Mudança X degradou qualidade?"
+1. **Ranking de respostas**: Ordenar múltiplas respostas por qualidade
+
+**Limitações e Caveats**:
+
+1. **Viés de comprimento**: LLMs judges tendem a preferir respostas mais longas, mesmo quando concisão é melhor
+   ```python
+   # Resposta A: "Paris." (correto e conciso)
+   # Resposta B: "A capital da França é Paris, localizada no norte do país..." (verbose)
+   # Judge escolhe B mesmo sendo desnecessariamente longo
+   ```
+
+2. **Viés de estilo**: Preferem outputs que parecem com seu próprio estilo de geração
+   - GPT-4 judge prefere outputs que "soam como GPT-4"
+   - Claude judge prefere outputs estruturados como Claude estrutura
+
+3. **Auto-preferência**: Modelos tendem a dar scores mais altos para seus próprios outputs (~10-15% bias)
+
+4. **Limitação de capacidade**: Judge precisa ser **significativamente mais capaz** que os modelos avaliados
+   - GPT-4 avaliando Llama-3-8B: funciona bem
+   - Llama-3-8B avaliando GPT-4: não confiável
+
+5. **Falta de conhecimento especializado**: Judge pode não detectar erros factuais sutis em domínios técnicos
+
+**Melhores Práticas**:
+
+```python
+# 1. Use múltiplos judges para reduzir viés
+scores = [
+    gpt4_judge(output),
+    claude_judge(output),
+    gemini_judge(output)
+]
+final_score = median(scores)
+
+# 2. Blind evaluation - não revele qual modelo gerou output
+judge_prompt = f"Avalie esta resposta: {output}"  # sem mencionar modelo
+
+# 3. Calibre com avaliação humana
+# Compare subset (100-500 exemplos) com avaliação humana
+# Ajuste prompt do judge até correlação > 0.8
+```
+
+**Quando usar LLM como juiz**:
+
+- Iteração rápida durante desenvolvimento
+- Monitoramento contínuo de qualidade em produção
+- A/B testing automatizado de mudanças
+- Pre-screening antes de avaliação humana custosa
+
+**Quando NÃO usar**:
+
+- Decisões críticas de release (sempre validar com humanos)
+- Avaliação de modelos state-of-the-art (judge pode não ser superior)
+- Domínios altamente especializados sem judges treinados
 - Não substitui completamente human eval
 - "Judge" precisa ser significativamente mais capaz que os modelos sendo avaliados
 
