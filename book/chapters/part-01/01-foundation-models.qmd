@@ -66,7 +66,9 @@ Para visualizar como os dados fluem através de um Transformer, considere este d
 
 
 ```{mermaid}
+%%| label: fig-transformer-flow
 %%| fig-align: center
+%%| fig-cap: "Dados fluindo através de um modelo Transformer típico."
 graph TD
     A[Input Tokens] --> B[Token Embedding]
     B --> C[Positional Encoding]
@@ -90,7 +92,9 @@ graph TD
 Cada **Transformer Block** é uma unidade completa de processamento que aplica self-attention seguido de transformações feedforward. Internamente, um bloco Transformer individual tem a seguinte estrutura:
 
 ```{mermaid}
+%%| label: fig-transformer-flow
 %%| fig-align: center
+%%| fig-cap: "Fluxo de dados dentro de um bloco Transformer."
 graph TD
     A[Input from Previous Layer] --> B[Multi-Head Self-Attention]
     B --> C[Add & Norm]

@@ -44,3 +44,6 @@ format:
     include-in-header:
       text: |
         \usepackage{fancyvrb}
+    filters:
+      - quarto
+    quiet: true

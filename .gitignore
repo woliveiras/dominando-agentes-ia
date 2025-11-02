@@ -1,0 +1,37 @@
+# Quarto
+/.quarto/
+*_cache/
+*_files/
+*.tex
+
+# R
+.Rhistory
+.RData
+.Rproj.user
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Output files (keep source, ignore builds)
+/_book/
+/_site/
+*.pdf
+*.html
+!index.html
