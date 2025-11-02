@@ -52,10 +52,6 @@ jobs:
         run: |
           quarto render book/ --to html --verbose
 
-      - name: Render book to EPUB
-        run: |
-          quarto render book/ --to epub --verbose
-
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
         with:
@@ -73,17 +69,6 @@ jobs:
         with:
           name: book-artifacts
           path: book/_book
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            book/_book/Dominando-Agentes-de-IA.epub
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   deploy-gh-pages:
     needs: build-artifacts
