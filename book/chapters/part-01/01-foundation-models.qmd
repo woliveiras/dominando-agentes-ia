@@ -1143,48 +1143,498 @@ Se o modelo base não foi treinado no seu domínio:
 
 A mensagem fundamental: **dados são o coração do modelo**. Arquitetura sofisticada com dados ruins produz um modelo ruim. Arquitetura simples com dados excelentes produz um modelo excelente.
 
-### Tokenização: Transformando Texto em Números
+### Tokenização: A Camada Crítica Entre Texto e Modelo
 
-Antes de qualquer processamento, o texto precisa ser convertido em tokens — as unidades básicas que o modelo processa. A escolha de tokenização tem implicações profundas.
+Antes de qualquer processamento neural acontecer, o texto precisa ser convertido em tokens, as unidades atômicas que o modelo realmente processa. Tokenização não é apenas "dividir texto em pedaços", é uma **compressão lossy** que determina o que o modelo pode aprender e como ele generaliza. Uma má escolha de tokenização pode degradar performance em 10-20% mesmo com arquitetura e treinamento perfeitos, e diferentemente de hiperparâmetros, não pode ser ajustada depois do treinamento sem re-treinar o modelo do zero.
 
-#### Tokenização por Caracteres vs. Palavras vs. Subwords
+#### O Problema Fundamental: Granularidade vs. Vocabulário
 
-- **Caracteres**: Vocabulário pequeno (~256 tokens), mas sequências muito longas
-- **Palavras**: Sequências curtas, mas vocabulário gigantesco (~500K+ tokens), problemas com palavras raras
-- **Subwords**: Melhor trade-off — vocabulário moderado (~50K tokens), pode representar qualquer palavra
+Todo esquema de tokenização enfrenta um trade-off fundamental entre três fatores conflitantes: tamanho do vocabulário, comprimento da sequência e capacidade de generalização. Vamos dissecar cada um:
 
-#### Byte Pair Encoding (BPE)
+**1. Tamanho do Vocabulário**
 
-O algoritmo dominante é BPE [@sennrich2016neural] (ou variantes como WordPiece e SentencePiece):
+- Vocabulário maior = mais parâmetros na embedding layer e na camada de saída
+- Para um vocabulário de 50K tokens e dimensão de modelo 4096:
+  - Embedding layer: 50K × 4096 = **200M parâmetros**
+  - Output layer (logits): 4096 × 50K = **200M parâmetros**
+  - Total: **400M parâmetros só para vocabulário** (~0.5% de um modelo 70B)
 
-1. Inicia com um vocabulário de caracteres individuais
-2. Iterativamente encontra o par de tokens mais frequente e o merge
-3. Repete até atingir o tamanho de vocabulário desejado
+**2. Comprimento de Sequência**
 
-Por exemplo:
+- Tokens mais granulares (ex: caracteres) = sequências mais longas
+- Atenção é O(n²): Dobrar o comprimento = **4× mais computação**
+- Context window limitado: Mais tokens = menos contexto real
+
+**3. Capacidade de Generalização**
+
+- Vocabulário pequeno força o modelo a compor significados
+- Vocabulário grande permite memorização direta de padrões
+
+Não há solução perfeita, apenas trade-offs conscientes com os quais engenheiros de machine learning devem lidar.
+
+Vamos explorar os extremos e a solução intermediária mais popular.
+
+#### Tokenização por Caracteres: O Extremo Composicional
+
+Tokenização por caracteres usa cada caractere como um token (ex: UTF-8 bytes = 256 tokens possíveis).
+
+**Vantagens:**
+
+- Vocabulário minúsculo: 256 tokens para UTF-8
+- **Zero out-of-vocabulary (OOV)**: Qualquer string Unicode é representável
+- Máxima generalização: Modelo precisa aprender composição desde o nível mais básico
+
+**Desvantagens Práticas:**
+
+Considere a frase "The transformer architecture revolutionized NLP":
+
 ```
+Tokenização por palavras: 5 tokens
+Tokenização por caracteres: 51 tokens (incluindo espaços)
+```
+
+Isso significa
+
+- **10× mais tokens** para representar o mesmo conteúdo
+- **100× mais computação** na atenção (O(n²))
+- Context window de 4096 tokens de caracteres = **apenas ~800 palavras** de contexto real
+
+**Performance Real:**
+
+Modelos baseados em caracteres como CharRNN conseguem ~30-40% mais perplexidade (pior) que modelos equivalentes baseados em subwords em benchmarks de linguagem [@kawakami2017learning; @vania2017characters]. O problema é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional.
+
+**Quando Faz Sentido:**
+
+- Tasks onde morfologia é crítica: correção ortográfica, transliteração
+- Idiomas com morfologia rica (ex: Turco, Finlandês)
+- Quando você precisa de robustez absoluta a typos e OOV
+
+#### Tokenização por Palavras: O Extremo Lexical
+
+Tokenização por palavras trata cada palavra como um token atômico.
+
+**Aparentemente Ideal:**
+
+Parece natural: palavras são unidades semânticas, certo? Em inglês, talvez. Mas considere:
+
+**Problema 1: Explosão de Vocabulário**
+
+Vocabulário real de inglês: ~170K palavras ativas, ~470K no total incluindo jargões técnicos.
+
+Agora adicione:
+
+- Inflexões: run, runs, running, ran (4 tokens)
+- Variantes: color/colour, organize/organise
+- Compostos: "machine learning", "machine-learning", "machinelearning"
+- Nomes próprios: Milhões de entidades (pessoas, lugares, empresas)
+- Números: Cada número é uma "palavra" diferente?
+- Typos comuns: "teh", "recieve", etc.
+
+Resultado: Vocabulário realista de **500K-1M+ tokens** para cobertura *razoável*.
+
+**Custo Computacional:**
+
+Para vocabulário de 500K e modelo com d=4096 (onde **d** é a dimensão do modelo, o tamanho do vetor que representa cada token internamente, também chamada de *hidden size* ou *d_model*):
+
+- Embedding: 500K × 4096 = **2B parâmetros**
+- Output layer: 4096 × 500K = **2B parâmetros**
+- **Total: 4B parâmetros (>5% de um modelo 70B) gastos apenas no vocabulário**
+
+Isso é insustentável. Pior ainda: a maioria desses tokens será vista raramente, resultando em embeddings mal-treinadas.
+
+**Problema 2: Out-of-Vocabulary (OOV)**
+
+Qualquer palavra não vista no treinamento vira `<unk>` (unknown token), e o modelo perde completamente a informação:
+
+```
+"The cytokine storm caused by SARS-CoV-2 infection"
+→ ["The", "<unk>", "storm", "caused", "by", "<unk>", "infection"]
+```
+
+**Por que isso é crítico:**
+
+1. **Perda de Informação Semântica**: O modelo não consegue decompor "cytokine" em componentes significativos como "cyto-" (célula) + "-kine" (movimento) para inferir que se trata de uma molécula de sinalização celular.
+1. **Todas as palavras desconhecidas colapsam no mesmo token**: "cytokine", "melatonin", "serotonin" e qualquer termo técnico se tornam indistinguíveis, todos viram o mesmo `<unk>`. O modelo não pode aprender nem generalizar.
+1. **Problema em Domínios Especializados**: Em textos médicos, legais ou científicos, 15-30% dos tokens podem ser OOV, tornando o modelo praticamente inútil sem fine-tuning massivo.
+1. **Números e Código**: Cada número ou identificador único vira `<unk>`, impossibilitando raciocínio aritmético ou compreensão de código.
+
+**Problema 3: Ineficiência Multilíngue**
+
+Idiomas aglutinantes como Alemão, Turco, Finlandês e Húngaro têm palavras compostas arbitrariamente longas formadas pela concatenação produtiva de morfemas:
+
+```
+Alemão: "Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft"
+(Associação de funcionários subordinados do chefe de administração dos serviços elétricos de vapor de Danúbio)
+
+Turco: "muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesine"
+(como se você fosse daqueles que não poderíamos facilmente transformar em um fracasso)
+```
+
+**Problemas Técnicos Concretos:**
+
+1. **Explosão Combinatória do Vocabulário**: Em Alemão, "Software" pode combinar com centenas de substantivos: "Softwareentwicklung" (desenvolvimento), "Softwarearchitektur" (arquitetura), "Softwarequalität" (qualidade). Cada combinação seria um token único [@acs2019morphological].
+1. **Distribuição de Frequência Extremamente Long-Tail**: A palavra composta "Softwareentwicklungsingenieur" (engenheiro de desenvolvimento de software) pode aparecer 100 vezes no corpus. Mas suas variações "Softwareentwicklungsingenieurbüro" (escritório de engenheiros...), "Softwareentwicklungsingenieurteam" (equipe de engenheiros...) aparecem 2-3 vezes. Resultado: milhares de tokens com frequência < 10, embeddings **subtreinadas**.
+1. **Ineficiência de Representação**: Para cobrir razoavelmente Alemão técnico, precisaríamos de ~2M+ tokens no vocabulário apenas para esse idioma. Em modelos multilíngues, isso significa que ~80-90% dos slots de vocabulário são desperdiçados em variações que aparecem < 5 vezes no treinamento [@chung2020improving].
+1. **Impacto em Modelos Multilíngues**: GPT-3 com vocabulário de 50K tokens aloca ~40K para Inglês, sobrando apenas ~10K para todos os outros idiomas [@brown2020language]. Resultado: textos em Tailandês, Árabe ou Finlandês usam 3-5× mais tokens que Inglês para o mesmo conteúdo, custando mais e sendo truncados mais facilmente [@rust2021good].
+
+#### Byte Pair Encoding (BPE): O Compromisso Ótimo
+
+Byte Pair Encoding (BPE) [@sennrich2016neural] resolve simultaneamente todos os problemas anteriores através de um princípio elegante: **construir vocabulário bottom-up baseado em frequência estatística dos dados**. Originalmente um algoritmo de compressão de dados dos anos 1994, foi adaptado para NLP e agora é usado por GPT, LLaMA, Claude, Mistral e praticamente todos os LLMs modernos.
+
+**O que BPE garante:**
+
+- **Zero OOV**: Sempre pode decompor qualquer palavra em subwords ou, no pior caso, caracteres/bytes individuais
+- **Vocabulário fixo e controlado**: Tipicamente 32K-100K tokens — balanceando eficiência e custo computacional
+- **Adaptativo aos dados**: Tokens comuns (como "the", "ing", "tion") emergem naturalmente da frequência no corpus
+- **Multilíngue eficiente**: Morfemas compartilhados entre idiomas são reutilizados (ex: "inter-", "anti-", "-tion")
+- **Determinístico e reversível**: Mesma entrada sempre produz mesma tokenização
+
+**Trade-off fundamental**: BPE sacrifica tokenização semanticamente perfeita (que exigiria compreensão linguística profunda) por tokenização estatisticamente ótima baseada apenas em co-ocorrências, o que funciona surpreendentemente bem na prática.
+
+**Algoritmo Detalhado:**
+
+**Passo 1: Inicialização**
+
+Comece com vocabulário de caracteres individuais (ou bytes UTF-8):
+
+```python
+vocab = ['a', 'b', 'c', ..., 'z', ' ', '.', '!', ...]  # ~256 symbols
+corpus = ["low", "lower", "newest", "widest"]
+```
+
+Represente corpus como sequências de caracteres:
+
+```
+"low"    -> ['l', 'o', 'w']
+"lower"  -> ['l', 'o', 'w', 'e', 'r']
+"newest" -> ['n', 'e', 'w', 'e', 's', 't']
+"widest" -> ['w', 'i', 'd', 'e', 's', 't']
+```
+
+**Passo 2: Contar Pares Adjacentes**
+
+```
+('l', 'o'): 2 ocorrências
+('o', 'w'): 2 ocorrências  ← mais frequente
+('w', 'e'): 2 ocorrências  ← também frequente
+('e', 's'): 2 ocorrências
+('s', 't'): 2 ocorrências
+...
+```
+
+**Passo 3: Merge do Par Mais Frequente**
+
+Merge ('o', 'w') → 'ow', adicione ao vocabulário:
+
+```python
+vocab.append('ow')
+```
+
+Atualize corpus:
+
+```
+"low"    -> ['l', 'ow']
+"lower"  -> ['l', 'ow', 'e', 'r']
+"newest" -> ['n', 'e', 'w', 'e', 's', 't']  # não afetado
+"widest" -> ['w', 'i', 'd', 'e', 's', 't']  # não afetado
+```
+
+**Passo 4: Repetir até Vocabulário Desejado**
+
+Continue mergindo pares mais frequentes:
+
+```
+Iteração 2: ('e', 's') → 'es'
+Iteração 3: ('es', 't') → 'est'
+Iteração 4: ('l', 'ow') → 'low'
+Iteração 5: ('n', 'e') → 'ne'
+...
+```
+
+Resultado final após várias iterações:
+
+```
+"low"    -> ['low']           # palavra completa
+"lower"  -> ['low', 'er']     # subwords semânticos
+"newest" -> ['new', 'est']    # subwords semânticos
+"widest" -> ['wid', 'est']    # subwords semânticos
+```
+
+**Propriedades Emergentes Poderosas:**
+
+1. **Palavras Comuns = Tokens Únicos**
+
+Palavras frequentes são rapidamente *merged* em tokens únicos:
+
+```python
+"the"  -> ["the"]     # palavra completa, 1 token
+"and"  -> ["and"]     # palavra completa, 1 token
+```
+
+Isso mantém eficiência para o texto comum.
+
+2. **Palavras Raras = Composição de Subwords**
+
+Palavras raras são naturalmente decompostas:
+
+```python
 "unhappiness" -> ["un", "happi", "ness"]
-"happiness" -> ["happi", "ness"]
+# Cada subword tem significado: un- (negação), happi (feliz), -ness (estado)
 ```
 
-BPE tem várias propriedades desejáveis:
-- Palavras comuns são single tokens (eficiente)
-- Palavras raras são decompossadas em subwords (generalizável)
-- Nunca produz tokens <unk> (unknown) — qualquer string pode ser tokenizada
+O modelo pode inferir significado através da composição, mesmo nunca tendo visto "unhappiness" inteiro.
 
-#### Implicações de Tokenização
+3. **Zero OOV Guaranteed**
 
-Tokenização não é apenas um detalhe de implementação — afeta fundamentalmente as capacidades do modelo:
+Como o vocabulário base são caracteres, **qualquer string** pode ser representada (no pior caso, como caracteres individuais):
 
-1. **Eficiência**: Modelos com vocabulários maiores processam texto em menos tokens, mas cada token requer mais parâmetros (embedding layer é vocab_size × d_model).
+```python
+"supercalifragilisticexpialidocious" 
+→ ["super", "cal", "if", "rag", "il", "istic", "exp", "ial", "id", "oc", "ious"]
+# Ou no pior caso: ['s', 'u', 'p', 'e', 'r', ...]
+```
 
-2. **Aritmética**: Tokenizar números como strings de dígitos individuais torna aritmética muito mais difícil para o modelo. Por exemplo, "1234" pode ser tokenizado como ["12", "34"], tornando operações matemáticas não-triviais.
+4. **Eficiência Multilíngue**
 
-3. **Idiomas**: BPE treinado primariamente em Inglês pode ser muito ineficiente para idiomas com scripts diferentes (ex: Chinês, Japonês). Cada caractere pode ser um token separado, inflando o comprimento da sequência.
+Subwords funcionam naturalmente para múltiplos idiomas:
 
-4. **Code Understanding**: Tokenização inadequada de código pode separar identificadores importantes ou keywords, prejudicando o desempenho.
+```python
+# Inglês
+"running" -> ["run", "ning"]
 
-Modelos modernos usam vocabulários de 50K-100K tokens, com atenção especial para representar bem múltiplos idiomas e código.
+# Alemão (palavra composta)
+"Zusammenarbeit" -> ["Zu", "sammen", "arbeit"]
+# zusammen = junto, arbeit = trabalho
+
+# Japonês (mistura de scripts)
+"東京タワー" -> ["東京", "タ", "ワー"]
+```
+
+#### Variantes Modernas: WordPiece e SentencePiece
+
+**WordPiece (BERT, DistilBERT):**
+
+Similar a BPE, mas usa **likelihood maximization** em vez de frequência bruta. A ideia é mergir pares que aumentam a probabilidade (likelihood) do corpus ser gerado pelo vocabulário:
+
+```
+Score(pair) = log P(pair) / (P(left) × P(right))
+```
+
+**Intuição**: Este score mede **quanto mais provável** é ver os dois tokens juntos vs. separados. Se "un" e "happy" aparecem juntos muito mais frequentemente do que esperaríamos pela frequência individual de cada um, o score é alto e vale mergir em "unhappy".
+
+**Exemplo**:
+
+- "un" aparece 1000× no corpus (P(un) = 0.001)
+- "happy" aparece 500× no corpus (P(happy) = 0.0005)  
+- "unhappy" aparece 300× no corpus (P(unhappy) = 0.0003)
+
+Se fossem independentes, esperaríamos "un" + "happy" juntos apenas 0.001 × 0.0005 = 0.0000005 vezes. Mas vemos 0.0003! Isso indica forte associação → alto score → merge.
+
+**Diferença vs. BPE**: BPE mergeria simplesmente o par mais frequente (pode ser "e" + " " que aparece milhões de vezes mas é semanticamente vazio). WordPiece prefere pares que têm **associação estatística forte**, não apenas frequência alta.
+
+Na prática, a diferença de performance entre BPE e WordPiece é marginal (~1-2% em benchmarks), então a escolha é mais por preferência de implementação.
+
+**SentencePiece (T5, XLNet, LLaMA):**
+
+Trata input como **sequência de bytes UTF-8** em vez de caracteres Unicode. Vantagens:
+
+1. **Language-agnostic**: Não precisa de regras de segmentação específicas por idioma
+1. **Espaços são tokens**: ` ` é tratado como token especial `▁` (underscore)
+1. **Reversibilidade perfeita**: `decode(encode(text)) == text` sempre
+
+Exemplo:
+
+```python
+# SentencePiece
+"Hello world" -> ["▁Hello", "▁world"]
+# ▁ indica início de palavra
+
+# Reversível:
+["▁Hello", "▁world"] -> "Hello world"
+```
+
+Isso permite processar qualquer idioma (incluindo idiomas sem espaços como Chinês/Japonês) uniformemente.
+
+#### Implicações Profundas para Construção de Agentes
+
+**Por que tokenização importa tanto em produção?**
+
+Até aqui exploramos a mecânica de como tokenização funciona, BPE, WordPiece, SentencePiece. Mas a verdadeira questão para engenheiros construindo sistemas de produção é: **como escolhas de tokenização afetam o comportamento do modelo em aplicações reais?**
+
+A resposta curta é: **sim! e profundamente**. Tokenização não é apenas um detalhe de pré-processamento que você pode ignorar depois de escolher um modelo. Ela determina:
+
+- **Quanto custa** executar seu agente (APIs cobram **por token** lido e gerado)
+- **Quais tarefas** o modelo consegue fazer bem (aritmética, código, multilíngue)
+- **Como debugar** problemas de comportamento inesperado
+- **Quais limitações arquiteturais** são fundamentais vs. contornáveis
+
+Engenheiros que não entendem tokenização frequentemente:
+
+1. **Estouram orçamento** de API sem entender por quê
+1. **Atribuem falhas ao modelo** quando o problema é o tokenizer
+1. **Desperdiçam contexto** com prompts mal otimizados
+1. **Escolhem modelo errado** para seu caso de uso específico
+
+As próximas seções detalham implicações práticas que você **precisa** dominar para construir agentes eficazes. Não são curiosidades teóricas, são problemas reais que você enfrentará em produção. Então preste muita atenção!
+
+**1. Tokenização Afeta Capacidade Aritmética**
+
+Modelos têm dificuldade notória com aritmética simples. Por quê? Tokenização!
+
+```python
+# Número tokenizado como string
+"1234567" -> ["12", "34", "56", "7"]
+```
+
+Para o modelo somar `12345 + 67890`, ele precisa:
+
+1. Entender que ["12", "34", "5"] representa doze mil trezentos e quarenta e cinco
+1. Realizar carry propagation entre boundaries de tokens
+1. Gerar resultado tokenizado consistentemente
+
+Isso é **extremamente difícil**. É como pedir para você somar números onde cada dígito está em uma linguagem diferente.
+
+**Solução Parcial**: Alguns modelos treinam com números explicitamente como tokens individuais:
+
+```python
+# Melhor tokenização para números
+"1234567" -> ["1", "2", "3", "4", "5", "6", "7"]
+```
+
+Mas isso aumenta comprimento de sequência e ainda não resolve completamente.
+
+**Solução Real**: Function calling para delegar aritmética a uma calculadora externa. Deixe as linguagens de programação lidarem com o que elas são boas em fazer e o modelo foca em raciocínio de alto nível.
+
+**2. Tokenização Causa Bias Multilíngue**
+
+BPE treinado em corpus majoritariamente inglês:
+
+```python
+# Inglês (eficiente)
+"The quick brown fox" -> ["The", "quick", "brown", "fox"]  # 4 tokens
+
+# Japonês (ineficiente)
+"素早い茶色の狐" -> ["素", "早", "い", "茶", "色", "の", "狐"]  # 7 tokens
+# Mesmo significado, ~2× mais tokens!
+```
+
+**Impacto Prático:**
+
+- Custo de API: Cobrado por token → Japonês custa ~2× mais que inglês
+- Context window: Japonês cabe ~metade do texto
+- Performance: Modelo vê menos exemplos de Japonês por sequência
+
+**Solução**: Treinar tokenizer em corpus multilíngue balanceado, como LLaMA faz:
+
+```python
+# LLaMA tokenizer (mais equilibrado)
+"The quick brown fox" -> ["The", "quick", "brown", "fox"]  # 4 tokens
+"素早い茶色の狐" -> ["素早い", "茶色", "の", "狐"]           # 4 tokens
+```
+
+**3. Tokenização de Código é Criticamente Importante**
+
+Código tem estrutura muito diferente de linguagem natural:
+
+```python
+# Má tokenização
+"def calculate_total_price(items):" 
+-> ["def", "cal", "cul", "ate", "_", "total", "_", "pr", "ice", "(", "items", "):"]
+# 12 tokens, identificador quebrado
+
+# Boa tokenização
+"def calculate_total_price(items):"
+-> ["def", "calculate", "_", "total", "_", "price", "(", "items", ")", ":"]
+# 10 tokens, identificador preservado
+```
+
+Modelos como Code Llama e StarCoder treinam tokenizers específicos em código:
+
+```python
+# Code-optimized tokenizer
+"function fibonacci(n) {" 
+-> ["function", "fibonacci", "(", "n", ")", "{"]
+# Preserva estrutura sintática
+```
+
+**4. Vocabulário é um Hiperparâmetro de Treinamento**
+
+Tamanho do vocabulário afeta fundamentalmente o modelo:
+
+**Vocabulário Pequeno (32K tokens):**
+
+- ✅ Menos parâmetros na embedding layer
+- ✅ Cada token visto mais frequentemente (melhor treinamento)
+- ❌ Sequências mais longas (mais compute)
+- ❌ Menos expressividade lexical
+
+**Vocabulário Grande (100K+ tokens):**
+
+- ✅ Sequências mais curtas (menos compute)
+- ✅ Mais expressividade (palavras raras como tokens únicos)
+- ❌ Muito mais parâmetros
+- ❌ Muitos tokens raros (embeddings mal-treinadas)
+
+**Prática Moderna:**
+
+- GPT-2: 50K tokens
+- GPT-3/4: ~100K tokens (inclui mais idiomas e código)
+- LLaMA: 32K tokens (otimizado para eficiência)
+- Claude: ~100K tokens
+
+Não há "número certo", é um trade-off consciente baseado nos objetivos do modelo.
+
+**5. Tokenização é Irreversível Pós-Treinamento**
+
+Uma vez que o modelo é treinado com um tokenizer, **você não pode mais mudá-lo** sem re-treinar completamente. Os embeddings aprendidos são específicos para esses token IDs:
+
+```python
+# Token 1234 no modelo A
+A.embedding[1234] = [0.1, -0.3, 0.7, ...]  # representa "ing"
+
+# Token 1234 no modelo B (tokenizer diferente)
+B.embedding[1234] = [-0.5, 0.2, 0.1, ...]  # representa "ção"
+```
+
+Embeddings não são transferíveis entre tokenizers diferentes.
+
+**Implicação**: Escolha do tokenizer é uma decisão permanente de arquitetura. Se você treina um modelo com tokenizer mal otimizado, precisa re-treinar do zero para consertar.
+
+#### Debugging e Otimização de Tokenização
+
+Como engenheiro construindo agentes, você precisa entender o comportamento do tokenizer do seu modelo:
+
+```python
+import tiktoken
+
+enc = tiktoken.encoding_for_model("gpt-4")
+
+# Visualize tokenização
+def visualize_tokens(text):
+    tokens = enc.encode(text)
+    print(f"Text: {text}")
+    print(f"Tokens ({len(tokens)}): {tokens}")
+    print("Decoded:")
+    for i, token in enumerate(tokens):
+        decoded = enc.decode([token])
+        print(f"  {i}: {token:5d} -> '{decoded}'")
+
+# Exemplo: Prompt de sistema
+visualize_tokens("You are a helpful assistant specialized in Python programming.")
+
+# Exemplo: Código
+visualize_tokens("def fibonacci(n):\n    return n if n <= 1 else fibonacci(n-1) + fibonacci(n-2)")
+
+# Exemplo: Multilíngue
+visualize_tokens("Hello! こんにちは! Olá! 你好!")
+```
+
+Use isso para:
+
+- **Otimizar prompts**: Reduza tokens desnecessários
+- **Estimar custos**: Conte tokens antes de enviar
+- **Debug comportamento**: Entenda por que modelo falhou em task específica
+- **Design de função**: Garanta que nomes de funções sejam tokenizados eficientemente
 
 ### Representações Contextualizadas: O que Está Dentro dos Vetores
 
