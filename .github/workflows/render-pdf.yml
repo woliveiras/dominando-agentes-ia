@@ -60,7 +60,7 @@ jobs:
 
       - name: Render book to PDF
         run: |
-          quarto render book/ --to pdf
+          quarto render book/ --to pdf --verbose
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

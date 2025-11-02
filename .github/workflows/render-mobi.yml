@@ -60,7 +60,7 @@ jobs:
 
       - name: Render book to EPUB
         run: |
-          quarto render book/ --to epub
+          quarto render book/ --to epub --verbose
 
       - name: Convert EPUB to MOBI
         run: |
