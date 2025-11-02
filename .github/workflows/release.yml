@@ -48,9 +48,11 @@ jobs:
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
 
-      - name: Render book to HTML
+      - name: Render book to HTML, PDF, and EPUB
         run: |
           quarto render book/ --to html --verbose
+          quarto render book/ --to pdf --verbose
+          quarto render book/ --to epub --verbose
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
