@@ -39,6 +39,7 @@ format:
       - cosmo
       - brand
   pdf:
+    mermaid-format: png
     documentclass: scrreprt
     keep-tex: false
     include-in-header:
@@ -48,5 +49,6 @@ format:
       - quarto
     quiet: true
   epub:
+    mermaid-format: png
     toc: true
     epub-cover-image: cover.png
