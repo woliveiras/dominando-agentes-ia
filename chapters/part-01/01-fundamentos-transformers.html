@@ -1,0 +1,2098 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt" xml:lang="pt"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Capítulo 1: Fundamentos dos Transformers – Dominando Agentes de IA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../chapters/99-references.html" rel="next">
+<link href="../../chapters/01-intro.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-0dd2bd5de344125cf763a379ddc3eb04.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+<script src="../../site_libs/quarto-diagram/mermaid.min.js"></script>
+<script src="../../site_libs/quarto-diagram/mermaid-init.js"></script>
+<link href="../../site_libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Parte I: Fundamentos e Componentes Base</a></li><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Capítulo 1: Fundamentos dos Transformers</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../../index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Dominando Agentes de IA</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/00-visao-geral.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visão Geral do Livro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/01-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introdução: O Universo dos AI Agents</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Parte I: Fundamentos e Componentes Base</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar seção">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/01-fundamentos-transformers.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Capítulo 1: Fundamentos dos Transformers</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/99-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Índice</h2>
+   
+  <ul>
+  <li><a href="#introdução-a-revolução-dos-foundation-models" id="toc-introdução-a-revolução-dos-foundation-models" class="nav-link active" data-scroll-target="#introdução-a-revolução-dos-foundation-models">Introdução: A Revolução dos Foundation Models</a></li>
+  <li><a href="#o-que-são-tarefas-downstream" id="toc-o-que-são-tarefas-downstream" class="nav-link" data-scroll-target="#o-que-são-tarefas-downstream">O Que São Tarefas Downstream?</a></li>
+  <li><a href="#o-que-são-tokens" id="toc-o-que-são-tokens" class="nav-link" data-scroll-target="#o-que-são-tokens">O Que São Tokens?</a>
+  <ul class="collapse">
+  <li><a href="#por-que-não-usar-palavras-diretamente" id="toc-por-que-não-usar-palavras-diretamente" class="nav-link" data-scroll-target="#por-que-não-usar-palavras-diretamente">Por Que Não Usar Palavras Diretamente?</a></li>
+  <li><a href="#como-funciona-a-tokenização" id="toc-como-funciona-a-tokenização" class="nav-link" data-scroll-target="#como-funciona-a-tokenização">Como Funciona a Tokenização?</a></li>
+  <li><a href="#tipos-de-tokens" id="toc-tipos-de-tokens" class="nav-link" data-scroll-target="#tipos-de-tokens">Tipos de Tokens</a></li>
+  <li><a href="#por-que-isso-importa-na-prática" id="toc-por-que-isso-importa-na-prática" class="nav-link" data-scroll-target="#por-que-isso-importa-na-prática">Por Que Isso Importa na Prática?</a></li>
+  <li><a href="#regra-prática-de-contagem" id="toc-regra-prática-de-contagem" class="nav-link" data-scroll-target="#regra-prática-de-contagem">Regra Prática de Contagem</a></li>
+  <li><a href="#ferramentas-para-visualizar-tokens" id="toc-ferramentas-para-visualizar-tokens" class="nav-link" data-scroll-target="#ferramentas-para-visualizar-tokens">Ferramentas para Visualizar Tokens</a></li>
+  </ul></li>
+  <li><a href="#a-arquitetura-transformer-o-coração-dos-foundation-models" id="toc-a-arquitetura-transformer-o-coração-dos-foundation-models" class="nav-link" data-scroll-target="#a-arquitetura-transformer-o-coração-dos-foundation-models">A Arquitetura Transformer: O Coração dos Foundation Models</a>
+  <ul class="collapse">
+  <li><a href="#atenção-é-tudo-o-que-você-precisa" id="toc-atenção-é-tudo-o-que-você-precisa" class="nav-link" data-scroll-target="#atenção-é-tudo-o-que-você-precisa">Atenção é tudo o que você precisa</a></li>
+  <li><a href="#self-attention-o-mecanismo-de-memória-associativa" id="toc-self-attention-o-mecanismo-de-memória-associativa" class="nav-link" data-scroll-target="#self-attention-o-mecanismo-de-memória-associativa">Self-Attention: O Mecanismo de Memória Associativa</a></li>
+  <li><a href="#multi-head-attention-modelando-múltiplas-relações-em-paralelo" id="toc-multi-head-attention-modelando-múltiplas-relações-em-paralelo" class="nav-link" data-scroll-target="#multi-head-attention-modelando-múltiplas-relações-em-paralelo">Multi-Head Attention: Modelando Múltiplas Relações em Paralelo</a></li>
+  <li><a href="#otimizações-modernas-de-atenção" id="toc-otimizações-modernas-de-atenção" class="nav-link" data-scroll-target="#otimizações-modernas-de-atenção">Otimizações Modernas de Atenção</a></li>
+  <li><a href="#embeddings-posicionais-injetando-ordem-em-um-modelo-sem-ordem" id="toc-embeddings-posicionais-injetando-ordem-em-um-modelo-sem-ordem" class="nav-link" data-scroll-target="#embeddings-posicionais-injetando-ordem-em-um-modelo-sem-ordem">Embeddings Posicionais: Injetando Ordem em um Modelo Sem Ordem</a></li>
+  <li><a href="#feedforward-networks-processamento-não-linear" id="toc-feedforward-networks-processamento-não-linear" class="nav-link" data-scroll-target="#feedforward-networks-processamento-não-linear">Feedforward Networks: Processamento Não-Linear</a></li>
+  <li><a href="#mixture-of-experts-moe-eficiência-através-de-especialização" id="toc-mixture-of-experts-moe-eficiência-através-de-especialização" class="nav-link" data-scroll-target="#mixture-of-experts-moe-eficiência-através-de-especialização">Mixture of Experts (MoE): Eficiência através de Especialização</a></li>
+  <li><a href="#layer-normalization-e-residual-connections" id="toc-layer-normalization-e-residual-connections" class="nav-link" data-scroll-target="#layer-normalization-e-residual-connections">Layer Normalization e Residual Connections</a></li>
+  <li><a href="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder" id="toc-arquiteturas-encoder-only-decoder-only-e-encoder-decoder" class="nav-link" data-scroll-target="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas Encoder-Only, Decoder-Only e Encoder-Decoder</a></li>
+  </ul></li>
+  <li><a href="#conclusão" id="toc-conclusão" class="nav-link" data-scroll-target="#conclusão">Conclusão</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Parte I: Fundamentos e Componentes Base</a></li><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Capítulo 1: Fundamentos dos Transformers</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Capítulo 1: Fundamentos dos Transformers</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Foundation models são considerados a espinha dorsal dos agentes inteligentes. Compreender sua arquitetura, funcionamento interno e capacidades é essencial para que consigamos construir sistemas “agenticos” eficientes, seguros e viáveis financeiramente. Neste capítulo, vamos explorar os conceitos fundamentais por trás dos foundation models, com foco especial na Arquitetura Transformer que os torna possíveis.</p>
+<section id="introdução-a-revolução-dos-foundation-models" class="level2">
+<h2 class="anchored" data-anchor-id="introdução-a-revolução-dos-foundation-models">Introdução: A Revolução dos Foundation Models</h2>
+<p>Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas <em>downstream</em> através de <strong>fine-tuning</strong> ou <strong>prompting</strong> - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.</p>
+<p>Esta mudança de paradigma não é apenas uma questão de conveniência, ela reflete uma compreensão mais profunda de como o conhecimento pode ser representado e transferido em sistemas artificiais.</p>
+<p>O termo “foundation model” foi cunhado por pesquisadores de Stanford em 2021 <span class="citation" data-cites="bommasani2021opportunities">(<a href="../99-references.html#ref-bommasani2021opportunities" role="doc-biblioref">Bommasani et al. 2021</a>)</span> para descrever modelos que são (1) treinados em dados amplos e diversos usando <em>self-supervision</em>, (2) servem como base para uma variedade de tarefas downstream, e (3) demonstram capacidades emergentes que não foram explicitamente programadas para fazer. Large Language Models (LLMs) como GPT <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>, BERT <span class="citation" data-cites="devlin2018bert">(<a href="../99-references.html#ref-devlin2018bert" role="doc-biblioref">Devlin et al. 2018</a>)</span>, LLaMA <span class="citation" data-cites="touvron2023llama">(<a href="../99-references.html#ref-touvron2023llama" role="doc-biblioref">Touvron et al. 2023</a>)</span> e Claude são exemplos proeminentes de foundation models, mas o conceito se estende a outras modalidades como CLIP e DALL-E para imagens ou Codex e StarCoder para código.</p>
+<p>Para engenheiros que construirão agentes inteligentes, compreender os foundation models não é opcional, é um conhecimento base para todo o resto. Os agentes de IA modernos são, em sua essência, sistemas que orquestram foundation models para <em>perceber o ambiente</em>, <em>raciocinar</em> sobre ele e <em>tomar ações</em>. Sem uma compreensão profunda de como esses modelos funcionam, suas capacidades e limitações, é impossível construir agentes robustos e, acima de tudo, <strong>confiáveis</strong>.</p>
+<p>Neste capítulo, vamos explorar os componentes centrais dos foundation models, entender a arquitetura Transformer que os torna possíveis, e entender como eles aprendem e representam conhecimento. Esta base será essencial para os próximos capítulos, onde aplicaremos esses conceitos na construção de agentes inteligentes capazes de operar em ambientes complexos e dinâmicos. Se você não está familiarizado com conceitos como <em>self-attention</em>, <em>positional encoding</em> ou <em>multi-head attention</em>, não se preocupe, vamos cobrir tudo isso em detalhes.</p>
+</section>
+<section id="o-que-são-tarefas-downstream" class="level2">
+<h2 class="anchored" data-anchor-id="o-que-são-tarefas-downstream">O Que São Tarefas Downstream?</h2>
+<p>Antes de seguir para assuntos mais profundos, é importante esclarecer o que são tarefas <em>downstream</em> no contexto de foundation models.</p>
+<p>Uma tarefa downstream refere-se a uma tarefa específica que um modelo realiza após ter sido pré-treinado em uma tarefa geral. Por exemplo, um foundation model pode ser pré-treinado para prever o próximo token em uma sequência de texto (uma tarefa geral), e depois ser adaptado para tarefas downstream como classificação de texto, tradução automática ou geração de código.</p>
+<p>Para entender bem o que são tarefas downstream, vamos pensar no pré-treinamento como a <strong>educação básica</strong> e as tarefas downstream como <strong>especialização profissional</strong>:</p>
+<ul>
+<li><strong>Pré-Treinamento</strong>: Ensino fundamental + médio (base ampla de conhecimento), o modelo é treinado com uma ampla gama de conhecimentos e habilidades gerais, como linguagem, gramática, fatos do mundo.</li>
+<li><strong>Tarefas Downstream</strong>: Profissões específicas (médico, advogado, engenheiro), o modelo aplica esse conhecimento geral para resolver problemas específicos em diferentes domínios.</li>
+</ul>
+<p>O termo vem da ideia de um fluxo (stream):</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div>
+<p></p><figure class="figure"><p></p>
+<div>
+<pre class="mermaid mermaid-js">---
+config:
+  flowchart:
+    padding: 20
+---
+%%| label: fig-pre-training-flow
+%%| fig-cap: "Fluxo de conhecimento em foundation models: do pré-treinamento para tarefas downstream."
+graph TD
+    Fonte["Fonte"] --&gt; PreTreinamento["Pré-treinamento (upstream)"]
+    PreTreinamento --&gt; FineTuning["Fine-tuning"]
+    FineTuning --&gt; Tarefas["Tarefas Downstream"]
+    Conhecimento["Conhecimento geral flui &lt;br&gt; para baixo (down)"] --&gt; Aplicacoes["Aplicações específicas"]
+    PreTreinamento --&gt; Conhecimento
+    Conhecimento --&gt; Aplicacoes
+</pre>
+</div>
+<p></p></figure><p></p>
+</div>
+</div>
+</div>
+<p><strong>Por que o termo “Downstream”?</strong></p>
+<p>O conhecimento <em>flui para baixo</em> (downstream) do modelo geral para aplicações específicas. O modelo base (upstream) fornece a fundação que alimenta (feeds into) múltiplas tarefas específicas (downstream).</p>
+<p><strong>No Contexto de Foundation Models</strong></p>
+<p><strong>Upstream (Pré-treinamento)</strong></p>
+<p>O modelo aprende representações gerais de linguagem através de predição do próximo token em trilhões de tokens de texto.</p>
+<p><strong>Downstream (Tarefas específicas)</strong></p>
+<p>O modelo é adaptado para tarefas específicas como:</p>
+<ul>
+<li>Classificação de Sentimento: Determinar se uma revisão é positiva ou negativa.</li>
+<li>Resposta a Perguntas: Responder perguntas baseadas em um contexto fornecido.</li>
+<li>Tradução de Idiomas: Traduzir texto de um idioma para outro.</li>
+<li>Named Entity Recognition (NER): Identificar nomes, lugares, organizações em texto</li>
+<li>Code generation: Gerar código a partir de descrições</li>
+<li>Sumarização: Resumir um artigo longo</li>
+</ul>
+</section>
+<section id="o-que-são-tokens" class="level2">
+<h2 class="anchored" data-anchor-id="o-que-são-tokens">O Que São Tokens?</h2>
+<p>Antes de mergulharmos na arquitetura Transformer, precisamos entender um conceito fundamental que permeia todo este capítulo: <strong>tokens</strong>. Você já deve ter notado que mencionamos “tokens” algumas vezes até agora, mas o que exatamente são eles?</p>
+<p>Tokens são as <strong>unidades básicas de processamento</strong> que os modelos de linguagem utilizam. Pense neles como os “pedaços” ou “blocos” em que o texto é dividido antes de ser processado pelo modelo. Diferente do que você pode imaginar inicialmente, tokens não são necessariamente palavras completas.</p>
+<section id="por-que-não-usar-palavras-diretamente" class="level3">
+<h3 class="anchored" data-anchor-id="por-que-não-usar-palavras-diretamente">Por Que Não Usar Palavras Diretamente?</h3>
+<p>Uma pergunta natural é: por que não simplesmente usar palavras como unidade básica? A resposta está na praticidade e eficiência:</p>
+<ol type="1">
+<li><strong>Vocabulário imenso</strong>: O português possui centenas de milhares de palavras. Considerar todas as flexões verbais, conjugações, e variações seria inviável. Imagine para outros idiomas com ainda mais complexidade morfológica!</li>
+<li><strong>Palavras novas</strong>: Novas palavras surgem constantemente (neologismos, gírias, termos técnicos, nomes próprios).</li>
+<li><strong>Multilinguismo</strong>: Um modelo que precisa trabalhar com múltiplos idiomas teria um vocabulário astronômico.</li>
+<li><strong>Eficiência computacional</strong>: Um vocabulário menor significa menos parâmetros no modelo e processamento mais rápido.</li>
+</ol>
+</section>
+<section id="como-funciona-a-tokenização" class="level3">
+<h3 class="anchored" data-anchor-id="como-funciona-a-tokenização">Como Funciona a Tokenização?</h3>
+<p>Os modelos modernos usam algoritmos sofisticados de <strong>sub-word tokenization</strong> como <strong>Byte-Pair Encoding (BPE)</strong>, <strong>WordPiece</strong> ou <strong>SentencePiece</strong>. Esses algoritmos funcionam da seguinte forma:</p>
+<ol type="1">
+<li><strong>Começam com caracteres</strong>: Inicialmente, cada caractere é um token</li>
+<li><strong>Identificam padrões frequentes</strong>: Encontram sequências de caracteres ou sub-palavras que aparecem frequentemente juntas</li>
+<li><strong>Mesclam em tokens</strong>: Combinam esses padrões frequentes em tokens únicos</li>
+<li><strong>Repetem o processo</strong>: Continuam mesclando até atingir um tamanho de vocabulário desejado (geralmente entre 30.000 e 100.000 tokens)</li>
+</ol>
+<section id="exemplo-de-tokenização" class="level4">
+<h4 class="anchored" data-anchor-id="exemplo-de-tokenização">Exemplo de Tokenização</h4>
+<p>Vejamos como o texto “inteligência artificial” poderia ser tokenizado:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Possível tokenização (depende do modelo)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>texto <span class="op">=</span> <span class="st">"inteligência artificial"</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenização 1 (mais granular):</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [<span class="st">"intel"</span>, <span class="st">"ig"</span>, <span class="st">"ência"</span>, <span class="st">" "</span>, <span class="st">"art"</span>, <span class="st">"ificial"</span>]</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenização 2 (menos granular):</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [<span class="st">"intelig"</span>, <span class="st">"ência"</span>, <span class="st">" "</span>, <span class="st">"artificial"</span>]</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenização 3 (palavras completas, se estiverem no vocabulário):</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>tokens <span class="op">=</span> [<span class="st">"inteligência"</span>, <span class="st">" "</span>, <span class="st">"artificial"</span>]</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A tokenização exata depende de como o modelo foi treinado e qual vocabulário aprendeu durante o pré-treinamento.</p>
+</section>
+<section id="experimentando-tokenização-na-prática" class="level4">
+<h4 class="anchored" data-anchor-id="experimentando-tokenização-na-prática">Experimentando Tokenização na Prática</h4>
+<p>Vamos ver como diferentes modelos tokenizam texto usando a biblioteca <code>transformers</code> da Hugging Face.</p>
+<p>Execute este código em sua máquina para experimentar:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instale a biblioteca primeiro:</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co"># uv pip install transformers</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">################################################################################</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Rode este comando para verificar sua GPU:</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># nvidia-smi</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co">################################################################################</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&nbsp;Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&nbsp;Para rodar sem GPU, faça o seguinte:</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># uv pip install torch --index-url https://download.pytorch.org/whl/cpu</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&nbsp;uv pip install transformers</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">################################################################################</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Ref.: https://huggingface.co/docs/transformers/en/installation#installation</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoTokenizer</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a><span class="co"># Texto de exemplo</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>texto <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="st">A inteligência artificial está revolucionando a forma como construímos </span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="st">sistemas de software. Os foundation models representam uma mudança </span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="st">fundamental no paradigma de machine learning.</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Vamos testar com diferentes modelos</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. GPT-2 (usa BPE)</span></span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"GPT-2 Tokenization (BPE)"</span>)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>tokenizer_gpt2 <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="st">"gpt2"</span>)</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>tokens_gpt2 <span class="op">=</span> tokenizer_gpt2.tokenize(texto)</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Número de tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_gpt2)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Primeiros 20 tokens: </span><span class="sc">{</span>tokens_gpt2[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"IDs dos tokens: </span><span class="sc">{</span>tokenizer_gpt2<span class="sc">.</span>encode(texto)[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. BERT (usa WordPiece)</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"BERT Tokenization (WordPiece)"</span>)</span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a>tokenizer_bert <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="st">"bert-base-multilingual-cased"</span>)</span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a>tokens_bert <span class="op">=</span> tokenizer_bert.tokenize(texto)</span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Número de tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_bert)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Primeiros 20 tokens: </span><span class="sc">{</span>tokens_bert[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"IDs dos tokens: </span><span class="sc">{</span>tokenizer_bert<span class="sc">.</span>encode(texto)[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. XLM-RoBERTa (usa SentencePiece)</span></span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"XLM-RoBERTa Tokenization (SentencePiece)"</span>)</span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>tokenizer_xlm <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="st">"xlm-roberta-base"</span>)</span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>tokens_xlm <span class="op">=</span> tokenizer_xlm.tokenize(texto)</span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Número de tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_xlm)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Primeiros 20 tokens: </span><span class="sc">{</span>tokens_xlm[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"IDs dos tokens: </span><span class="sc">{</span>tokenizer_xlm<span class="sc">.</span>encode(texto)[:<span class="dv">20</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a><span class="co"># Exemplo detalhado: tokenizar palavra por palavra</span></span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Tokenização Palavra por Palavra (GPT-2)"</span>)</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>palavras <span class="op">=</span> [<span class="st">"inteligência"</span>, <span class="st">"artificial"</span>, <span class="st">"revolucionando"</span>, <span class="st">"software"</span>]</span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> palavra <span class="kw">in</span> palavras:</span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> tokenizer_gpt2.tokenize(palavra)</span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>    ids <span class="op">=</span> tokenizer_gpt2.encode(palavra, add_special_tokens<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">'</span><span class="sc">{</span>palavra<span class="sc">}</span><span class="ss">':"</span>)</span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span>tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  IDs: </span><span class="sc">{</span>ids<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Número de tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Demonstrar decodificação (tokens → texto)</span></span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Decodificação: Tokens → Texto"</span>)</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>exemplo_ids <span class="op">=</span> [<span class="dv">32</span>, <span class="dv">4132</span>, <span class="dv">328</span>, <span class="dv">14722</span>, <span class="dv">15075</span>]  <span class="co"># IDs fictícios para exemplo</span></span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>texto_decodificado <span class="op">=</span> tokenizer_gpt2.decode(</span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>    tokenizer_gpt2.encode(<span class="st">"inteligência artificial"</span>)[:<span class="dv">5</span>]</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto original: 'inteligência artificial'"</span>)</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokenizer_gpt2<span class="sc">.</span>tokenize(<span class="st">'inteligência artificial'</span>)[:<span class="dv">5</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto decodificado: '</span><span class="sc">{</span>texto_decodificado<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação de eficiência entre idiomas</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Comparação: Português vs Inglês"</span>)</span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>texto_pt <span class="op">=</span> <span class="st">"A inteligência artificial está revolucionando o mundo."</span></span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>texto_en <span class="op">=</span> <span class="st">"Artificial intelligence is revolutionizing the world."</span></span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>tokens_pt <span class="op">=</span> tokenizer_gpt2.tokenize(texto_pt)</span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>tokens_en <span class="op">=</span> tokenizer_gpt2.tokenize(texto_en)</span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Português: '</span><span class="sc">{</span>texto_pt<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_pt<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Inglês: '</span><span class="sc">{</span>texto_en<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_en)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_en<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Eficiência: Inglês usa ~</span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="op">/</span><span class="bu">len</span>(tokens_en)<span class="sc">:.2f}</span><span class="ss">x menos tokens"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O resultado será similar a este:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">GPT-2</span> Tokenization <span class="er">(</span><span class="ex">BPE</span><span class="kw">)</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="ex">Número</span> de tokens: 54</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="ex">Primeiros</span> 20 tokens: [<span class="st">'Ċ'</span>, <span class="st">'A'</span>, <span class="st">'Ġintel'</span>, <span class="st">'ig'</span>, <span class="st">'Ãª'</span>, <span class="st">'nc'</span>, <span class="st">'ia'</span>, <span class="st">'Ġartificial'</span>, <span class="st">'Ġest'</span>, <span class="st">'Ã¡'</span>, <span class="st">'Ġrevol'</span>, <span class="st">'uc'</span>, <span class="st">'ion'</span>, <span class="st">'ando'</span>, <span class="st">'Ġa'</span>, <span class="st">'Ġform'</span>, <span class="st">'a'</span>, <span class="st">'Ġcom'</span>, <span class="st">'o'</span>, <span class="st">'Ġconst'</span>]</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="ex">IDs</span> dos tokens: [198, 32, 33649, 328, 25792, 10782, 544, 11666, 1556, 6557, 35891, 1229, 295, 25440, 257, 1296, 64, 401, 78, 1500]</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="ex">BERT</span> Tokenization <span class="er">(</span><span class="ex">WordPiece</span><span class="kw">)</span></span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="ex">Número</span> de tokens: 37</span>
+<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a><span class="ex">Primeiros</span> 20 tokens: [<span class="st">'A'</span>, <span class="st">'intel'</span>, <span class="st">'##ig'</span>, <span class="st">'##ência'</span>, <span class="st">'artificial'</span>, <span class="st">'está'</span>, <span class="st">'rev'</span>, <span class="st">'##olu'</span>, <span class="st">'##ciona'</span>, <span class="st">'##ndo'</span>, <span class="st">'a'</span>, <span class="st">'forma'</span>, <span class="st">'como'</span>, <span class="st">'con'</span>, <span class="st">'##stru'</span>, <span class="st">'##ím'</span>, <span class="st">'##os'</span>, <span class="st">'sistemas'</span>, <span class="st">'de'</span>, <span class="st">'software'</span>]</span>
+<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a><span class="ex">IDs</span> dos tokens: [101, 138, 82493, 11142, 14328, 36866, 11559, 86095, 34522, 96458, 10605, 169, 11041, 10225, 10173, 42461, 18246, 10310, 24757, 10104]</span>
+<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a><span class="ex">XLM-RoBERTa</span> Tokenization <span class="er">(</span><span class="ex">SentencePiece</span><span class="kw">)</span></span>
+<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a><span class="ex">Número</span> de tokens: 30</span>
+<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a><span class="ex">Primeiros</span> 20 tokens: [<span class="st">'▁A'</span>, <span class="st">'▁inteligência'</span>, <span class="st">'▁artificial'</span>, <span class="st">'▁está'</span>, <span class="st">'▁revolucion'</span>, <span class="st">'ando'</span>, <span class="st">'▁a'</span>, <span class="st">'▁forma'</span>, <span class="st">'▁como'</span>, <span class="st">'▁constru'</span>, <span class="st">'í'</span>, <span class="st">'mos'</span>, <span class="st">'▁sistemas'</span>, <span class="st">'▁de'</span>, <span class="st">'▁software'</span>, <span class="st">'.'</span>, <span class="st">'▁Os'</span>, <span class="st">'▁foundation'</span>, <span class="st">'▁models'</span>, <span class="st">'▁representa'</span>]</span>
+<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a><span class="ex">IDs</span> dos tokens: [0, 62, 237859, 66733, 1570, 153359, 3448, 10, 1483, 533, 38783, 430, 840, 42274, 8, 10975, 5, 2027, 137374, 115774]</span>
+<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a><span class="ex">Tokenização</span> Palavra por Palavra <span class="er">(</span><span class="ex">GPT-2</span><span class="kw">)</span></span>
+<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-26"><a href="#cb3-26" aria-hidden="true" tabindex="-1"></a><span class="st">'inteligência'</span><span class="ex">:</span></span>
+<span id="cb3-27"><a href="#cb3-27" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> [<span class="st">'intel'</span>, <span class="st">'ig'</span>, <span class="st">'Ãª'</span>, <span class="st">'nc'</span>, <span class="st">'ia'</span>]</span>
+<span id="cb3-28"><a href="#cb3-28" aria-hidden="true" tabindex="-1"></a>  <span class="ex">IDs:</span> [48779, 328, 25792, 10782, 544]</span>
+<span id="cb3-29"><a href="#cb3-29" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Número</span> de tokens: 5</span>
+<span id="cb3-30"><a href="#cb3-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-31"><a href="#cb3-31" aria-hidden="true" tabindex="-1"></a><span class="st">'artificial'</span><span class="ex">:</span></span>
+<span id="cb3-32"><a href="#cb3-32" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> [<span class="st">'art'</span>, <span class="st">'ificial'</span>]</span>
+<span id="cb3-33"><a href="#cb3-33" aria-hidden="true" tabindex="-1"></a>  <span class="ex">IDs:</span> [433, 9542]</span>
+<span id="cb3-34"><a href="#cb3-34" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Número</span> de tokens: 2</span>
+<span id="cb3-35"><a href="#cb3-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-36"><a href="#cb3-36" aria-hidden="true" tabindex="-1"></a><span class="st">'revolucionando'</span><span class="ex">:</span></span>
+<span id="cb3-37"><a href="#cb3-37" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> [<span class="st">'re'</span>, <span class="st">'vol'</span>, <span class="st">'uc'</span>, <span class="st">'ion'</span>, <span class="st">'ando'</span>]</span>
+<span id="cb3-38"><a href="#cb3-38" aria-hidden="true" tabindex="-1"></a>  <span class="ex">IDs:</span> [260, 10396, 1229, 295, 25440]</span>
+<span id="cb3-39"><a href="#cb3-39" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Número</span> de tokens: 5</span>
+<span id="cb3-40"><a href="#cb3-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-41"><a href="#cb3-41" aria-hidden="true" tabindex="-1"></a><span class="st">'software'</span><span class="ex">:</span></span>
+<span id="cb3-42"><a href="#cb3-42" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> <span class="pp">[</span><span class="st">'software'</span><span class="pp">]</span></span>
+<span id="cb3-43"><a href="#cb3-43" aria-hidden="true" tabindex="-1"></a>  <span class="ex">IDs:</span> <span class="pp">[</span><span class="ss">43776</span><span class="pp">]</span></span>
+<span id="cb3-44"><a href="#cb3-44" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Número</span> de tokens: 1</span>
+<span id="cb3-45"><a href="#cb3-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-46"><a href="#cb3-46" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-47"><a href="#cb3-47" aria-hidden="true" tabindex="-1"></a><span class="ex">Decodificação:</span> Tokens → Texto</span>
+<span id="cb3-48"><a href="#cb3-48" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-49"><a href="#cb3-49" aria-hidden="true" tabindex="-1"></a><span class="ex">Texto</span> original: <span class="st">'inteligência artificial'</span></span>
+<span id="cb3-50"><a href="#cb3-50" aria-hidden="true" tabindex="-1"></a><span class="ex">Tokens:</span> [<span class="st">'intel'</span>, <span class="st">'ig'</span>, <span class="st">'Ãª'</span>, <span class="st">'nc'</span>, <span class="st">'ia'</span>]</span>
+<span id="cb3-51"><a href="#cb3-51" aria-hidden="true" tabindex="-1"></a><span class="ex">Texto</span> decodificado: <span class="st">'inteligência'</span></span>
+<span id="cb3-52"><a href="#cb3-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-53"><a href="#cb3-53" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a><span class="ex">Comparação:</span> Português vs Inglês</span>
+<span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
+<span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a><span class="ex">Português:</span> <span class="st">'A inteligência artificial está revolucionando o mundo.'</span></span>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> 17 <span class="at">-</span> [<span class="st">'A'</span>, <span class="st">'Ġintel'</span>, <span class="st">'ig'</span>, <span class="st">'Ãª'</span>, <span class="st">'nc'</span>, <span class="st">'ia'</span>, <span class="st">'Ġartificial'</span>, <span class="st">'Ġest'</span>, <span class="st">'Ã¡'</span>, <span class="st">'Ġrevol'</span>, <span class="st">'uc'</span>, <span class="st">'ion'</span>, <span class="st">'ando'</span>, <span class="st">'Ġo'</span>, <span class="st">'Ġmund'</span>, <span class="st">'o'</span>, <span class="st">'.'</span>]</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-59"><a href="#cb3-59" aria-hidden="true" tabindex="-1"></a><span class="ex">Inglês:</span> <span class="st">'Artificial intelligence is revolutionizing the world.'</span></span>
+<span id="cb3-60"><a href="#cb3-60" aria-hidden="true" tabindex="-1"></a>  <span class="ex">Tokens:</span> 9 <span class="at">-</span> [<span class="st">'Art'</span>, <span class="st">'ificial'</span>, <span class="st">'Ġintelligence'</span>, <span class="st">'Ġis'</span>, <span class="st">'Ġrevolution'</span>, <span class="st">'izing'</span>, <span class="st">'Ġthe'</span>, <span class="st">'Ġworld'</span>, <span class="st">'.'</span>]</span>
+<span id="cb3-61"><a href="#cb3-61" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-62"><a href="#cb3-62" aria-hidden="true" tabindex="-1"></a><span class="ex">Eficiência:</span> Inglês usa ~1.89x menos tokens</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Executando o Código
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Para executar este exemplo:</p>
+<ol type="1">
+<li>Instale a biblioteca: <code>pip install transformers</code></li>
+<li>Execute o script Python: <code>uv run &lt;script.py&gt;</code></li>
+<li>Na primeira execução, os modelos serão baixados automaticamente (pode levar alguns minutos)</li>
+</ol>
+<p>Observe como:</p>
+<ul>
+<li>Diferentes modelos tokenizam o mesmo texto de formas distintas</li>
+<li>Palavras em português tendem a gerar mais tokens que em inglês</li>
+<li>Sub-palavras são identificadas automaticamente (ex: “intelig” + “ência”)</li>
+<li>Cada token tem um ID numérico único no vocabulário do modelo</li>
+</ul>
+</div>
+</div>
+<p>Este exemplo prático demonstra como a tokenização funciona “nos bastidores” dos foundation models que você usará para construir agentes inteligentes.</p>
+</section>
+</section>
+<section id="tipos-de-tokens" class="level3">
+<h3 class="anchored" data-anchor-id="tipos-de-tokens">Tipos de Tokens</h3>
+<p>Além dos tokens de texto propriamente ditos, os modelos utilizam tokens especiais com funções específicas:</p>
+<ul>
+<li><strong><code>&lt;BOS&gt;</code> (Beginning of Sequence)</strong>: Marca o início de uma sequência</li>
+<li><strong><code>&lt;EOS&gt;</code> (End of Sequence)</strong>: Marca o fim de uma sequência</li>
+<li><strong><code>&lt;PAD&gt;</code> (Padding)</strong>: Usado para preencher sequências até um tamanho fixo</li>
+<li><strong><code>&lt;UNK&gt;</code> (Unknown)</strong>: Representa palavras fora do vocabulário</li>
+<li><strong><code>&lt;SEP&gt;</code> (Separator)</strong>: Separa diferentes segmentos de texto</li>
+</ul>
+</section>
+<section id="por-que-isso-importa-na-prática" class="level3">
+<h3 class="anchored" data-anchor-id="por-que-isso-importa-na-prática">Por Que Isso Importa na Prática?</h3>
+<p>Compreender tokens é essencial para trabalhar efetivamente com LLMs. O aspecto mais direto é o <strong>custo</strong>: APIs como OpenAI, Anthropic e Google cobram por token processado. Se você não entende o que são tokens, pode ter surpresas desagradáveis na fatura do final do mês.</p>
+<p>Os <strong>limites de contexto</strong> também são críticos. Cada modelo tem uma janela máxima de tokens que pode processar de uma vez (a context window). O GPT-3.5 trabalha com 4.096 tokens, enquanto o GPT-4 oferece versões de 8.192 ou 32.768 tokens. Claude 3 estende isso para até 200.000 tokens, e o GPT-4 Turbo alcança 128.000 tokens. Ultrapassar esses limites significa truncar seu contexto ou dividir o processamento em múltiplas requisições.</p>
+<p>A <strong>performance</strong> está diretamente ligada ao número de tokens. Mais tokens significam mais computação, especialmente porque a complexidade do mecanismo de self-attention (que veremos adiante) cresce quadraticamente com o tamanho da sequência, seguindo O(n²). Isso significa que dobrar o número de tokens pode quadruplicar o tempo de processamento.</p>
+<p>Finalmente, a <strong>qualidade da saída</strong> é afetada pela tokenização. O modelo “vê” e processa texto através dos tokens, então uma tokenização inadequada pode impactar as respostas. Modelos treinados primariamente em inglês, por exemplo, frequentemente tokenizam português de forma menos eficiente, o que pode afetar sutilmente a qualidade das respostas.</p>
+</section>
+<section id="regra-prática-de-contagem" class="level3">
+<h3 class="anchored" data-anchor-id="regra-prática-de-contagem">Regra Prática de Contagem</h3>
+<p>Para estimar rapidamente quantos tokens seu texto contém, use esta aproximação: em inglês, cada token representa aproximadamente 4 caracteres ou 0,75 palavras. Para português, a eficiência é um pouco menor, conte cerca de 4-5 caracteres por token. Isso significa que um parágrafo de 100 palavras em português consumirá aproximadamente 130-150 tokens.</p>
+<p>Por exemplo, este parágrafo de ~100 palavras contém aproximadamente 75-150 tokens em português.</p>
+</section>
+<section id="ferramentas-para-visualizar-tokens" class="level3">
+<h3 class="anchored" data-anchor-id="ferramentas-para-visualizar-tokens">Ferramentas para Visualizar Tokens</h3>
+<p>Para entender melhor como seu texto é tokenizado, você pode usar ferramentas online como:</p>
+<ul>
+<li><a href="https://platform.openai.com/tokenizer">OpenAI Tokenizer</a> - para modelos GPT</li>
+<li><a href="https://huggingface.co/docs/transformers/main_classes/tokenizer">Hugging Face Tokenizers</a> - para diversos modelos</li>
+</ul>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Dica Prática
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Ao trabalhar com LLMs em produção, sempre monitore o número de tokens nas suas requisições. Isso ajuda a controlar custos e garantir que você não exceda os limites de contexto do modelo.</p>
+</div>
+</div>
+<p>Agora que compreendemos o que são tokens, podemos prosseguir para entender como a arquitetura Transformer processa essas unidades fundamentais para criar representações ricas e contextualizadas do texto.</p>
+</section>
+</section>
+<section id="a-arquitetura-transformer-o-coração-dos-foundation-models" class="level2">
+<h2 class="anchored" data-anchor-id="a-arquitetura-transformer-o-coração-dos-foundation-models">A Arquitetura Transformer: O Coração dos Foundation Models</h2>
+<section id="atenção-é-tudo-o-que-você-precisa" class="level3">
+<h3 class="anchored" data-anchor-id="atenção-é-tudo-o-que-você-precisa">Atenção é tudo o que você precisa</h3>
+<p>A arquitetura Transformer, introduzida no paper seminal “Attention Is All You Need” <span class="citation" data-cites="vaswani2017attention">(<a href="../99-references.html#ref-vaswani2017attention" role="doc-biblioref">Vaswani et al. 2017</a>)</span>, representa uma grande evolução sobre as arquiteturas sequenciais que a precederam. <em>Recurrent neural network (RNNs)</em> e suas variantes como <em>Long short-term memory (LSTMs)</em> processam sequências token por token, mantendo um estado oculto que carrega informação contextual. Esta abordagem tem duas limitações críticas: (1) o processamento sequencial impede a paralelização durante o treinamento, tornando o processo extremamente lento para sequências longas, e (2) o estado oculto fixo cria um gargalo de informação, dificultando o aprendizado de dependências de longo alcance.</p>
+<p>O Transformer elimina completamente a recorrência, substituindo-a por um mecanismo de atenção que permite que cada posição na sequência “olhe” para todas as outras posições simultaneamente. Esta mudança não é apenas uma otimização, ela acaba mudando <strong>o que</strong> o modelo pode aprender. Enquanto RNNs têm um viés indutivo sequencial (processam informação left-to-right), Transformers têm um viés indutivo relacional (modelam relações entre quaisquer dois elementos da sequência).</p>
+<p>Para visualizar como os dados fluem através de um Transformer, considere este diagrama simplificado:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-transformer-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-transformer-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-transformer-flow">graph TD
+    A[Input Tokens] --&gt; B[Token Embedding]
+    B --&gt; C[Positional Encoding]
+    C --&gt; D[Transformer Block 1]
+    D --&gt; E[Transformer Block 2]
+    E --&gt; F[...]
+    F --&gt; G[Transformer Block N]
+    G --&gt; H[Layer Norm]
+    H --&gt; I[Output Linear]
+    I --&gt; J[Softmax]
+    J --&gt; K[Token Probabilities]
+
+    style A fill:#e1f5ff
+    style K fill:#e1f5ff
+    style D fill:#fff4e1
+    style E fill:#fff4e1
+    style G fill:#fff4e1
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-transformer-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;1: Dados fluindo através de um modelo Transformer típico.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Cada <strong>Transformer Block</strong> é uma unidade completa de processamento que aplica self-attention seguido de transformações feedforward. Internamente, um bloco Transformer individual tem a seguinte estrutura:</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-transformer-block" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-transformer-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-transformer-block">graph TD
+    A[Input from Previous Layer] --&gt; B[Multi-Head Self-Attention]
+    B --&gt; C[Add &amp; Norm]
+    A --&gt; C
+    C --&gt; D[Feed-Forward Network]
+    D --&gt; E[Add &amp; Norm]
+    C --&gt; E
+    E --&gt; F[Output to Next Layer]
+
+    style A fill:#e1f5ff
+    style F fill:#e1f5ff
+    style B fill:#ffe1e1
+    style D fill:#e1ffe1
+    style C fill:#f0f0f0
+    style E fill:#f0f0f0
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-transformer-block-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;2: Fluxo de dados dentro de um bloco Transformer.
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Os blocos <strong>Add &amp; Norm</strong> implementam conexões residuais (que permitem que gradientes fluam mais facilmente durante treinamento) e normalização de camada (que estabiliza o treinamento). A <strong>Multi-Head Self-Attention</strong> é onde a magia acontece, permitindo que o modelo capture diferentes tipos de relações entre tokens simultaneamente. O <strong>Feed-Forward Network</strong> aplica transformações não-lineares independentemente a cada posição.</p>
+<p>Vamos explorar os componentes centrais do Transformer que o tornam tão poderoso.</p>
+</section>
+<section id="self-attention-o-mecanismo-de-memória-associativa" class="level3">
+<h3 class="anchored" data-anchor-id="self-attention-o-mecanismo-de-memória-associativa">Self-Attention: O Mecanismo de Memória Associativa</h3>
+<p>O mecanismo de self-attention é o núcleo do Transformer. Ele é um mecanismo que permite que o modelo considere todas as partes da entrada simultaneamente, em vez de processá-las sequencialmente. Isso pode ser entendido como uma forma de memória associativa diferenciável.</p>
+<p>Para cada token na sequência, o modelo computa três vetores:</p>
+<ol type="1">
+<li><strong>Query (Q)</strong>: Representa “o que este token está <strong>procurando</strong>”</li>
+<li><strong>Key (K)</strong>: Representa “o que este token <strong>oferece</strong>”</li>
+<li><strong>Value (V)</strong>: Representa “a informação que este token <strong>carrega</strong>”</li>
+</ol>
+<p>Matematicamente, a operação de atenção é definida como:</p>
+<pre><code>Attention(Q, K, V) = softmax(QK^T / √d_k) V</code></pre>
+<p>O termo <code>QK^T</code> computa um score de similaridade entre cada par de tokens (a relevância). A divisão por <code>√d_k</code> é um fator de escala crítico, sem ele, os valores de <code>QK^T</code> podem crescer muito, empurrando a função softmax para regiões onde os gradientes se tornam extremamente pequenos, dificultando o treinamento. O softmax transforma esses scores em uma distribuição de probabilidade, determinando quanto “atenção” cada token deve receber. Finalmente, essa distribuição pondera os valores V, produzindo uma representação contextualizada.</p>
+<p>É importante entender que Q, K e V não são propriedades inerentes dos tokens, eles são <strong>projeções aprendidas</strong> das embeddings dos tokens. Para cada camada de atenção, o modelo aprende três matrizes de projeção: W_Q, W_K e W_V. Estas matrizes transformam as embeddings de entrada em espaços onde diferentes tipos de relações semânticas podem ser capturadas.</p>
+<p>Se você, assim como eu, não teve o privilégio de estudar álgebra linear profundamente, aqui vai uma intuição: pense em Q, K e V como diferentes “lentes” através das quais o modelo vê os tokens. Cada lente destaca diferentes aspectos das relações entre tokens, permitindo que o modelo aprenda a focar em diferentes tipos de conexões (sintáticas, semânticas, etc.).</p>
+<p>Para que você não termine este capítulo sem entender completamente o mecanismo de atenção, vamos entender isso através de uma metáfora!</p>
+<section id="metáfora-da-biblioteca" class="level4">
+<h4 class="anchored" data-anchor-id="metáfora-da-biblioteca">Metáfora da Biblioteca</h4>
+<p>Imagine que você está em uma biblioteca gigante procurando livros sobre “inteligência artificial”:</p>
+<ul>
+<li><strong>Query (Q)</strong>: Sua pergunta “inteligência artificial” é a query. Ela representa o que você está procurando.
+<ul>
+<li>“Estou procurando livros sobre inteligência artificial”</li>
+<li>É o que você QUER encontrar</li>
+</ul></li>
+<li><strong>Keys (K)</strong>: Cada livro na biblioteca tem um título e um resumo, que são as keys. Eles representam o que cada livro oferece. Como etiquetas que ajudam a identificar o conteúdo.
+<ul>
+<li>Cada livro tem uma etiqueta: “IA”, “História”, “Culinária”, etc.</li>
+<li>É como os livros se DESCREVEM</li>
+</ul></li>
+<li><strong>Values (V)</strong>: O conteúdo real de cada livro é o value. Ele contém a informação que você realmente quer.
+<ul>
+<li>O texto, informação dentro de cada livro</li>
+<li>É a INFORMAÇÃO que você vai levar</li>
+</ul></li>
+</ul>
+</section>
+<section id="o-processo-de-atenção-sem-matemátiqueis" class="level4">
+<h4 class="anchored" data-anchor-id="o-processo-de-atenção-sem-matemátiqueis">O Processo de Atenção (Sem Matemátiqueis)</h4>
+<p>Quando você faz sua pergunta (query), você compara sua pergunta com as etiquetas dos livros (keys) para ver quais são relevantes. Os livros com etiquetas que correspondem bem à sua pergunta recebem mais atenção. Finalmente, você lê o conteúdo desses livros (values) para obter a informação que procura.</p>
+<p><strong>Passo 1: Calcular Similaridade (QK^T)</strong></p>
+<pre><code>Sua pergunta: "inteligência artificial"
+↓
+Comparar com cada etiqueta:
+- Livro 1 (IA): MUITO similar ✓✓✓
+- Livro 2 (História): pouco similar ✓
+- Livro 3 (Culinária): nada similar ✗</code></pre>
+<p><strong>Passo 2: Divisão por √d_k (Normalização)</strong></p>
+<p>Imagine que você tem uma régua gigantesca que vai de 0 a 1000. Se você dá notas de 0 a 1000, fica difícil comparar. A divisão por √d_k é como reduzir essa escala para 0 a 10, fica mais fácil de trabalhar. E por que isso importa?</p>
+<ul>
+<li><strong>Sem normalização:</strong> Livro de IA recebe nota 950, História recebe 50
+<ul>
+<li>A diferença é TÃO grande que você ignora completamente História</li>
+</ul></li>
+<li><strong>Com normalização:</strong> Livro de IA recebe nota 9.5, História recebe 0.5
+<ul>
+<li>Ainda prefere IA, mas não descarta totalmente História</li>
+</ul></li>
+</ul>
+<p><strong>Passo 3: Softmax (Transformar em Porcentagens)</strong></p>
+<p>Transforma as notas em porcentagens que somam 100%:</p>
+<pre><code>Notas normalizadas:
+
+- IA: 9.5
+- História: 0.5
+- Culinária: 0.1
+
+Softmax transforma em:
+
+- IA: 94% de atenção
+- História: 5% de atenção
+- Culinária: 1% de atenção</code></pre>
+<p><strong>Passo 4: Ponderar os Valores V</strong></p>
+<p>Você pega o conteúdo de cada livro proporcionalmente à atenção:</p>
+<pre><code>Conhecimento final =
+  94% do conteúdo do livro de IA +
+  5% do conteúdo do livro de História +
+  1% do conteúdo do livro de Culinária</code></pre>
+</section>
+<section id="resumo-sem-matemátiqueis" class="level4">
+<h4 class="anchored" data-anchor-id="resumo-sem-matemátiqueis">Resumo Sem Matemátiqueis</h4>
+<ol type="1">
+<li>Cada palavra faz uma “pergunta” (Q): “Com quem devo prestar atenção?”</li>
+<li>Cada palavra oferece uma “resposta” (K): “Eu sou sobre isso!”</li>
+<li>Calculamos quão bem as perguntas combinam com as respostas (similaridade)</li>
+<li>Normalizamos para não ter números muito grandes ou muito pequenos (√d_k)</li>
+<li>Convertemos em porcentagens (softmax)</li>
+<li>Pegamos a informação (V) de cada palavra proporcionalmente à atenção</li>
+<li>O modelo aprende a fazer essas conversões (W_Q, W_K, W_V) automaticamente</li>
+</ol>
+<p>Esse é o mecanismo de self-attention em ação. Cada token na sequência faz isso simultaneamente, permitindo que o modelo capture relações complexas entre todos os tokens.</p>
+</section>
+<section id="traduzindo-para-código-como-q-k-v-são-computados" class="level4">
+<h4 class="anchored" data-anchor-id="traduzindo-para-código-como-q-k-v-são-computados">Traduzindo para Código: Como Q, K, V são Computados</h4>
+<p>Agora que entendemos a metáfora, vamos ver como isso funciona na implementação real. Q, K e V não são propriedades mágicas dos tokens, eles são obtidos através de <strong>projeções lineares aprendidas</strong>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SelfAttention(nn.Module):</span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_k):</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Matrizes de projeção aprendidas durante treinamento</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Query projection</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Key projection</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Value projection</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, X):</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">        X: (batch, seq_len, d_model) - embeddings de entrada</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">        Retorna: (batch, seq_len, d_k) - representações contextualizadas</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Projetar X em espaços Q, K, V</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        Q <span class="op">=</span> <span class="va">self</span>.W_Q(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>        K <span class="op">=</span> <span class="va">self</span>.W_K(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> <span class="va">self</span>.W_V(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Computar attention scores</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># scores: (batch, seq_len, seq_len)</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Aplicar softmax para obter pesos de atenção</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Ponderar valores V pelos pesos de atenção</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, seq_len, d_k)</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>O que cada matriz aprende:</strong></p>
+<ul>
+<li><strong>W_Q</strong>: Transforma embeddings em “perguntas” - o que cada token busca</li>
+<li><strong>W_K</strong>: Transforma embeddings em “chaves” - como cada token se descreve</li>
+<li><strong>W_V</strong>: Transforma embeddings em “valores” - que informação cada token carrega</li>
+</ul>
+<p>Essas matrizes são <strong>aprendidas via backpropagation</strong> durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.</p>
+<p>Backpropagation é o algoritmo que permite que redes neurais aprendam. O seu funcionamento básico é:</p>
+<ul>
+<li>Forward pass: O modelo faz uma previsão com os pesos atuais</li>
+<li>Cálculo do erro: Compara a previsão com o resultado correto</li>
+<li>Backward pass (backpropagation): Propaga o erro de volta através das camadas, calculando quanto cada peso contribuiu para o erro</li>
+<li>Atualização dos pesos: Ajusta os pesos (matrizes <code>W_Q</code>, <code>W_K</code>, <code>W_V</code>) para reduzir o erro</li>
+</ul>
+<p>No contexto das matrizes de atenção (<code>W_Q</code>, <code>W_K</code>, <code>W_V</code>), seria:</p>
+<p>O modelo não sabe a priori como transformar embeddings em queries, keys e values. Durante o treinamento, ele experimenta diferentes valores para essas matrizes. Através de backpropagation, descobre automaticamente quais transformações funcionam melhor. Aprende, por exemplo, que uma matriz <code>W_Q</code> deve extrair características que representam “o que buscar”, enquanto <code>W_K</code> deve extrair características que representam “o que oferecer”.</p>
+<p>Agora, vamos ver como essa atenção é estendida para capturar múltiplas relações simultaneamente.</p>
+</section>
+</section>
+<section id="multi-head-attention-modelando-múltiplas-relações-em-paralelo" class="level3">
+<h3 class="anchored" data-anchor-id="multi-head-attention-modelando-múltiplas-relações-em-paralelo">Multi-Head Attention: Modelando Múltiplas Relações em Paralelo</h3>
+<p>Um único mecanismo de atenção é poderoso, mas <strong>limitado</strong>. Diferentes aspectos da linguagem requerem diferentes tipos de atenção: relações sintáticas, co-referências, relações semânticas, etc. Multi-head attention resolve isso executando múltiplos mecanismos de atenção em paralelo, cada um com suas próprias matrizes de projeção aprendidas.</p>
+<pre><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) W^O
+onde head_i = Attention(QW^Q_i, KW^K_i, VW^V_i)</code></pre>
+<p>Cada “head” aprende a focar em diferentes tipos de relações. Por exemplo, um head pode aprender a identificar relações sujeito-verbo, outro pode focar em resolver pronomes, e outro pode capturar relações de longo alcance como correspondências entre abertura e fechamento de parênteses. Esta decomposição é aprendida automaticamente durante o treinamento, não é necessário especificar explicitamente o que cada head deve fazer.</p>
+<p>O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também <strong>aumentam o custo computacional</strong> e podem levar a overfitting se não houver dados suficientes.</p>
+<p>Chamamos de overfitting quando o modelo aprende a memorizar os dados de treinamento em vez de generalizar para novos dados. Isso pode acontecer se o modelo for muito complexo (muitos parâmetros) em relação à quantidade de dados disponíveis.</p>
+</section>
+<section id="otimizações-modernas-de-atenção" class="level3">
+<h3 class="anchored" data-anchor-id="otimizações-modernas-de-atenção">Otimizações Modernas de Atenção</h3>
+<p>A atenção padrão tem complexidade O(n²) em relação ao comprimento da sequência, pois cada token precisa calcular atenção com todos os outros tokens. Para sequências de 100 mil tokens, isso se torna inviável. Várias técnicas foram desenvolvidas para tornar a atenção mais eficiente.</p>
+<p>Vamos explorar algumas das otimizações mais importantes usadas em modelos modernos.</p>
+<section id="localsparse-attention" class="level4">
+<h4 class="anchored" data-anchor-id="localsparse-attention">Local/Sparse Attention</h4>
+<p>Atenção local/esparsa é uma técnica que reduz a complexidade da atenção ao limitar o número de tokens que cada token pode “ver”. Em vez de cada token olhar para todos os outros tokens, ele olha apenas para seus vizinhos mais próximos.</p>
+<p>Imagine que você está numa sala de aula com 100 alunos e o professor pede que CADA aluno cumprimente TODOS os outros alunos. Isso seria extremamente ineficiente, pois cada aluno teria que cumprimentar 99 outros alunos, resultando em 100 * 99 = 9.900 cumprimentos!</p>
+<p><strong>Local/Sparse Attention</strong> resolve esse problema da seguinte maneira: em vez de cada token olhar para todos os outros tokens, ele olha apenas para seus <strong>vizinhos mais próximos</strong>. Voltando à metáfora da sala de aula: cada aluno só cumprimenta os 10 alunos sentados ao seu redor, não os 99 ou 999 alunos da sala inteira.</p>
+<p>Na prática, isso significa que cada token presta atenção apenas aos <strong>K tokens anteriores mais próximos</strong>. Se K = 256, um token na posição 1000 só olha para os tokens nas posições 744-999, ignorando os primeiros 743 tokens. Isso reduz drasticamente o número de cálculos de 1.000.000 para apenas 256.000 em uma sequência de 1.000 tokens.</p>
+<p>O trade-off desta abordagem é claro: se um token só olha para seus vizinhos próximos, como ele captura dependências de longo alcance? A palavra na posição 1000 pode precisar do contexto da palavra na posição 10.</p>
+<p>A solução usada, por exemplo, pelo GPT-3 é uma <strong>estratégia híbrida</strong>, onde se usam camadas de atenção local/esparsa intercaladas com camadas de atenção completa. Algumas camadas continuam usando atenção completa, permitindo que qualquer token acesse qualquer outro token. Isso preserva a capacidade de modelar dependências de longo alcance. Outras camadas usam atenção local/esparsa para economizar computação.</p>
+<p>Alternando entre esses dois tipos de camadas, o modelo consegue o melhor dos dois mundos: mantém a capacidade de capturar relações distantes (através das camadas completas) enquanto reduz significativamente o custo computacional (através das camadas esparsas). É como ter reuniões gerais ocasionais onde todos se encontram, intercaladas com reuniões em pequenos grupos para o trabalho do dia a dia.</p>
+</section>
+<section id="grouped-query-attention-gqa" class="level4">
+<h4 class="anchored" data-anchor-id="grouped-query-attention-gqa">Grouped-Query Attention (GQA)</h4>
+<p>Em Multi-Head Attention tradicional, cada head mantém suas próprias matrizes K (Keys) e V (Values) completas. Para um modelo com 32 heads onde cada matriz K e V ocupa 1GB de memória, isso significa <strong>64GB total</strong> apenas para armazenar essas matrizes em uma única camada! Multiplique isso por dezenas de camadas e o consumo de memória se torna proibitivo, especialmente durante inferência quando você precisa manter tudo carregado em memória.</p>
+<p><strong>O Problema Visualizado</strong></p>
+<p>Imagine uma empresa com 32 departamentos (heads). No Multi-Head Attention padrão, cada departamento mantém sua própria cópia completa de um catálogo de produtos (Keys) e um inventário (Values). Mesmo que os catálogos sejam praticamente idênticos, cada departamento armazena sua própria cópia, desperdiçando memória massivamente.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-shared-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-shared-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-shared-kv-metaphor">graph TD
+    A["Empresa"] --&gt;|"32 Departamentos"| B["Multi-Head Attention"]
+    B --&gt;|"Cada departamento tem seu&lt;br/&gt;próprio catálogo"| C["Keys (K)"]
+    B --&gt;|"Cada departamento tem seu&lt;br/&gt;próprio inventário"| D["Values (V)"]
+    C --&gt;|"32GB de memória"| E["Memória Excessiva"]
+    E --&gt;|"Problema de custo"| F["Consumo Excessivo&lt;br/&gt;de Memória"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shared-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;3: Metáfora da empresa com departamentos e catálogos compartilhados
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Para resolver esse problema de consumo excessivo de memória, duas abordagens foram propostas:</p>
+<p><strong>Multi-Query Attention (MQA) - “Um Catálogo Central para Todos”</strong></p>
+<p>Em Multi-Query Attention, a abordagem vai para o extremo oposto: todos os 32 heads compartilham <strong>uma única</strong> matriz K e V. Apenas as Queries (Q) são separadas para cada head. Voltando à metáfora: todos os departamentos consultam o <strong>mesmo catálogo central</strong>.</p>
+<p>O benefício desta abordagem é a redução drástica do uso de memória, em vez de 32GB, você precisa apenas de 1GB para K e V.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-central-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-central-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-central-kv-metaphor">graph TD
+    A["Empresa"] --&gt;|"32 Departamentos"| B["Multi-Query Attention"]
+    B --&gt;|"Todos os departamentos&lt;br/&gt;compartilham o mesmo catálogo"| C["Keys (K)"]
+    B --&gt;|"Todos os departamentos&lt;br/&gt;compartilham o mesmo inventário"| D["Values (V)"]
+    C --&gt;|"1GB de memória"| E["Memória Otimizada"]
+    E --&gt;|"Benefício de custo"| F["Redução Significativa&lt;br/&gt;de Memória"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-central-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;4: Metáfora da empresa com catálogo central compartilhado
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Porém, ainda existe um problema… Todos os heads olham para as mesmas Keys e Values, limitando a diversidade de perspectivas. É como todos os departamentos terem que usar exatamente o mesmo catálogo sem poder priorizá-lo de formas diferentes. Isso pode prejudicar a qualidade do modelo.</p>
+<p><strong>Grouped-Query Attention (GQA) - “Catálogos Compartilhados por Grupos”</strong></p>
+<p>Grouped-Query Attention, usada em modelos como LLaMA 2 e 3, encontra o <strong>meio-termo ideal</strong>: agrupa os heads e compartilha K e V <strong>dentro de cada grupo</strong>.</p>
+<p><strong>Exemplo prático</strong>: Se temos 32 heads, podemos criar 8 grupos com 4 heads cada:</p>
+<ul>
+<li><strong>Grupo 1</strong> (Heads 1-4): Compartilham K₁ e V₁</li>
+<li><strong>Grupo 2</strong> (Heads 5-8): Compartilham K₂ e V₂</li>
+<li><strong>Grupo 3</strong> (Heads 9-12): Compartilham K₃ e V₃</li>
+<li>… e assim por diante</li>
+</ul>
+<p>Voltando à metáfora da empresa, em vez de 32 catálogos idênticos (MHA) ou 1 único catálogo para todos (MQA), temos 8 catálogos especializados, cada um compartilhado por 4 departamentos relacionados.</p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-shared-group-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-shared-group-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-shared-group-kv-metaphor">graph TD
+    A["Empresa"] --&gt;|"32 Departamentos"| B["Grouped-Query Attention"]
+    B --&gt;|"8 Grupos de departamentos&lt;br/&gt;compartilham catálogos"| C["Keys (K)"]
+    B --&gt;|"8 Grupos de departamentos&lt;br/&gt;compartilham inventários"| D["Values (V)"]
+    C --&gt;|"8GB de memória"| E["Memória Balanceada"]
+    E --&gt;|"Benefício de custo e qualidade"| F["Equilíbrio Ideal&lt;br/&gt;de Memória e Qualidade"]
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-shared-group-kv-metaphor-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;5: Metáfora da empresa com catálogos compartilhados por grupos
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p>Seguindo essa abordagem, temos alguns benefícios claros:</p>
+<ul>
+<li><strong>Economia de memória</strong>: 8GB em vez de 32GB (redução de 4×)</li>
+<li><strong>Mantém diversidade</strong>: Os 8 grupos ainda podem focar em aspectos diferentes das relações entre tokens</li>
+<li><strong>Performance próxima ao original</strong>: Na prática, consegue qualidade similar ao Multi-Head Attention completo com muito menos memória</li>
+</ul>
+<p>Mas, assim como qualquer outra abordagem, há <em>trade-offs</em>. A escolha do número de grupos (e quantos heads por grupo) afeta o equilíbrio entre qualidade e eficiência. Mais grupos significam mais diversidade, mas também mais memória. Ou seja:</p>
+<ul>
+<li><strong>MHA</strong>: 32 K + 32 V = Máxima qualidade, máximo uso de memória</li>
+<li><strong>GQA (8 grupos)</strong>: 8 K + 8 V = ~85-95% da qualidade, 25% da memória</li>
+<li><strong>MQA</strong>: 1 K + 1 V = ~75-85% da qualidade, 3% da memória</li>
+</ul>
+<p>Para sistemas de produção, GQA oferece o melhor equilíbrio: permite que modelos grandes rodem em hardware mais acessível sem sacrificar significativamente a qualidade das respostas. Isso é algo importante para o nosso contexto como engenheiros de software construindo agentes inteligentes, pois estamos sempre buscando otimizações que permitam escalar modelos sem explodir custos.</p>
+</section>
+<section id="flash-attention" class="level4">
+<h4 class="anchored" data-anchor-id="flash-attention">Flash Attention</h4>
+<p>Flash Attention <span class="citation" data-cites="dao2022flashattention">(<a href="../99-references.html#ref-dao2022flashattention" role="doc-biblioref">Dao et al. 2022</a>)</span> é uma implementação otimizada do mecanismo de atenção que reduz significativamente o uso de memória e aumenta a velocidade, especialmente em GPUs. A inovação está em <strong>como os dados são movidos</strong> entre diferentes níveis da hierarquia de memória da GPU, não em mudar a matemática da atenção.</p>
+<p><strong>Entendendo a Hierarquia de Memória da GPU</strong></p>
+<p>GPUs modernas têm uma hierarquia de memória com características muito diferentes:</p>
+<ol type="1">
+<li><strong>High Bandwidth Memory (HBM)</strong>: A memória principal da GPU
+<ul>
+<li>Capacidade: 40-80GB (NVIDIA A100/H100)</li>
+<li>Bandwidth: ~1.5-2TB/s</li>
+<li>Latência: Alta (centenas de ciclos)</li>
+<li><strong>Problema</strong>: Lenta para acesso frequente</li>
+</ul></li>
+<li><strong>SRAM (On-Chip Memory/Shared Memory)</strong>: Memória compartilhada dentro dos streaming multiprocessors
+<ul>
+<li>Capacidade: ~20MB total (dividida entre SMs)</li>
+<li>Bandwidth: ~19TB/s (10× mais rápido que HBM)</li>
+<li>Latência: Muito baixa (poucos ciclos)</li>
+<li><strong>Vantagem</strong>: Extremamente rápida, mas <strong>muito limitada</strong></li>
+</ul></li>
+</ol>
+<p>A chave para performance em GPUs não é apenas quantas operações você faz (FLOPs), mas <strong>quantas vezes você acessa a memória lenta</strong>. Em operações modernas de deep learning, o gargalo raramente é computação, é movimento de dados entre HBM e SRAM.</p>
+<p><strong>O Problema da Implementação Tradicional</strong></p>
+<p>A implementação tradicional de atenção calcula a matriz completa em passos separados:</p>
+<pre><code># Passo 1: Calcular scores de atenção
+S = Q @ K^T / √d_k        # Shape: (n × n)
+                          # Materializa na HBM: n² valores
+
+# Passo 2: Aplicar softmax
+P = softmax(S)            # Lê S da HBM, escreve P de volta
+                          # Shape: (n × n)
+
+# Passo 3: Multiplicar por Values
+O = P @ V                 # Lê P da HBM novamente
+                          # Shape: (n × d)</code></pre>
+<p><strong>Custo de memória</strong>: Para sequência de 10.000 tokens com FP16 (d_k=512):</p>
+<ul>
+<li>Matriz S: 10.000 × 10.000 × 2 bytes = <strong>200MB</strong></li>
+<li>Matriz P: 10.000 × 10.000 × 2 bytes = <strong>200MB</strong></li>
+<li>Total: <strong>400MB apenas para uma camada de atenção</strong></li>
+</ul>
+<p><strong>Custo de I/O (leituras/escritas de HBM)</strong>:</p>
+<ul>
+<li>Escrever S para HBM: n² valores</li>
+<li>Ler S da HBM para softmax: n² valores</li>
+<li>Escrever P para HBM: n² valores</li>
+<li>Ler P da HBM para multiplicação final: n² valores</li>
+<li><strong>Total: 4n² operações de HBM</strong> (lento!)</li>
+</ul>
+<p>Para n=10.000, isso significa 400 milhões de acessos à memória HBM lenta. Em GPUs modernas, esse movimento de dados domina completamente o tempo de execução.</p>
+<p><strong>A Solução: Tiling e Kernel Fusion</strong></p>
+<p>Flash Attention resolve isso através de duas técnicas complementares:</p>
+<p><strong>1. Kernel Fusion</strong>: Em vez de três kernel calls separados (matmul → softmax → matmul), <strong>funde tudo em um único kernel</strong> que mantém dados intermediários em SRAM.</p>
+<p><strong>2. Tiling (Bloco por Bloco)</strong>: Divide Q, K, V em blocos menores que cabem em SRAM e processa bloco por bloco.</p>
+<pre><code># Pseudocódigo simplificado do Flash Attention
+for bloco_q in blocos(Q):                    # Itera sobre blocos de queries
+    # Carrega bloco de Q na SRAM (rápido)
+    Q_bloco = carregar_para_SRAM(bloco_q)
+
+    for bloco_kv in blocos(K, V):            # Itera sobre blocos de keys/values
+        # Carrega blocos de K e V na SRAM
+        K_bloco = carregar_para_SRAM(bloco_kv)
+        V_bloco = carregar_para_SRAM(bloco_kv)
+
+        # TUDO acontece na SRAM rápida:
+        S_bloco = Q_bloco @ K_bloco^T / √d_k  # Compute scores
+        P_bloco = softmax_online(S_bloco)     # Softmax incremental
+        O_parcial = P_bloco @ V_bloco         # Accumulate output
+
+        # Descarta S_bloco e P_bloco - nunca vão para HBM!
+
+    # Escreve resultado final para HBM
+    escrever_para_HBM(O_parcial)</code></pre>
+<p><strong>Ganhos de I/O</strong>:</p>
+<ul>
+<li>Implementação tradicional: <strong>4n² acessos à HBM</strong></li>
+<li>Flash Attention: <strong>~n² / B acessos à HBM</strong> (onde B é o tamanho do bloco)</li>
+<li>Com B=64: Redução de <strong>256×</strong> em acessos à memória lenta!</li>
+</ul>
+<p><strong>Softmax Online (Incremental)</strong></p>
+<p>Um desafio técnico é que softmax requer normalização global, você precisa saber o máximo e a soma de todos os valores. Flash Attention usa uma técnica chamada “online softmax” que atualiza essas estatísticas incrementalmente à medida que processa blocos, sem precisar ter a matriz completa na memória.</p>
+<p><strong>Recomputation Durante Backward Pass</strong></p>
+<p>Um aspecto engenhoso: durante o backward pass (cálculo de gradientes), em vez de armazenar as matrizes S e P (que consumiriam memória massiva), Flash Attention simplesmente <strong>recalcula</strong> esses valores on-the-fly. Como os cálculos são extremamente rápidos (acontecem em SRAM), recomputar é mais barato que armazenar.</p>
+<p><strong>Resultados Práticos</strong></p>
+<p>Para engenheiros construindo sistemas de produção, os ganhos são substanciais:</p>
+<ul>
+<li><strong>Velocidade</strong>: 2-4× mais rápido que atenção padrão, especialmente para sequências longas</li>
+<li><strong>Memória</strong>: Reduz uso de memória de O(n²) para O(n), permitindo sequências muito mais longas</li>
+<li><strong>Exatidão</strong>: Resultado é <strong>numericamente idêntico</strong> à atenção padrão (não é uma aproximação)</li>
+<li><strong>Transparência</strong>: Drop-in replacement — não requer mudanças no código do modelo</li>
+</ul>
+<p>Frameworks modernos como PyTorch (via <code>torch.nn.functional.scaled_dot_product_attention</code>) e bibliotecas como Hugging Transformers já integram Flash Attention automaticamente quando disponível. Para engenheiros, isso significa que você obtém os ganhos “de graça” apenas usando APIs modernas, mas entender <strong>por que</strong> funciona ajuda a tomar decisões arquiteturais informadas sobre tamanhos de sequência, batch sizes, e deployment.</p>
+</section>
+<section id="kv-cache-evitando-recomputação-em-geração-autoregressiva" class="level4">
+<h4 class="anchored" data-anchor-id="kv-cache-evitando-recomputação-em-geração-autoregressiva">KV-Cache: Evitando Recomputação em Geração Autoregressiva</h4>
+<p>Durante a geração de texto token-por-token em modelos decoder-only, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para <strong>todos os tokens anteriores</strong> do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.</p>
+<p><strong>O Problema: Recomputação Redundante</strong></p>
+<p>Considere gerar a frase “The cat sat on”:</p>
+<pre><code>Passo 1: Gera "The"
+  - Compute Q, K, V para "The"
+  - Attention entre: ["The"]
+
+Passo 2: Gera "cat"
+  - Compute Q, K, V para "The" + "cat"  ← RECOMPUTA "The"!
+  - Attention entre: ["The", "cat"]
+
+Passo 3: Gera "sat"
+  - Compute Q, K, V para "The" + "cat" + "sat"  ← RECOMPUTA tudo!
+  - Attention entre: ["The", "cat", "sat"]
+
+Passo 4: Gera "on"
+  - Compute Q, K, V para "The" + "cat" + "sat" + "on"  ← RECOMPUTA tudo de novo!
+  - Attention entre: ["The", "cat", "sat", "on"]</code></pre>
+<p>Para uma sequência de 1.000 tokens, você recalcula K e V para o primeiro token <strong>1.000 vezes</strong>! Isso é bem ineficiente.</p>
+<p><strong>A Solução: Cache de Keys e Values</strong></p>
+<p>A observação chave é: em geração autoregressiva com máscara causal, <strong>K e V dos tokens anteriores nunca mudam</strong>. Apenas o novo token precisa ter seus K e V calculados.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> KVCachedAttention(nn.Module):</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_k, d_v):</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_v)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cache para K e V</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_k)</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_v)</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, use_cache<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">        x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        batch_size <span class="op">=</span> x.size(<span class="dv">0</span>)</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute Q, K, V apenas para o novo token</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        Q_new <span class="op">=</span> <span class="va">self</span>.W_Q(x)  <span class="co"># (batch, 1, d_k)</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        K_new <span class="op">=</span> <span class="va">self</span>.W_K(x)  <span class="co"># (batch, 1, d_k)</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        V_new <span class="op">=</span> <span class="va">self</span>.W_V(x)  <span class="co"># (batch, 1, d_v)</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache <span class="kw">and</span> <span class="va">self</span>.k_cache <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Concatena novo K e V com cache existente</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> torch.cat([<span class="va">self</span>.k_cache, K_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_k)</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> torch.cat([<span class="va">self</span>.v_cache, V_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_v)</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Primeira iteração ou cache desabilitado</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> K_new</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> V_new</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Atualiza cache</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache:</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.k_cache <span class="op">=</span> K.detach()  <span class="co"># Detach para não acumular gradientes</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.v_cache <span class="op">=</span> V.detach()</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute attention usando K e V completos (incluindo cache)</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q_new <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Máscara causal não é necessária aqui pois Q_new é apenas o último token</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># que naturalmente só atende a tokens anteriores + ele mesmo</span></span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, 1, d_v)</span></span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> clear_cache(<span class="va">self</span>):</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Limpa cache entre diferentes gerações"""</span></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Geração com KV-Cache:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Geração eficiente de sequência</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> TransformerWithKVCache(...)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>prompt_tokens <span class="op">=</span> tokenize(<span class="st">"Era uma vez"</span>)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Encode prompt (sem cache)</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> model(prompt_tokens, use_cache<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Geração autoregressiva (com cache)</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>generated_tokens <span class="op">=</span> []</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_new_tokens):</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apenas processa o último token gerado</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    next_token_logits <span class="op">=</span> model(last_token, use_cache<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    next_token <span class="op">=</span> sample(next_token_logits)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    generated_tokens.append(next_token)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    last_token <span class="op">=</span> next_token</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Ganhos Computacionais:</strong></p>
+<p>Para gerar uma sequência de N tokens:</p>
+<ul>
+<li><strong>Sem KV-Cache</strong>: O(N²) computações
+<ul>
+<li>Token 1: 1 computação</li>
+<li>Token 2: 2 computações</li>
+<li>Token N: N computações</li>
+<li>Total: 1 + 2 + … + N = N(N+1)/2 ≈ <strong>N²/2</strong></li>
+</ul></li>
+<li><strong>Com KV-Cache</strong>: O(N) computações
+<ul>
+<li>Cada token: 1 nova computação</li>
+<li>Total: <strong>N computações</strong></li>
+</ul></li>
+</ul>
+<p>Para N=1000: <strong>500.000× → 1.000× = redução de 500×</strong>.</p>
+<p><strong>Trade-off de Memória:</strong></p>
+<p>KV-Cache tem um consumo de memória significativo, pois armazena K e V para todos os tokens gerados até agora. A fórmula para o uso de memória é:</p>
+<pre><code>Memória KV-Cache = 2 × n_layers × seq_len × d_model × batch_size × sizeof(dtype)</code></pre>
+<p><strong>Exemplo - LLaMA 2 70B:</strong></p>
+<ul>
+<li>80 layers</li>
+<li>d_model = 8192</li>
+<li>seq_len = 2048</li>
+<li>batch_size = 1</li>
+<li>dtype = FP16 (2 bytes)</li>
+</ul>
+<pre><code>Memória = 2 × 80 × 2048 × 8192 × 1 × 2 bytes
+        = 5.368 GB</code></pre>
+<p>Para batch_size=32: <strong>~170GB apenas de KV-cache!</strong></p>
+<p><strong>Por que GQA é Importante para KV-Cache:</strong></p>
+<p>Lembra da técnica Grouped-Query Attention? Ela reduz drasticamente o tamanho do KV-cache:</p>
+<ul>
+<li><strong>Multi-Head Attention</strong>: n_heads × d_k por camada
+<ul>
+<li>LLaMA 2 70B: 64 heads × 128 = 8192 dimensões</li>
+</ul></li>
+<li><strong>GQA (8 grupos)</strong>: 8 × d_k por camada
+<ul>
+<li>LLaMA 2 70B: 8 × 128 = 1024 dimensões</li>
+<li><strong>Redução de 8× no tamanho do cache!</strong></li>
+</ul></li>
+</ul>
+<p>Com GQA, o mesmo LLaMA 2 70B precisa de apenas <strong>~670MB</strong> de KV-cache (vs.&nbsp;5.3GB), tornando viável rodar em GPUs de consumo.</p>
+<p>Frameworks modernos de implementação de modelos de linguagem implementam KV-cache automaticamente:</p>
+<ul>
+<li><strong>vLLM</strong>: PagedAttention (gerenciamento eficiente de cache tipo memória virtual)</li>
+<li><strong>TensorRT-LLM</strong>: Multi-query attention + KV-cache otimizado</li>
+<li><strong>Hugging Face Text Generation Inference (TGI)</strong>: Cache automático</li>
+<li><strong>llama.cpp</strong>: Cache em CPU/GPU com quantização</li>
+</ul>
+<p>Para engenheiros de software construindo agentes de IA, KV-cache é transparente mas é importante entender:</p>
+<ol type="1">
+<li><strong>Memória cresce linearmente com comprimento de contexto</strong>: Planeje VRAM adequadamente</li>
+<li><strong>Batch size limitado por cache</strong>: Grandes batches = mais cache</li>
+<li><strong>GQA/MQA são essenciais</strong>: Modelos sem eles não escalam bem em produção</li>
+<li><strong>Quantização de cache é viável</strong>: Em produção, INT8 cache economiza muito</li>
+</ol>
+<p>KV-Cache é a diferença entre inferência viável e inviável para LLMs de larga escala. Sem ele, gerar 1000 tokens levaria minutos em vez de segundos.</p>
+</section>
+</section>
+<section id="embeddings-posicionais-injetando-ordem-em-um-modelo-sem-ordem" class="level3">
+<h3 class="anchored" data-anchor-id="embeddings-posicionais-injetando-ordem-em-um-modelo-sem-ordem">Embeddings Posicionais: Injetando Ordem em um Modelo Sem Ordem</h3>
+<p>Um aspecto contra-intuitivo do Transformer é que, por design, ele é <strong>permutation-invariant</strong>. Isso significa que, se embaralharmos os tokens de uma sequência, a saída da camada de atenção será apenas uma permutação correspondente das saídas originais. Isso é problemático porque a ordem das palavras é fundamental para o significado em linguagem natural.</p>
+<p>Considere estas três frases com as mesmas palavras em ordens diferentes:</p>
+<ol type="1">
+<li><strong>“O cachorro mordeu o gato”</strong> → Significado: O cachorro é o agressor</li>
+<li><strong>“O gato mordeu o cachorro”</strong> → Significado: O gato é o agressor</li>
+<li><strong>“Mordeu o cachorro o gato”</strong> → Sem sentido em português</li>
+</ol>
+<p>Sem embeddings posicionais, o mecanismo de self-attention trataria essas três frases como <strong>equivalentes</strong>! Vamos ver por quê:</p>
+<p><strong>Passo 1: Embeddings dos tokens (sem posição)</strong></p>
+<pre><code>"O"       → [0.2, 0.5, 0.1, ...]
+"cachorro" → [0.8, 0.3, 0.6, ...]
+"mordeu"   → [0.1, 0.9, 0.4, ...]
+"o"       → [0.2, 0.5, 0.1, ...]  # mesma embedding que "O"
+"gato"     → [0.7, 0.2, 0.8, ...]</code></pre>
+<p><strong>Passo 2: Self-Attention calcula relações</strong></p>
+<p>Para cada token, self-attention computa:</p>
+<ul>
+<li>Query (Q): “O que estou procurando?”</li>
+<li>Keys (K): “O que eu ofereço?”</li>
+<li>Values (V): “Minha informação”</li>
+</ul>
+<p>A ordem não importa nos cálculos:</p>
+<pre><code>Attention("cachorro") olha para:
+
+- "O" (antes ou depois? não sabemos!)
+- "mordeu" (antes ou depois? não sabemos!)
+- "gato" (antes ou depois? não sabemos!)</code></pre>
+<p><strong>O Resultado Problemático</strong></p>
+<p>Sem informação posicional, o modelo veria essas frases como conjuntos de palavras sem ordem:</p>
+<pre><code>Frase 1: {O, cachorro, mordeu, o, gato}
+Frase 2: {O, gato, mordeu, o, cachorro}
+Frase 3: {Mordeu, o, cachorro, o, gato}</code></pre>
+<p>Para o modelo SEM embeddings posicionais:</p>
+<p>Todas são IDÊNTICAS!</p>
+<p>É como se você recebesse os ingredientes de uma receita, mas sem as instruções de ordem:</p>
+<ul>
+<li>“Adicione ovos, farinha, asse, misture”</li>
+<li>“Asse, adicione ovos, misture, farinha”</li>
+</ul>
+<p>Ambas têm os mesmos ingredientes, mas produzem resultados completamente diferentes.</p>
+<p><strong>Por que isso acontece matematicamente?</strong></p>
+<p>A operação de self-attention é invariante à permutação porque:</p>
+<ol type="1">
+<li>O produto QK^T calcula similaridades entre <strong>todos os pares</strong> de tokens</li>
+<li>Não importa a ordem: similarity(A, B) = similarity(B, A)</li>
+<li>O softmax normaliza sobre todas as posições</li>
+<li>O resultado final é uma soma ponderada que não depende da ordem original</li>
+</ol>
+<p><strong>Em código (simplificado):</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sem embeddings posicionais</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>embeddings_frase1 <span class="op">=</span> [emb_o, emb_cachorro, emb_mordeu, emb_o, emb_gato]</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>embeddings_frase2 <span class="op">=</span> [emb_o, emb_gato, emb_mordeu, emb_o, emb_cachorro]</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Self-attention sem posição</span></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a>output1 <span class="op">=</span> self_attention(embeddings_frase1)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a>output2 <span class="op">=</span> self_attention(embeddings_frase2)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>output1 e output2 são apenas permutações um do outro! O modelo não consegue distinguir qual palavra veio antes.</p>
+<p><strong>A Solução: Embeddings Posicionais</strong></p>
+<p>Embeddings posicionais adicionam informação sobre a <strong>posição</strong> de cada token:</p>
+<pre><code>"O" (posição 0)       → [0.2, 0.5, 0.1, ...] + [pos_0]
+"cachorro" (posição 1) → [0.8, 0.3, 0.6, ...] + [pos_1]
+"mordeu" (posição 2)   → [0.1, 0.9, 0.4, ...] + [pos_2]
+"o" (posição 3)       → [0.2, 0.5, 0.1, ...] + [pos_3]  # DIFERENTE agora!
+"gato" (posição 4)     → [0.7, 0.2, 0.8, ...] + [pos_4]</code></pre>
+<p>Agora cada token carrega não apenas seu significado, mas também <strong>onde ele está</strong> na sequência. Isso permite que o modelo aprenda que:</p>
+<ul>
+<li>“cachorro” na posição 1 antes de “mordeu” na posição 2 → cachorro é sujeito</li>
+<li>“gato” na posição 1 antes de “mordeu” na posição 2 → gato é sujeito</li>
+</ul>
+<p>Existem várias abordagens para incorporar informação posicional. Vamos explorar as mais comuns usadas em modelos modernos.</p>
+<section id="embeddings-posicionais-absolutos-original-transformer" class="level4">
+<h4 class="anchored" data-anchor-id="embeddings-posicionais-absolutos-original-transformer">Embeddings Posicionais Absolutos (Original Transformer)</h4>
+<p>O paper original usava funções seno e cosseno de diferentes frequências:</p>
+<pre><code>PE(pos, 2i) = sin(pos / 10000^(2i/d))
+PE(pos, 2i+1) = cos(pos / 10000^(2i/d))</code></pre>
+<p>Esta escolha é elegante porque (1) é determinística (não requer aprendizado), (2) pode generalizar para sequências mais longas do que as vistas no treinamento, e (3) permite que o modelo aprenda facilmente a atender a posições relativas.</p>
+</section>
+<section id="attention-with-linear-biases-alibi" class="level4">
+<h4 class="anchored" data-anchor-id="attention-with-linear-biases-alibi">Attention with Linear Biases (ALiBi)</h4>
+<p>ALiBi <span class="citation" data-cites="press2021alibi">(<a href="../99-references.html#ref-press2021alibi" role="doc-biblioref">Press, Smith, e Lewis 2021</a>)</span> não adiciona embeddings posicionais às entradas. Em vez disso, adiciona um viés aos attention scores proporcionalmente à distância entre tokens:</p>
+<pre><code>score_ij = QK^T / √d_k - λ|i-j|</code></pre>
+<p>Onde λ é um hiperparâmetro específico para cada head. Isso tem duas vantagens: (1) reduz o número de parâmetros, e (2) permite melhor extrapolação para sequências mais longas. Modelos como BLOOM usam ALiBi.</p>
+</section>
+<section id="rotary-position-embeddings-rope" class="level4">
+<h4 class="anchored" data-anchor-id="rotary-position-embeddings-rope">Rotary Position Embeddings (RoPE)</h4>
+<p>RoPE <span class="citation" data-cites="su2021roformer">(<a href="../99-references.html#ref-su2021roformer" role="doc-biblioref">Su et al. 2021</a>)</span>, usado em modelos modernos como LLaMA, aplica uma rotação às embeddings Q e K baseada na posição:</p>
+<pre><code>RoPE(x, pos) = [x_1, x_2, ..., x_d] rotacionado por ângulos θ_1·pos, θ_2·pos, ..., θ_d/2·pos</code></pre>
+<p>A matemática exata é complexa, mas a intuição é que RoPE codifica informação de posição relativa diretamente no produto interno Q·K. Isso combina as vantagens de embeddings absolutos e relativos, e tem mostrado melhor performance em tarefas que requerem raciocínio sobre posições.</p>
+</section>
+</section>
+<section id="feedforward-networks-processamento-não-linear" class="level3">
+<h3 class="anchored" data-anchor-id="feedforward-networks-processamento-não-linear">Feedforward Networks: Processamento Não-Linear</h3>
+<p>Até agora, exploramos em profundidade o mecanismo de self-attention, que permite ao modelo capturar relações entre tokens. No entanto, a atenção sozinha não é suficiente para construir um modelo poderoso. Embora a atenção seja excelente para <strong>redistribuir e agregar informação</strong> entre posições, ela é essencialmente uma operação linear seguida de normalização (softmax). Para que o modelo possa aprender transformações complexas e não-lineares dos dados, precisamos de outro componente crucial: as redes feedforward (FFN).</p>
+<p>A arquitetura Transformer intercala camadas de atenção com camadas FFN, criando um padrão de “comunicação” seguido de “processamento”: a atenção permite que tokens se comuniquem e compartilhem informação, enquanto a FFN processa essa informação de forma independente para cada token. Esta alternância é fundamental para o poder expressivo do modelo.</p>
+<p>Após a camada de self-attention, cada token passa por uma rede feedforward (FFN) de duas camadas:</p>
+<pre><code>FFN(x) = max(0, xW_1 + b_1)W_2 + b_2</code></pre>
+<p>Modelos modernos usam variantes mais sofisticadas como SwiGLU:</p>
+<pre><code>SwiGLU(x) = (Swish(xW_1) ⊙ xW_2)W_3
+onde Swish(x) = x·sigmoid(βx)</code></pre>
+<p>A FFN é aplicada independentemente a cada posição, mas com os mesmos pesos. Pode parecer “simples” para os matemáticos, não para mim. Aqui estão algumas razões pelas quais as FFNs são essenciais:</p>
+<ol type="1">
+<li><strong>Modelagem de Não-Linearidades</strong>: Self-attention é essencialmente linear após o softmax. A FFN adiciona a capacidade de modelar relações não-lineares complexas.</li>
+<li><strong>Aumento de Dimensionalidade</strong>: A dimensão intermediária da FFN (d_ff) é tipicamente 4× maior que a dimensão do modelo (d_model). Isso dá ao modelo mais “espaço” para processar informação.</li>
+<li><strong>Memória Key-Value</strong>: Pesquisas recentes sugerem que as FFNs funcionam como memórias key-value aprendidas, onde a primeira camada funciona como “keys” e a segunda como “values”.</li>
+</ol>
+<p>A FFN geralmente contém a maior parte dos parâmetros do modelo. Em um Transformer com d_model=1024 e d_ff=4096, uma camada FFN tem aproximadamente 8M parâmetros (1024×4096×2), enquanto a camada de atenção tem apenas ~4M parâmetros.</p>
+</section>
+<section id="mixture-of-experts-moe-eficiência-através-de-especialização" class="level3">
+<h3 class="anchored" data-anchor-id="mixture-of-experts-moe-eficiência-através-de-especialização">Mixture of Experts (MoE): Eficiência através de Especialização</h3>
+<p>Mixture of Experts (MoE) é uma técnica arquitetural que revolucionou a forma como construímos modelos de larga escala eficientes. Em vez de ter uma única FFN grande que processa todos os tokens da mesma forma, MoE usa múltiplas FFNs especializadas (“experts”) e um mecanismo de roteamento que decide quais experts ativar para cada token.</p>
+<p>MoE não é uma ideia nova relacionada aos LLMs. Ela foi introduzida em 1991 por Jacobs et al. <span class="citation" data-cites="jacobs1991adaptive">(<a href="../99-references.html#ref-jacobs1991adaptive" role="doc-biblioref">Jacobs et al. 1991</a>)</span> e popularizada em deep learning por Shazeer et al. <span class="citation" data-cites="shazeer2017outrageously">(<a href="../99-references.html#ref-shazeer2017outrageously" role="doc-biblioref">Shazeer et al. 2017</a>)</span> em 2017 com o paper “Outrageously Large Neural Networks”. Recentemente, MoE tem sido adotada em modelos de linguagem como GLaM <span class="citation" data-cites="du2022glam">(<a href="../99-references.html#ref-du2022glam" role="doc-biblioref">Du et al. 2022</a>)</span> (Google, 1.2T parâmetros), Switch Transformer <span class="citation" data-cites="fedus2022switch">(<a href="../99-references.html#ref-fedus2022switch" role="doc-biblioref">Fedus, Zoph, e Shazeer 2022</a>)</span>, e Mixtral <span class="citation" data-cites="jiang2024mixtral">(<a href="../99-references.html#ref-jiang2024mixtral" role="doc-biblioref">Jiang et al. 2024</a>)</span> (Mistral AI).</p>
+<p><strong>Arquitetura Básica de MoE:</strong></p>
+<div class="cell" data-layout-align="default">
+<div class="cell-output-display">
+<div id="fig-moe-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
+<figure class="quarto-float quarto-float-fig figure">
+<div aria-describedby="fig-moe-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+<div>
+<pre class="mermaid mermaid-js" data-label="fig-moe-flow">graph LR
+    A["Token"] --&gt; B["Router&lt;br/&gt;(gating network)"]
+    B --&gt; C["Top-K Selection"]
+    C --&gt; D["Expert 1"]
+    C --&gt; E["Expert 2"]
+    C --&gt; F["..."]
+    C --&gt; G["Expert K"]
+    D --&gt; H["Aggregate&lt;br/&gt;(weighted sum)"]
+    E --&gt; H
+    F --&gt; H
+    G --&gt; H
+    H --&gt; I["Output"]
+    
+    style B fill:#ffe1e1
+    style C fill:#fff4e1
+    style D fill:#e1f5ff
+    style E fill:#e1f5ff
+    style G fill:#e1f5ff
+    style H fill:#e1ffe1
+</pre>
+</div>
+</div>
+<figcaption class="quarto-float-caption-bottom quarto-float-caption quarto-float-fig" id="fig-moe-flow-caption-0ceaefa1-69ba-4598-a22c-09a6ac19f8ca">
+Figura&nbsp;6: Fluxo de processamento em uma camada Mixture of Experts
+</figcaption>
+</figure>
+</div>
+</div>
+</div>
+<p><strong>Implementação conceitual:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MoELayer(nn.Module):</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_ff, num_experts<span class="op">=</span><span class="dv">8</span>, top_k<span class="op">=</span><span class="dv">2</span>):</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Múltiplos experts (FFNs independentes)</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.experts <span class="op">=</span> nn.ModuleList([</span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            FFN(d_model, d_ff) <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(num_experts)</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Router que decide quais experts ativar</span></span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.router <span class="op">=</span> nn.Linear(d_model, num_experts)</span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.top_k <span class="op">=</span> top_k</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># x: (batch, seq_len, d_model)</span></span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Router computa scores para cada expert</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>        router_logits <span class="op">=</span> <span class="va">self</span>.router(x)  <span class="co"># (batch, seq_len, num_experts)</span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>        router_probs <span class="op">=</span> torch.softmax(router_logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Seleciona top-k experts por token</span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>        top_k_probs, top_k_indices <span class="op">=</span> torch.topk(router_probs, <span class="va">self</span>.top_k, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Normaliza probabilidades dos top-k</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>        top_k_probs <span class="op">=</span> top_k_probs <span class="op">/</span> top_k_probs.<span class="bu">sum</span>(dim<span class="op">=-</span><span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Processa cada token pelos seus top-k experts</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> torch.zeros_like(x)</span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.top_k):</span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>            expert_idx <span class="op">=</span> top_k_indices[:, :, i]</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>            expert_prob <span class="op">=</span> top_k_probs[:, :, i:i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Roteamento dinâmico: diferentes tokens vão para diferentes experts</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> expert_id, expert <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.experts):</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>                mask <span class="op">=</span> (expert_idx <span class="op">==</span> expert_id)</span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> mask.<span class="bu">any</span>():</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>                    expert_output <span class="op">=</span> expert(x)</span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>                    output <span class="op">+=</span> expert_output <span class="op">*</span> expert_prob <span class="op">*</span> mask.unsqueeze(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Exemplo Real - <a href="https://huggingface.co/mistralai/Mixtral-8x7B-v0.1">Mixtral 8x7B</a>:</strong></p>
+<p>Mixtral <span class="citation" data-cites="jiang2024mixtral">(<a href="../99-references.html#ref-jiang2024mixtral" role="doc-biblioref">Jiang et al. 2024</a>)</span>, desenvolvido pela Mistral AI, é um dos modelos MoE mais bem-sucedidos atualmente disponíveis. Ele demonstra como MoE pode alcançar alta performance com eficiência de inferência.</p>
+<p>O Mixtral 8x7B possui:</p>
+<ul>
+<li><strong>8 experts</strong> de 7B parâmetros cada</li>
+<li><strong>Router seleciona top-2 experts</strong> por token</li>
+<li><strong>Total</strong>: 47B parâmetros, mas apenas ~13B ativos por token</li>
+<li><strong>Resultado</strong>: Performance próxima a modelo denso de 47B, custo de inferência de 13B</li>
+</ul>
+<p><strong>Vantagens do MoE:</strong></p>
+<ol type="1">
+<li><strong>Maior capacidade com menor compute ativo</strong>: Modelo de 47B que custa como 13B</li>
+<li><strong>Especialização natural</strong>: Experts tendem a se especializar automaticamente
+<ul>
+<li>Expert 1: código Python</li>
+<li>Expert 2: matemática</li>
+<li>Expert 3: linguagens não-inglesas</li>
+<li>Expert 4: conhecimento factual</li>
+</ul></li>
+<li><strong>Escalabilidade</strong>: Adicionar experts aumenta capacidade sem aumentar compute proporcionalmente</li>
+<li><strong>Eficiência de inferência</strong>: Menos FLOPs por token</li>
+</ol>
+<p>Mesmo com essas vantagens, e como tudo em engenharia, MoE apresenta alguns desafios:</p>
+<ol type="1">
+<li><strong>Balanceamento de carga</strong>: Router pode favorecer alguns experts, deixando outros sub-utilizados
+<ul>
+<li>Solução: Adicionar loss auxiliar que penaliza desbalanceamento</li>
+<li><code>load_balancing_loss = aux_loss_weight * (num_experts * mean(router_probs)^2)</code></li>
+</ul></li>
+<li><strong>Memória total alta</strong>: Todos experts precisam estar carregados na memória
+<ul>
+<li>Mixtral 8x7B: Requer ~94GB VRAM (todos experts na GPU)</li>
+<li>Solução: Expert parallelism (distribuir experts entre GPUs)</li>
+</ul></li>
+<li><strong>Complexidade de treinamento</strong>: Treinamento distribuído mais complexo
+<ul>
+<li>Necessita de all-to-all communication entre GPUs</li>
+<li>Framework como Megatron-LM ou DeepSpeed oferecem suporte</li>
+</ul></li>
+<li><strong>Overfitting de routing</strong>: Router pode memorizar padrões de treinamento
+<ul>
+<li>Solução: Dropout no router, noise no gating</li>
+</ul></li>
+</ol>
+<p><strong>Quando usar MoE:</strong></p>
+<ul>
+<li>Você tem orçamento de treinamento grande (MoE requer mais dados para convergir)</li>
+<li>Você quer máxima capacidade com custo de inferência controlado</li>
+<li>Você tem infraestrutura multi-GPU/multi-nó</li>
+<li>Você tem restrições de memória VRAM totais</li>
+<li>Você precisa de latência ultra-baixa (routing adiciona overhead)</li>
+</ul>
+<p>MoE representa uma das direções mais promissoras para escalar modelos de forma eficiente, e é provável que vejamos cada vez mais modelos adotando essa arquitetura nos próximos anos.</p>
+</section>
+<section id="layer-normalization-e-residual-connections" class="level3">
+<h3 class="anchored" data-anchor-id="layer-normalization-e-residual-connections">Layer Normalization e Residual Connections</h3>
+<p>Até agora exploramos os componentes que processam informação no Transformer: atenção e redes feedforward. Mas há um problema: quando empilhamos muitas camadas (GPT-4 tem dezenas, possivelmente centenas), o treinamento se torna extremamente difícil. Duas técnicas simples mas cruciais tornam possível treinar Transformers profundos: <strong>residual connections</strong> e <strong>layer normalization</strong>. Vamos entender cada uma delas.</p>
+<section id="residual-connections-skip-connections" class="level4">
+<h4 class="anchored" data-anchor-id="residual-connections-skip-connections">Residual Connections (Skip Connections)</h4>
+<p>Imagine que você está construindo uma torre de 100 andares, onde cada andar processa alguma informação. O problema é que, ao treinar o modelo, o “sinal de erro” (gradiente) precisa voltar do topo até a base para ajustar cada andar. Em redes muito profundas, esse sinal se torna cada vez mais fraco à medida que desce (conhecido como o problema do <strong>vanishing gradient</strong>). É como um telefone sem fio onde a mensagem se distorce a cada pessoa.</p>
+<p><strong>A Solução: Atalhos Diretos</strong></p>
+<p>Residual connections criam “atalhos” que permitem que a informação pule camadas:</p>
+<pre><code>output = x + Attention(x)</code></pre>
+<p>Isso significa: pegue a entrada original <code>x</code>, processe através da atenção, e então <strong>some de volta</strong> a entrada original ao resultado.</p>
+<p><strong>Por que isso funciona?</strong></p>
+<p>Pense assim: em vez de cada camada ter que aprender uma transformação completa, ela só precisa aprender o <strong>ajuste</strong> (o “residual”) que deve ser adicionado. Se uma camada não precisa fazer nada útil, pode simplesmente aprender a retornar zero, e a entrada original passa direto através do atalho.</p>
+<p><strong>Visualizando:</strong></p>
+<pre><code>Sem residual connection:
+x → [Atenção] → output
+(Se a atenção é mal-treinada, output pode ser ruim)
+
+Com residual connection:
+x → [Atenção] → + → output
+↓_____________↑
+(Mesmo se atenção falha, x passa direto!)</code></pre>
+<p>Durante o backpropagation, o gradiente também tem um caminho direto de volta através desses atalhos, resolvendo o problema de vanishing gradients. É como ter um elevador expresso em um prédio alto, você não precisa subir/descer escada por escada.</p>
+<p><strong>Na Prática no Transformer:</strong></p>
+<p>A arquitetura Transformer usa residual connections em cada sub-camada (atenção e FFN):</p>
+<pre><code>output = LayerNorm(x + Attention(x))
+output = LayerNorm(output + FFN(output))</code></pre>
+<p>Note que aplicamos residual connections tanto após a atenção quanto após a FFN. Cada uma dessas operações é seguida por normalização, que vamos entender a seguir.</p>
+</section>
+<section id="layer-normalization" class="level4">
+<h4 class="anchored" data-anchor-id="layer-normalization">Layer Normalization</h4>
+<p>Outro problema ao treinar redes profundas é que os valores (ativações) podem crescer ou diminuir descontroladamente à medida que passam pelas camadas. Imagine que você está cozinhando uma receita complexa: se a temperatura varia muito a cada etapa, fica impossível controlar o resultado final.</p>
+<p><strong>O que Layer Normalization faz?</strong></p>
+<p>Layer normalization “padroniza” os valores em cada posição para terem média 0 e desvio padrão 1, e então aplica uma transformação aprendida:</p>
+<pre><code>LayerNorm(x) = γ · (x - μ) / σ + β</code></pre>
+<p>Onde:</p>
+<ul>
+<li><strong>μ (mu)</strong>: média dos valores</li>
+<li><strong>σ (sigma)</strong>: desvio padrão dos valores</li>
+<li><strong>γ (gamma)</strong> e <strong>β (beta)</strong>: parâmetros aprendidos que permitem ao modelo ajustar a escala e deslocamento</li>
+</ul>
+<p><strong>Analogia: Normalizar Notas</strong></p>
+<p>Imagine que você tem notas de alunos em diferentes provas:</p>
+<ul>
+<li>Prova fácil: notas entre 70-100 (média 85)</li>
+<li>Prova difícil: notas entre 20-50 (média 35)</li>
+</ul>
+<p>Para comparar justo, você precisa normalizar as notas. O processo é assim:</p>
+<p><strong>Passo 1: Entenda a distribuição de cada prova</strong></p>
+<ul>
+<li>Prova fácil: a maioria tirou em torno de 85, com variação típica de 10 pontos para mais ou menos</li>
+<li>Prova difícil: a maioria tirou em torno de 35, também com variação de 10 pontos</li>
+</ul>
+<p><strong>Passo 2: Transforme cada nota em “posição relativa”</strong></p>
+<p>Em vez de olhar a nota absoluta, perguntamos: “Quanto essa pessoa ficou acima ou abaixo da média?”</p>
+<ul>
+<li>Aluno A tirou 90 na prova fácil:
+<ul>
+<li>Ficou 5 pontos acima da média (90 - 85 = 5)</li>
+<li>Como a variação típica é 10, ele ficou “meio passo” acima (+0.5)</li>
+</ul></li>
+<li>Aluno B tirou 40 na prova difícil:
+<ul>
+<li>Ficou 5 pontos acima da média (40 - 35 = 5)</li>
+<li>Como a variação típica é 10, ele também ficou “meio passo” acima (+0.5)</li>
+</ul></li>
+</ul>
+<p><strong>Passo 3: Compare de forma justa</strong></p>
+<p>Agora podemos dizer que ambos tiveram desempenho equivalente, porque ambos ficaram “meio passo acima da média” de suas respectivas provas.</p>
+<p>Layer normalization faz exatamente isso com as ativações do modelo: transforma números que podem estar em escalas muito diferentes (alguns muito grandes, outros muito pequenos) em uma escala padronizada, onde podemos comparar tudo de forma justa. Isso mantém o treinamento estável porque evita que alguns números fiquem grandes demais ou pequenos demais.</p>
+<p><strong>Variações Modernas</strong></p>
+<p>O Transformer original aplicava layer normalization <strong>depois</strong> de cada sub-camada (“post-norm”), mas modelos modernos como GPT usam <strong>pre-norm</strong> (normalizar antes da sub-camada), que é mais estável:</p>
+<pre><code># Pre-norm (moderno)
+output = x + Attention(LayerNorm(x))
+output = output + FFN(LayerNorm(output))
+
+# Post-norm (original)
+output = LayerNorm(x + Attention(x))
+output = LayerNorm(output + FFN(output))</code></pre>
+<p><strong>RMSNorm: Uma Simplificação Eficiente</strong></p>
+<p>Modelos recentes como LLaMA usam uma variante ainda mais simples chamada <strong>RMSNorm</strong> (Root Mean Square Normalization):</p>
+<pre><code>RMSNorm(x) = γ · x / RMS(x)
+onde RMS(x) = √(Σx²/n)</code></pre>
+<p>A diferença é que RMSNorm <strong>não subtrai a média</strong> (não usa o termo <code>x - μ</code>), apenas divide pelo RMS (root mean square). Isso é:</p>
+<ul>
+<li><strong>Mais rápido</strong> de calcular (menos operações)</li>
+<li><strong>Usa menos memória</strong></li>
+<li>Na prática, funciona tão bem quanto LayerNorm completo</li>
+</ul>
+<p>É como simplificar a normalização de notas: em vez de calcular “quantos desvios acima/abaixo da média”, você só ajusta pela “magnitude típica” dos valores.</p>
+<p><strong>Por que essas técnicas importam juntas?</strong></p>
+<p>Residual connections + Layer normalization trabalham em sinergia:</p>
+<ol type="1">
+<li><strong>Residual connections</strong> garantem que os gradientes fluam suavemente durante o treinamento</li>
+<li><strong>Layer normalization</strong> garante que os valores permaneçam em escalas razoáveis em cada camada</li>
+<li><strong>Juntas</strong>, permitem treinar redes com 100+ camadas de forma estável</li>
+</ol>
+<p>Sem essas técnicas, seria praticamente impossível treinar os modelos <strong>gigantescos</strong> que usamos hoje.</p>
+</section>
+</section>
+<section id="arquiteturas-encoder-only-decoder-only-e-encoder-decoder" class="level3">
+<h3 class="anchored" data-anchor-id="arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas Encoder-Only, Decoder-Only e Encoder-Decoder</h3>
+<p>O Transformer original era um modelo encoder-decoder para tradução. Desde então, três variantes principais emergiram:</p>
+<section id="encoder-only-bert-like" class="level4">
+<h4 class="anchored" data-anchor-id="encoder-only-bert-like">Encoder-Only (BERT-like)</h4>
+<p>Modelos encoder-only como BERT usam atenção <strong>bidirecional</strong>. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, question answering, etc.</p>
+<p>O treinamento usa <strong>masked language modeling</strong> (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.</p>
+<p>Exemplo de MLM:</p>
+<pre><code>Input:  "The [MASK] sat on the [MASK]"
+Target: "The cat sat on the mat"</code></pre>
+<p>O modelo vê a frase com palavras faltando, mascaradas ([MASK]), e deve inferir as palavras corretas com base no contexto completo.</p>
+</section>
+<section id="decoder-only-gpt-like" class="level4">
+<h4 class="anchored" data-anchor-id="decoder-only-gpt-like">Decoder-Only (GPT-like)</h4>
+<p>Modelos decoder-only como GPT usam atenção <strong>causal</strong> (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma “causal mask” que zera os attention scores para posições futuras.</p>
+<p><strong>Como Funciona a Causal Mask Tecnicamente:</strong></p>
+<p>A máscara causal é implementada como uma matriz triangular inferior que bloqueia a atenção em tokens futuros. Aqui está como isso funciona:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_causal_mask(seq_len):</span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Cria máscara causal para impedir atenção em tokens futuros.</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Retorna matriz triangular inferior de 1s (permitido) e 0s (bloqueado).</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> torch.tril(torch.ones(seq_len, seq_len))</span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Na prática, usamos -inf para posições bloqueadas antes do softmax</span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Isso garante que softmax(score + mask) = 0 para posições futuras</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">'-inf'</span>))</span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">1</span>, <span class="fl">0.0</span>)</span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mask</span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização para seq_len=5 (antes de aplicar -inf):</span></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="co"># [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3</span></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4</span></span>
+<span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplicação na atenção:</span></span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> masked_attention(Q, K, V, mask):</span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Atenção com máscara causal"""</span></span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>    d_k <span class="op">=</span> Q.size(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(d_k))</span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Adiciona máscara antes do softmax</span></span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># scores + mask onde mask=-inf para posições bloqueadas</span></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> scores <span class="op">+</span> mask</span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Softmax transforma -inf em ~0</span></span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> attention_weights <span class="op">@</span> V</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Por que isso importa:</strong></p>
+<ol type="1">
+<li><strong>Previne data leakage durante treinamento</strong>: O modelo não pode “trapacear” olhando para tokens futuros que deve prever</li>
+<li><strong>Garante consistência entre treino e inferência</strong>: Durante geração, tokens futuros não existem ainda, então o modelo deve aprender sem eles</li>
+<li><strong>Permite paralelização do treinamento</strong>: Todos os tokens podem ser processados simultaneamente, com a máscara garantindo causalidade</li>
+</ol>
+<p>O treinamento usa <strong>causal language modeling</strong> (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.</p>
+<p>Exemplo de CLM:</p>
+<pre><code>Input:  "The cat sat"
+Target: "on"</code></pre>
+<p>Onde o modelo vê “The cat sat” e deve prever o próximo token “on” baseado apenas no contexto anterior.</p>
+<p>Decoder-only models têm se tornado dominantes (GPT-3 <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>, PaLM <span class="citation" data-cites="anil2023palm">(<a href="../99-references.html#ref-anil2023palm" role="doc-biblioref">Anil et al. 2023</a>)</span>, LLaMA <span class="citation" data-cites="touvron2023llama">(<a href="../99-references.html#ref-touvron2023llama" role="doc-biblioref">Touvron et al. 2023</a>)</span>, Claude) porque:</p>
+<ol type="1">
+<li>São mais simples arquiteturalmente</li>
+<li>Escalam melhor para tamanhos massivos</li>
+<li>Podem ser usados tanto para compreensão quanto geração</li>
+<li>O treinamento autoregressive é mais sample-efficient</li>
+</ol>
+</section>
+<section id="encoder-decoder-t5-like" class="level4">
+<h4 class="anchored" data-anchor-id="encoder-decoder-t5-like">Encoder-Decoder (T5-like)</h4>
+<p>O Encoder-Decoder mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via cross-attention.</p>
+<p>Encoder-decoder models como T5 <span class="citation" data-cites="raffel2020exploring">(<a href="../99-references.html#ref-raffel2020exploring" role="doc-biblioref">Raffel et al. 2020</a>)</span> são particularmente bons para tarefas sequence-to-sequence: tradução, sumarização, question answering generativo. Eles separam explicitamente “compreensão” (encoder) de “geração” (decoder).</p>
+<p>No entanto, são mais complexos e custosos de treinar e inferir devido à arquitetura dupla.</p>
+</section>
+</section>
+</section>
+<section id="conclusão" class="level2">
+<h2 class="anchored" data-anchor-id="conclusão">Conclusão</h2>
+<p>Neste capítulo, exploramos os fundamentos dos Transformers, a arquitetura que revolucionou o processamento de linguagem natural e tornou possível os foundation models modernos. Compreendemos o mecanismo de self-attention, que permite aos modelos capturar relações complexas entre tokens, e vimos como técnicas como multi-head attention, otimizações modernas (GQA, Flash Attention, KV-Cache) e componentes arquiteturais (feedforward networks, MoE, residual connections, layer normalization) trabalham em conjunto para criar modelos poderosos e eficientes.</p>
+<p>Entendemos também como embeddings posicionais resolvem a limitação fundamental de permutation-invariance dos Transformers, e exploramos as três variantes principais de arquiteturas: encoder-only, decoder-only e encoder-decoder, cada uma adequada para diferentes tipos de tarefas.</p>
+<p>Este conhecimento fundamental é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes inteligentes que aproveitam suas capacidades de forma eficaz e confiável.</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-anil2023palm" class="csl-entry" role="listitem">
+Anil, Rohan, Andrew M. Dai, Orhan Firat, Melvin Johnson, Dmitry Lepikhin, Alexandre Passos, Siamak Shakeri, et al. 2023. <span>«PaLM 2 Technical Report»</span>. <em>arXiv preprint arXiv:2305.10403</em>. <a href="https://arxiv.org/abs/2305.10403">https://arxiv.org/abs/2305.10403</a>.
+</div>
+<div id="ref-bommasani2021opportunities" class="csl-entry" role="listitem">
+Bommasani, Rishi, Drew A. Hudson, Ehsan Adeli, Russ Altman, Simran Arora, Sydney von Arx, Michael S. Bernstein, et al. 2021. <span>«On the Opportunities and Risks of Foundation Models»</span>. <em>arXiv preprint arXiv:2108.07258</em>. <a href="https://arxiv.org/abs/2108.07258">https://arxiv.org/abs/2108.07258</a>.
+</div>
+<div id="ref-brown2020language" class="csl-entry" role="listitem">
+Brown, Tom B., Benjamin Mann, Nick Ryder, Melanie Subbiah, Jared Kaplan, Prafulla Dhariwal, Arvind Neelakantan, et al. 2020. <span>«Language Models are Few-Shot Learners»</span>. <em>arXiv preprint arXiv:2005.14165</em>. <a href="https://arxiv.org/abs/2005.14165">https://arxiv.org/abs/2005.14165</a>.
+</div>
+<div id="ref-dao2022flashattention" class="csl-entry" role="listitem">
+Dao, Tri, Daniel Y. Fu, Stefano Ermon, Atri Rudra, e Christopher Ré. 2022. <span>«FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness»</span>. <em>arXiv preprint arXiv:2205.14135</em>. <a href="https://arxiv.org/abs/2205.14135">https://arxiv.org/abs/2205.14135</a>.
+</div>
+<div id="ref-devlin2018bert" class="csl-entry" role="listitem">
+Devlin, Jacob, Ming-Wei Chang, Kenton Lee, e Kristina Toutanova. 2018. <span>«BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding»</span>. <em>arXiv preprint arXiv:1810.04805</em>. <a href="https://arxiv.org/abs/1810.04805">https://arxiv.org/abs/1810.04805</a>.
+</div>
+<div id="ref-du2022glam" class="csl-entry" role="listitem">
+Du, Nan, Yanping Huang, Andrew M. Dai, Simon Tong, Dmitry Lepikhin, Yuanzhong Xu, Maxim Krikun, et al. 2022. <span>«<span>GLaM: Efficient Scaling of Language Models with Mixture-of-Experts</span>»</span>. <em>International Conference on Machine Learning (ICML)</em>, 5547–69. <a href="https://arxiv.org/abs/2112.06905">https://arxiv.org/abs/2112.06905</a>.
+</div>
+<div id="ref-fedus2022switch" class="csl-entry" role="listitem">
+Fedus, William, Barret Zoph, e Noam Shazeer. 2022. <span>«Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity»</span>. <em>Journal of Machine Learning Research</em> 23 (120): 1–39.
+</div>
+<div id="ref-jacobs1991adaptive" class="csl-entry" role="listitem">
+Jacobs, Robert A., Michael I. Jordan, Steven J. Nowlan, e Geoffrey E. Hinton. 1991. <span>«Adaptive Mixtures of Local Experts»</span>. <em>Neural Computation</em> 3 (1): 79–87. <a href="https://doi.org/10.1162/neco.1991.3.1.79">https://doi.org/10.1162/neco.1991.3.1.79</a>.
+</div>
+<div id="ref-jiang2024mixtral" class="csl-entry" role="listitem">
+Jiang, Albert Q, Alexandre Sablayrolles, Antoine Roux, Arthur Mensch, Blanche Savary, Chris Bamford, Devendra Singh Chaplot, et al. 2024. <span>«Mixtral of Experts»</span>. <em>arXiv preprint arXiv:2401.04088</em>.
+</div>
+<div id="ref-press2021alibi" class="csl-entry" role="listitem">
+Press, Ofir, Noah A. Smith, e Mike Lewis. 2021. <span>«Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation»</span>. <em>arXiv preprint arXiv:2108.12409</em>. <a href="https://arxiv.org/abs/2108.12409">https://arxiv.org/abs/2108.12409</a>.
+</div>
+<div id="ref-raffel2020exploring" class="csl-entry" role="listitem">
+Raffel, Colin, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael Matena, Yanqi Zhou, Wei Li, e Peter J. Liu. 2020. <span>«Exploring the Limits of Transfer Learning with a Unified Text-to-Text Transformer»</span>. <em>Journal of Machine Learning Research</em> 21 (140): 1–67. <a href="http://jmlr.org/papers/v21/20-074.html">http://jmlr.org/papers/v21/20-074.html</a>.
+</div>
+<div id="ref-shazeer2017outrageously" class="csl-entry" role="listitem">
+Shazeer, Noam, Azalia Mirhoseini, Krzysztof Maziarz, Andy Davis, Quoc Le, Geoffrey Hinton, e Jeff Dean. 2017. <span>«Outrageously Large Neural Networks: The Sparsely-Gated Mixture-of-Experts Layer»</span>. Em <em>International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1701.06538">https://arxiv.org/abs/1701.06538</a>.
+</div>
+<div id="ref-su2021roformer" class="csl-entry" role="listitem">
+Su, Jianlin, Yu Lu, Shengfeng Pan, Bo Wen, e Yunfeng Liu. 2021. <span>«RoFormer: Enhanced Transformer with Rotary Position Embedding»</span>. <em>arXiv preprint arXiv:2104.09864</em>. <a href="https://arxiv.org/abs/2104.09864">https://arxiv.org/abs/2104.09864</a>.
+</div>
+<div id="ref-touvron2023llama" class="csl-entry" role="listitem">
+Touvron, Hugo, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, et al. 2023. <span>«LLaMA: Open and Efficient Foundation Language Models»</span>. <em>arXiv preprint arXiv:2302.13971</em>. <a href="https://arxiv.org/abs/2302.13971">https://arxiv.org/abs/2302.13971</a>.
+</div>
+<div id="ref-vaswani2017attention" class="csl-entry" role="listitem">
+Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, e Illia Polosukhin. 2017. <span>«Attention Is All You Need»</span>. Em <em>Advances in Neural Information Processing Systems 30 (NIPS 2017)</em>, 5998–6008. <a href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../chapters/01-intro.html" class="pagination-link" aria-label="Introdução: O Universo dos AI Agents">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Introdução: O Universo dos AI Agents</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../chapters/99-references.html" class="pagination-link" aria-label="Referências">
+        <span class="nav-page-text">Referências</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
