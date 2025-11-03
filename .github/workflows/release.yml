@@ -13,6 +13,7 @@ permissions:
 jobs:
   build-artifacts:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -48,11 +49,9 @@ jobs:
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
 
-      - name: Render book to HTML, PDF, and EPUB
+      - name: Render book
         run: |
           quarto render book/ --to html --verbose
-          quarto render book/ --to pdf --verbose
-          quarto render book/ --to epub --verbose
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v5
