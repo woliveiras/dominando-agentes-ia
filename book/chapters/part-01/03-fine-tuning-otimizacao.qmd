@@ -1,0 +1,1001 @@
+# Capítulo 3: Fine-Tuning e Otimização {.unnumbered}
+
+## Fine-Tuning: Adaptando Foundation Models
+
+Enquanto o pré-treinamento cria modelos com capacidades gerais, o fine-tuning os adapta para tarefas ou domínios específicos. Existem várias estratégias populares. Vamos explorar as principais.
+
+### Supervised Fine-Tuning (SFT)
+
+Continua o treinamento com next-token prediction, mas usando um dataset curado de exemplos de alta qualidade para a tarefa alvo:
+
+```
+Dataset: [
+  {"input": "Qual a capital da França?", "output": "A capital da França é Paris."},
+  {"input": "Resuma este artigo: ...", "output": "Este artigo discute..."},
+  {"input": "Qual é a fórmula da água?", "output": "A fórmula da água é H2O."},
+  {"input": "Quem escreveu 'Dom Casmurro'?", "output": "Machado de Assis escreveu 'Dom Casmurro'."},
+  {"input": "Qual é a capital do Brasil?", "output": "A capital do Brasil é Brasília."},
+  ...
+]
+```
+
+O modelo aprende a seguir o padrão de input-output dos exemplos. Com dados suficientes e de qualidade (previamente selecionados, limpos e balanceados), isso pode melhorar dramaticamente a performance em tarefas específicas.
+
+**Instruction Tuning**: Uma forma particular de SFT onde os exemplos são formatados como instruções seguidas de respostas. Isso treina o modelo a seguir instruções arbitrárias, não apenas responder perguntas específicas. Datasets como [FLAN](https://github.com/google-research/FLAN), [Alpaca](https://github.com/tatsu-lab/stanford_alpaca) e [Dolly](https://github.com/databrickslabs/dolly) contêm dezenas ou centenas de milhares de exemplos instruction-response.
+
+### Continual Pre-Training (Domain Adaptation)
+
+Se você tem um domínio específico (ex: legal, médico, financeiro), pode continuar o pré-treinamento não-supervisionado usando corpus desse domínio:
+
+```
+Legal Corpus: 50B tokens de documentos legais
+Medical Corpus: 100B tokens de papers médicos e registros clínicos
+```
+
+Isso expõe o modelo a terminologia, padrões e conhecimento domain-specific. Mas é crucial usar uma mixture do corpus original (~80%) e corpus de domínio (~20%) para evitar **catastrophic forgetting**, o fenômeno onde o modelo "esquece" capacidades gerais ao se especializar demais. Voltando ao problema do "bank", um modelo legal-only pode esquecer o sentido geral de "bank" como instituição financeira ou qualquer outra coisa que seria interessante para uma interação em agentes de IA.
+
+### Parameter-Efficient Fine-Tuning (PEFT)
+
+**O Problema da Inviabilidade do Fine-Tuning Completo**
+
+Até aqui, discutimos fine-tuning como se atualizar todos os parâmetros fosse trivial. Mas na prática, fine-tuning completo de modelos grandes é **proibitivamente caro** para a maioria das organizações e pesquisadores.
+
+**O Custo Real do Fine-Tuning Completo**
+
+Fine-tuning completo de um modelo de 70B parâmetros requer:
+
+- **Modelo**: Carregar todos os 70B parâmetros na memória (280GB em FP32, 140GB em FP16)
+- **Gradientes**: Armazenar gradientes para cada parâmetro (mais 70B = 140GB em FP16)
+- **Optimizer States (Adam)**: Momentum + variance para cada parâmetro (mais 140B = 280GB)
+- **Total**: ~280B floats = **~560GB de memória mínima** (com mixed precision)
+
+Para contexto:
+
+- GPU A100 tem 80GB de memória
+- Você precisa de **7-8 GPUs A100** só para carregar tudo
+- Custo: ~$25,000/mês em cloud para treinar
+- Tempo: Dias a semanas dependendo do dataset
+
+**Para quem isso é viável?** Apenas grandes empresas com orçamentos massivos. Para o resto de nós, há o PEFT, Parameter-Efficient Fine-Tuning.
+
+**A Solução: Treinar Apenas uma Fração Pequena**
+
+PEFT mantêm a maioria dos parâmetros **congelados** e atualizam apenas um subset pequeno (0.1-1% dos parâmetros). Isso reduz drasticamente os requisitos de memória e compute. Para modelos de 70B, isso significa treinar apenas ~70M a 700M parâmetros.
+
+**Como isso funciona?** A intuição é que **adaptar** um modelo pré-treinado para uma nova tarefa não requer re-aprender tudo, apenas ajustar um pequeno conjunto de parâmetros.
+
+A técnica **LoRA (Low-Rank Adaptation)** [@hu2021lora] consiste em injetar matrizes de baixo rank adaptáveis nas camadas de atenção:
+
+```
+W' = W + BA
+onde B ∈ R^(d×r), A ∈ R^(r×d), r << d
+```
+
+Apenas A e B são treinados. Com r=8 e d=4096, isso adiciona apenas 8×4096×2 = 65K parâmetros por matriz, comparado a 16M para a matriz completa. Redução de ~250×.
+
+LoRA é muito eficaz, por vezes alcança performance comparável a fine-tuning completo com <<1% dos parâmetros treináveis. A hipótese é que adaptação de task requer apenas modificações low-rank porque os "intrinsic dimensions" das tarefas são baixas.
+
+**QLoRA** [@dettmers2023qlora]: Combina LoRA com quantização de 4-bit do modelo base. Isso permite fine-tuning de modelos 70B em uma única GPU de 48GB. Essencial para democratizar fine-tuning.
+
+### Quantização: Reduzindo Requisitos de Memória
+
+Quantização é uma técnica fundamental para tornar LLMs mais acessíveis, reduzindo os requisitos de memória e computação ao representar pesos e ativações do modelo com menor precisão numérica.
+
+**O Problema de Precisão**
+
+Por padrão, modelos são treinados em **FP32** (float de 32 bits) ou **BF16/FP16** (16 bits). Um modelo de 70B parâmetros em FP16 requer:
+
+```
+70B parâmetros × 2 bytes = 140GB de memória
+```
+
+Isso exclui a maioria das GPUs consumidoras (RTX 4090 tem 24GB). Quantização resolve isso reduzindo bits por parâmetro.
+
+**Tipos de Quantização**
+
+**1. Post-Training Quantization (PTQ)**
+
+Quantiza um modelo já treinado sem retreinamento. Rápido e simples, mas pode ter perda de qualidade em quantizações agressivas:
+
+```python
+# Exemplo conceitual
+model_fp16 = load_model("llama-70b")  # 140GB
+model_int8 = quantize_ptq(model_fp16, bits=8)  # 70GB
+model_int4 = quantize_ptq(model_fp16, bits=4)  # 35GB
+```
+
+**2. Quantization-Aware Training (QAT)**
+
+Treina o modelo sabendo que será quantizado, incluindo efeitos de quantização no gradiente. Melhor qualidade, mas requer retreinamento completo:
+
+```python
+# Durante treinamento
+loss = compute_loss(quantize_simulate(model(x)), y)
+```
+
+**Ganhos Práticos de Quantização**
+
+| Precisão | Memória (70B) | Qualidade | Caso de Uso |
+|----------|---------------|-----------|-------------|
+| FP16 | 140GB | 100% (baseline) | Treinamento, inferência premium |
+| INT8 | 70GB | ~99% | Inferência produção |
+| INT4 | 35GB | ~95-97% | Consumer GPUs, edge devices |
+| INT3 | 26GB | ~90-93% | Experimental, edge extremo |
+
+**QLoRA: Quantização + Fine-Tuning**
+
+QLoRA [@dettmers2023qlora] usa técnicas avançadas para combinar quantização de 4-bit com fine-tuning eficiente:
+
+- **4-bit NormalFloat (NF4)**: Formato numérico otimizado para distribuição normal de pesos
+- **Double Quantization**: Quantiza também os próprios quantization constants
+- **Paged Optimizers**: Gerencia memória de optimizer via CPU offloading
+
+**Exemplo Prático com llama.cpp**
+
+[llama.cpp](https://github.com/ggerganov/llama.cpp) é a ferramenta mais popular para rodar LLMs quantizados localmente:
+
+```bash
+# Baixar modelo e quantizar
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp && make
+
+# Converter modelo HuggingFace para GGUF
+python convert.py /path/to/llama-model --outtype f16
+
+# Quantizar para diferentes níveis
+./quantize llama-model-f16.gguf llama-model-q4_0.gguf q4_0  # 4-bit
+./quantize llama-model-f16.gguf llama-model-q8_0.gguf q8_0  # 8-bit
+
+# Rodar inferência
+./main -m llama-model-q4_0.gguf -p "Explain quantum computing" -n 128
+```
+
+**Formatos GGUF Comuns**:
+
+- `q4_0`: 4-bit, mais rápido, menor qualidade
+- `q4_K_M`: 4-bit com mixed precision em camadas críticas (recomendado)
+- `q5_K_M`: 5-bit, melhor qualidade
+- `q8_0`: 8-bit, qualidade quase idêntica ao original
+
+**Trade-offs Práticos para Agentes**
+
+Ao escolher nível de quantização para seu agente:
+
+- **INT8**: Perda de qualidade imperceptível, recomendado para produção
+- **INT4**: Aceitável para a maioria das tarefas, permite rodar modelos maiores
+- **INT3 ou menos**: Apenas quando memória é restrição absoluta (mobile, edge)
+
+**Adapters**: Injeta pequenas camadas feedforward após cada Transformer block. Apenas os adapters são treinados.
+
+**Prefix Tuning / Prompt Tuning**: Aprende embeddings contínuos que são prefixados à input. O modelo base permanece completamente congelado.
+
+Para a engenharia de agentes de IA, a escolha depende de trade-offs:
+
+- **Full Fine-Tuning**: Melhor performance, mas caro
+- **LoRA**: Melhor trade-off custo-performance, amplamente compatível
+- **QLoRA**: Quando memória é o bottleneck principal
+- **Prompt Tuning**: Quando você quer compartilhar um modelo base entre múltiplas tarefas
+
+### Reinforcement Learning from Human Feedback (RLHF)
+
+SFT pode criar modelos que seguem instruções, mas não necessariamente produzem outputs que humanos *preferem*. O Reinforcement Learning from Human Feedback (RLHF) [@ouyang2022training] alinha o modelo com preferências humanas:
+
+1. **Coletar Comparações**: Humanos classificam pares de respostas para a mesma prompt
+1. **Treinar Reward Model**: Supervised learning para prever qual resposta humanos preferirão
+1. **Policy Optimization**: Usar o reward model como função de reward para fine-tune via RL
+
+```
+Objective: maximize E[R(output)] - β·KL(π || π_ref)
+```
+
+Onde R é o reward model, π é a política sendo otimizada, π_ref é a política de referência (SFT model), e β controla quanto a política pode divergir.
+
+Algoritmos populares incluem PPO (Proximal Policy Optimization) e DPO (Direct Preference Optimization). DPO é mais recente e mais simples, evita treinar um reward model separado.
+
+RLHF é crucial para modelos comerciais como ChatGPT e Claude. Transforma modelos tecnicamente competentes em assistentes realmente úteis que humanos gostam de usar.
+
+## Evaluation: Como Sabemos se Funcionou?
+
+Avaliar LLMs é bem difícil. Métricas tradicionais como perplexidade ou BLEU são imperfeitas. **Perplexidade** não correlaciona bem com qualidade percebida, **BLEU/ROUGE** funcionam para tradução/sumarização, mas não para geração open-ended. Por isso, abordagens modernas incluem: benchmarks padronizados, avaliação humana e LLMs como juízes.
+
+Vamos explorar isso.
+
+### Benchmarks
+
+Existem algumas suites de tarefas padronizadas validadas pelo mercado que podemos utilizar como benchmarks para avaliar LLMs:
+
+- **MMLU** [@hendrycks2021measuring]: 57 tasks cobrindo conhecimento em STEM, humanidades, etc.
+- **Big-Bench**: 200+ tarefas diversas, incluindo raciocínio, compreensão, criatividade
+- **HumanEval** [@chen2021evaluating]: Codegen correctness (usado para avaliar GitHub Copilot)
+- **GSM8K** [@cobbe2021training]: Problemas matemáticos de nível escolar
+
+
+Porém, benchmarks têm limitações.
+
+- **Contaminação**: Modelos podem ter visto exemplos de testes durante pré-treinamento
+- **Saturação**: Modelos top-tier já resolvem muitos benchmarks com >90% de acurácia
+- **Distribuição de Tarefas**: Benchmarks podem não refletir tarefas do mundo real que você quer que o modelo faça.
+- **Gaming**: Possível "game" benchmarks sem capacidades gerais reais (o famoso exemplo do modelo que "decorou" respostas de múltipla escolha)
+
+### Avaliação Humana
+
+Avaliação humana envolve pedir a pessoas reais para julgarem a qualidade, utilidade, correção e preferência entre outputs de modelos. É considerado o **gold standard** das avaliações porque captura aspectos subjetivos que métricas automatizadas falham:
+
+- Fluência e naturalidade da linguagem
+- Relevância e utilidade prática
+- Segurança e alinhamento com valores humanos
+- Criatividade e engajamento
+
+**Exemplo: Chatbot Arena**
+
+[Chatbot Arena](https://lmarena.ai) [@zheng2023judging] (LMSYS) usa uma abordagem elegante chamada **avaliação cega**:
+
+1. **Prompt do usuário**: Pessoa faz uma pergunta real
+1. **Dois modelos anônimos**: Sistema mostra respostas de dois modelos diferentes (usuário não sabe quais)
+1. **Escolha**: Usuário seleciona qual resposta é melhor (ou empate)
+1. **Ranking Elo**: Sistema calcula rankings estilo xadrez com milhares de comparações
+
+**Resultado**: Rankings que refletem preferências humanas reais em tarefas diversas. Por exemplo (em Nov 2024):
+
+- GPT-4o: Elo ~1300
+- Claude 3.5 Sonnet: Elo ~1280
+- GPT-4: Elo ~1250
+- Llama-3-70B: Elo ~1200
+
+**Vantagens**:
+
+- Captura preferências humanas reais
+- Detecta problemas sutis (toxicidade, vieses, incoerência)
+- Avalia capacidades emergentes difíceis de medir automaticamente
+
+**Desvantagens**:
+
+- **Caro**: $5-50 por avaliação dependendo da complexidade
+- **Lento**: Semanas para coletar milhares de avaliações
+- **Não escalável**: Inviável para iteração rápida (centenas de experimentos)
+- **Variabilidade**: Humanos diferentes podem discordar (~70-80% agreement típico)
+
+**Quando usar**: Avaliações finais de modelos prontos para produção, decisões de release, validação de melhorias críticas.
+
+### LLM-as-Judge
+
+**A Alternativa Escalável: Modelos Avaliando Modelos**
+
+Usar um LLM forte (ex: GPT-4, Claude 3.5) para **avaliar automaticamente** outputs de outros modelos. Isso é uma abordagem muito eficaz.
+
+Vamos seguir o exemplo de avaliação de resposta a uma pergunta para entender o processo:
+
+```python
+prompt_judge = f"""
+Você é um avaliador imparcial. Avalie a qualidade da resposta abaixo na pergunta dada.
+
+Pergunta: {user_question}
+Resposta: {model_output}
+
+Critérios:
+1. Correção factual (0-5)
+2. Completude (0-5)
+3. Clareza (0-5)
+4. Utilidade prática (0-5)
+
+Forneça scores e justificativa.
+"""
+
+evaluation = gpt4.complete(prompt_judge)
+```
+
+**Descoberta crucial**: LLM-as-judge correlaciona bem com julgamento humano em muitas tarefas:
+
+- Correlação ~0.7-0.85 com preferências humanas
+- Muito mais consistente que humanos individuais
+- 1000× mais rápido e 100× mais barato
+
+**Casos de uso práticos**:
+
+1. **Comparação de modelos**: "Modelo A ou B é melhor para esta tarefa?"
+1. **Avaliação de fine-tuning**: "O fine-tuning melhorou a performance?"
+1. **Detecção de regressões**: "Mudança X degradou qualidade?"
+1. **Ranking de respostas**: Ordenar múltiplas respostas por qualidade
+
+**Limitações e Caveats**:
+
+1. **Viés de comprimento**: LLMs judges tendem a preferir respostas mais longas, mesmo quando concisão é melhor
+   ```python
+   # Resposta A: "Paris." (correto e conciso)
+   # Resposta B: "A capital da França é Paris, localizada no norte do país..." (verbose)
+   # Judge escolhe B mesmo sendo desnecessariamente longo
+   ```
+
+2. **Viés de estilo**: Preferem outputs que parecem com seu próprio estilo de geração
+   - GPT-4 judge prefere outputs que "soam como GPT-4"
+   - Claude judge prefere outputs estruturados como Claude estrutura
+
+3. **Auto-preferência**: Modelos tendem a dar scores mais altos para seus próprios outputs (~10-15% bias)
+
+4. **Limitação de capacidade**: Judge precisa ser **significativamente mais capaz** que os modelos avaliados
+   - GPT-4 avaliando Llama-3-8B: funciona bem
+   - Llama-3-8B avaliando GPT-4: não confiável
+
+5. **Falta de conhecimento especializado**: Judge pode não detectar erros factuais sutis em domínios técnicos
+
+**Melhores Práticas**:
+
+```python
+# 1. Use múltiplos judges para reduzir viés
+scores = [
+    gpt4_judge(output),
+    claude_judge(output),
+    gemini_judge(output)
+]
+final_score = median(scores)
+
+# 2. Blind evaluation - não revele qual modelo gerou output
+judge_prompt = f"Avalie esta resposta: {output}"  # sem mencionar modelo
+
+# 3. Calibre com avaliação humana
+# Compare subset (100-500 exemplos) com avaliação humana
+# Ajuste prompt do judge até correlação > 0.8
+```
+
+**Quando usar LLM como juiz**:
+
+- Iteração rápida durante desenvolvimento
+- Monitoramento contínuo de qualidade em produção
+- A/B testing automatizado de mudanças
+- Pre-screening antes de avaliação humana custosa
+
+**Quando NÃO usar**:
+
+- Decisões críticas de release (sempre validar com humanos)
+- Avaliação de modelos state-of-the-art (judge pode não ser superior)
+- Domínios altamente especializados sem judges treinados
+- Não substitui completamente human eval
+- "Judge" precisa ser significativamente mais capaz que os modelos sendo avaliados
+
+## Seleção do Modelo Certo para Cada Tarefa
+
+A paisagem de LLMs disponíveis é vasta e vem crescendo. Pra mim é impossível acompanhar tudo. Neste cenário, como escolher o modelo certo para sua aplicação de agente de IA?
+
+Vamos explorar os principais trade-offs e considerações para selecionar o modelo certo. Com este racional, você pode tomar decisões informadas baseadas em requisitos específicos.
+
+### Considerações Fundamentais
+
+#### 1. Tamanho do Modelo e Capacidade
+
+Modelos maiores são mais capazes, porém mais custosos:
+
+| Tamanho | Parâmetros | Capacidades | Latência | Custo |
+|---------|-----------|-------------|-----------|-------|
+| Nano | <1B | Tarefas simples, seguir comandos básicos | <50ms | $0.001/1K tokens |
+| Small | 1-10B | Raciocínio moderado, tasks bem-definidas | 50-200ms | $0.01/1K tokens |
+| Medium | 10-70B | Raciocínio complexo, multitask | 200-1000ms | $0.10/1K tokens |
+| Large | 70-500B+ | Raciocínio avançado, few-shot generalization | 1-5s | $1-10/1K tokens |
+
+::: {.callout-note title="Sobre os Valores de Latência e Custo" appearance="simple"}
+Os valores de latência são aproximações típicas para inferência em GPUs modernas (A100/H100) com batching otimizado. Latência real varia significativamente com: comprimento de contexto, otimizações de servidor, quantização, e infraestrutura.
+
+Os custos são estimativas baseadas em preços de APIs comerciais (OpenAI, Anthropic, Google). Custos de self-hosting podem ser 5-10× menores para alto volume, mas requerem investimento em infraestrutura. Preços variam por provedor e tendem a cair ao longo do tempo (~50% por ano historicamente).
+
+Para custos atualizados: [OpenAI Pricing](https://openai.com/pricing), [Anthropic Pricing](https://www.anthropic.com/pricing), [Google AI Pricing](https://cloud.google.com/vertex-ai/pricing)
+:::
+
+Para agentes, você raramente precisa do modelo mais poderoso para todas as tarefas. Uma arquitetura comum é:
+
+- **Modelo pequeno** para tasks frequentes e simples (routing, formatting)
+- **Modelo médio** para tasks core (analysis, generation)
+- **Modelo grande** para tasks críticas e complexas (strategic planning, edge cases)
+
+#### 2. Encoder vs. Decoder
+
+- **Encoder-only (BERT-style)**: Melhor para tarefas de compreensão com inputs fixos: classificação, NER, semantic search. Não geram texto.
+- **Decoder-only (GPT-style)**: Versáteis, podem fazer compreensão E geração. Dominante para agentes.
+- **Encoder-decoder (T5-style)**: Úteis para tasks sequence-to-sequence explícitas como tradução e sumarização.
+
+Para agentes autônomos, decoder-only é quase sempre a escolha certa.
+
+#### 3. Context Window
+
+O tamanho do context window determina quanto input/output o modelo pode processar de uma vez.
+
+Exemplo:
+
+- **4K tokens (~3K palavras)**: GPT-3.5 legacy models
+- **8K tokens**: Muitos modelos small-medium
+- **32K-128K tokens**: GPT-4, Claude 2, modelos modernos
+- **200K+ tokens**: Claude 3, Gemini 1.5 Pro
+
+Context window maior é crucial para:
+
+- **RAG**: Incluir múltiplos documentos *retrieved*
+- **Long conversations**: Manter histórico de conversação longa
+- **Code analysis**: Processar codebases inteiras
+- **Complex reasoning**: Incluir chain-of-thought extenso
+
+Modelos com context windows muito grandes são mais lentos e mais caros. Use o mínimo necessário.
+
+#### 4. Velocidade e Latência
+
+Para sistemas interativos (ex: chatbots), latência importa:
+
+- **Modelos locais**: <100ms, mas capability limitado
+- **API models (small)**: 200-500ms
+- **API models (large)**: 1-5s+
+
+Técnicas para reduzir latência:
+
+- **Speculative Decoding**: Usa modelo pequeno para gerar drafts, modelo grande para verificar
+- **Streaming**: Retorna tokens incrementalmente em vez de esperar resposta completa
+- **Caching**: Cacheia prompts comuns e prefixos
+- **Batching**: Processa múltiplas requests em parallel
+
+#### 5. Custo
+
+Custo de inferência varia em ordens de magnitude:
+
+| Modelo | Input | Output |
+|--------|-------|--------|
+| GPT-3.5 Turbo | $0.0005/1K | $0.0015/1K |
+| GPT-4 Turbo | $0.01/1K | $0.03/1K |
+| Claude 3 Opus | $0.015/1K | $0.075/1K |
+| Claude 3 Haiku | $0.00025/1K | $0.00125/1K |
+| Llama 3 70B (self-hosted) | ~$0.001/1K | ~$0.002/1K |
+
+**Nota**: Valores podem mudar frequentemente. Consulte fontes oficiais:
+
+- OpenAI: [https://openai.com/api/pricing/](https://openai.com/api/pricing/)
+- Anthropic: [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)
+- Custos de self-hosting variam com infraestrutura e otimizações
+
+Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:
+
+1. **Cascade**: Use modelo mais barato primeiro, escale para modelo mais caro **apenas se necessário**
+2. **Caching**: Cachear agressivamente resultados de queries similares
+3. **Quantização**: Self-host modelos quantizados (4-bit) para reduzir computação
+4. **Prompt Compression**: Comprimir prompts longos sem perder informação
+
+#### 6. Privacidade e Segurança
+
+Para aplicações empresariais, considerações de privacidade e segurança são determinantes:
+
+- **API models (OpenAI, Anthropic)**: Dados são enviados para servidores third-party. Existem opções de não treinar nos dados do usuário, mas dados ainda atravessam fronteiras e você não tem controle total sobre eles, depende da confiança no provedor
+- **Self-hosted models**: Controle completo sobre dados, mas requer infraestrutura e expertise
+
+Para setores regulados (healthcare, finance), self-hosting muitas vezes é até mesmo obrigatório.
+
+### Framework de Decisão
+
+Para ajudar na seleção do modelo certo, aqui está um framework de decisão simplificado baseado em requisitos comuns que você pode adaptar para seu caso específico:
+
+```
+INÍCIO
+  |
+  ├─ Complexidade da tarefa?
+  |    ├─ Simples (classificação, extração)
+  |    |    └─> Modelo encoder (BERT) ou decoder pequeno (7B)
+  |    ├─ Moderada (análise, Q&A)
+  |    |    └─> Decoder médio (70B), GPT-3.5, Claude 2, Gemini 1
+  |    └─ Complexa (raciocínio, criatividade)
+  |         └─> Decoder grande (GPT-4, Claude Opus)
+  |
+  ├─ Requisitos de latência?
+  |    ├─ Tempo real (<100ms)
+  |    |    └─> Modelo pequeno local
+  |    ├─ Interativo (<1s)
+  |    |    └─> API rápida ou modelo médio self-hosted
+  |    └─ Batch
+  |         └─> Qualquer modelo
+  |
+  ├─ Volume/Orçamento?
+  |    ├─ Baixo volume
+  |    |    └─> API proprietária (OpenAI GPT, Claude, Gemini)
+  |    ├─ Médio volume
+  |    |    └─> Mix de modelos (cascade) ou proprietário médio
+  |    └─ Alto volume
+  |         └─> Self-hosted open-source
+  |
+  └─ Requisitos de privacidade?
+       ├─ Rigoroso (HIPAA, LGPD/GDPR estrito)
+       |    └─> Apenas self-hosted
+       └─ Moderado
+            └─> API com acordo de não-treinamento
+```
+
+As empresas possuem APIs com conformidade regulatória e acordos de privacidade que podem ser suficientes para muitos casos. Mas para dados sensíveis, self-hosting é a única opção segura.
+
+## Exercícios Práticos
+
+Agora que você compreende técnicas de fine-tuning e otimização, vamos aplicar esse conhecimento adaptando um modelo real para uma tarefa específica.
+
+### Exercício 1: Fine-Tuning com LoRA para Tradução de Termos Técnicos
+
+**Objetivo:** Fazer fine-tuning de um modelo pequeno usando LoRA para traduzir termos técnicos PT→EN.
+
+**Por que esse exercício?** Tradução de termos técnicos é uma tarefa perfeita para demonstrar fine-tuning porque:
+- Modelos gerais frequentemente erram termos especializados
+- Dataset pequeno é suficiente (50-100 exemplos)
+- Resultados são facilmente mensuráveis
+- Aplicação prática para agentes que processam documentação técnica
+
+**Passo a Passo:**
+
+```python
+# Instalação necessária:
+# pip install transformers peft datasets accelerate bitsandbytes torch
+
+import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+from datasets import load_dataset
+import json
+
+# Configuração
+MODEL_NAME = "meta-llama/Llama-2-7b-hf"  # ou "gpt2" para teste rápido
+OUTPUT_DIR = "./llama2-tech-translator-lora"
+
+print("🔄 Carregando modelo base...")
+
+# Carregar modelo e tokenizer
+tokenizer = AutoTokenizer.from_pretrained(MODEL_NAME)
+tokenizer.pad_token = tokenizer.eos_token  # Necessário para Llama
+
+model = AutoModelForCausalLM.from_pretrained(
+    MODEL_NAME,
+    device_map="auto",
+    torch_dtype=torch.float16,  # Usar FP16 para economizar memória
+)
+
+print(f"✅ Modelo carregado: {MODEL_NAME}")
+print(f"📊 Parâmetros totais: {model.num_parameters():,}")
+
+# Configurar LoRA
+print("\n🔧 Configurando LoRA...")
+
+lora_config = LoraConfig(
+    r=16,                        # Rank dos adapters (maior = mais expressivo, mas mais memória)
+    lora_alpha=32,               # Scaling factor
+    target_modules=["q_proj", "v_proj"],  # Aplicar LoRA apenas em attention
+    lora_dropout=0.05,
+    bias="none",
+    task_type="CAUSAL_LM"
+)
+
+# Aplicar LoRA ao modelo
+model = get_peft_model(model, lora_config)
+
+# Mostrar quantos parâmetros serão treinados
+trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+total_params = sum(p.numel() for p in model.parameters())
+trainable_percentage = (trainable_params / total_params) * 100
+
+print(f"📊 Parâmetros treináveis: {trainable_params:,} ({trainable_percentage:.2f}% do total)")
+print(f"💾 Redução de memória: ~{100 - trainable_percentage:.1f}%")
+
+# Carregar dataset de treinamento
+print("\n📦 Carregando dataset...")
+
+# Carregar nosso dataset criado anteriormente
+def load_tech_terms_dataset(file_path):
+    """Carrega dataset JSONL de termos técnicos"""
+    data = []
+    with open(file_path, 'r', encoding='utf-8') as f:
+        for line in f:
+            data.append(json.loads(line))
+    return data
+
+# Carregar dados
+dataset_path = "../../datasets/tech_terms_pt_en.jsonl"
+data = load_tech_terms_dataset(dataset_path)
+
+# Dividir em treino/validação (80/20)
+split_idx = int(len(data) * 0.8)
+train_data = data[:split_idx]
+val_data = data[split_idx:]
+
+print(f"📚 Exemplos de treino: {len(train_data)}")
+print(f"✅ Exemplos de validação: {len(val_data)}")
+
+# Função para formatar exemplos no formato de prompt
+def format_prompt(example):
+    """Formata exemplo como prompt de instrução"""
+    return f"{example['input']}\nResposta: {example['output']}"
+
+# Tokenizar dataset
+def tokenize_function(examples):
+    """Tokeniza exemplos para treinamento"""
+    prompts = [format_prompt(ex) for ex in examples]
+
+    tokenized = tokenizer(
+        prompts,
+        truncation=True,
+        padding="max_length",
+        max_length=128,
+        return_tensors="pt"
+    )
+
+    # Labels são os mesmos que input_ids para causal LM
+    tokenized["labels"] = tokenized["input_ids"].clone()
+
+    return tokenized
+
+# Preparar datasets tokenizados
+print("\n🔄 Tokenizando dataset...")
+train_tokenized = tokenize_function(train_data)
+val_tokenized = tokenize_function(val_data)
+
+# Configurar treinamento
+training_args = TrainingArguments(
+    output_dir=OUTPUT_DIR,
+    num_train_epochs=3,
+    per_device_train_batch_size=4,
+    per_device_eval_batch_size=4,
+    gradient_accumulation_steps=4,
+    learning_rate=2e-4,
+    fp16=True,                    # Mixed precision
+    logging_steps=10,
+    evaluation_strategy="steps",
+    eval_steps=50,
+    save_steps=100,
+    warmup_steps=50,
+    save_total_limit=2,
+)
+
+# Criar trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_tokenized,
+    eval_dataset=val_tokenized,
+)
+
+# Treinar!
+print("\n🚀 Iniciando fine-tuning...\n")
+print("="*60)
+
+trainer.train()
+
+print("\n✅ Fine-tuning completo!")
+
+# Salvar modelo
+print(f"\n💾 Salvando modelo em {OUTPUT_DIR}...")
+model.save_pretrained(OUTPUT_DIR)
+tokenizer.save_pretrained(OUTPUT_DIR)
+
+print("✅ Modelo salvo com sucesso!")
+
+# Testar modelo antes e depois
+print("\n" + "="*60)
+print("🧪 TESTE: Comparando Modelo Base vs Fine-Tuned")
+print("="*60 + "\n")
+
+# Carregar modelo base para comparação
+print("Carregando modelo base original...")
+base_model = AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map="auto", torch_dtype=torch.float16)
+
+test_prompts = [
+    "Traduza o termo técnico de português para inglês: aprendizado de máquina",
+    "Traduza o termo técnico de português para inglês: rede neural",
+    "Traduza o termo técnico de português para inglês: computação em nuvem"
+]
+
+for prompt in test_prompts:
+    print(f"\nPrompt: {prompt}")
+
+    # Modelo base
+    inputs = tokenizer(prompt, return_tensors="pt").to(base_model.device)
+    with torch.no_grad():
+        base_output = base_model.generate(**inputs, max_new_tokens=10, do_sample=False)
+    base_response = tokenizer.decode(base_output[0], skip_special_tokens=True)
+
+    # Modelo fine-tuned
+    with torch.no_grad():
+        ft_output = model.generate(**inputs, max_new_tokens=10, do_sample=False)
+    ft_response = tokenizer.decode(ft_output[0], skip_special_tokens=True)
+
+    print(f"  Base:       {base_response}")
+    print(f"  Fine-tuned: {ft_response}")
+
+print("\n" + "="*60)
+print("💡 INSIGHTS")
+print("="*60)
+print("""
+1. LoRA reduziu parâmetros treináveis em >99%
+2. Fine-tuning melhorou precisão em termos técnicos
+3. Modelo aprendeu padrão de tradução específico
+4. Tempo de treinamento: minutos vs. dias (full fine-tuning)
+5. Memória necessária: ~12GB vs. ~80GB (full fine-tuning)
+""")
+```
+
+**Desafios adicionais:**
+
+1. **Experimente com diferentes valores de `r`**: Teste r=8, r=16, r=32 e compare qualidade vs. custo
+2. **Target modules diferentes**: Adicione `k_proj`, `o_proj` ao `target_modules` e veja impacto
+3. **QLoRA**: Adicione quantização 4-bit ao modelo base antes de aplicar LoRA
+4. **Avalie quantitativamente**: Calcule BLEU score ou accuracy em dataset de teste
+
+### Exercício 2: Quantização e Benchmark de Performance
+
+**Objetivo:** Quantizar um modelo e medir impacto em latência, memória e qualidade.
+
+**Passo a Passo:**
+
+```python
+# Instalação: pip install llama-cpp-python
+
+import time
+import psutil
+import os
+from llama_cpp import Llama
+
+# Função para medir uso de memória
+def get_memory_usage():
+    """Retorna uso de memória em MB"""
+    process = psutil.Process(os.getpid())
+    return process.memory_info().rss / 1024 / 1024  # Converter para MB
+
+print("="*60)
+print("🔬 BENCHMARK: Quantização de Modelos")
+print("="*60)
+
+# Você precisará baixar modelos GGUF previamente
+# Exemplo: https://huggingface.co/TheBloke/Llama-2-7B-GGUF
+
+model_paths = {
+    "FP16": "./models/llama-2-7b.gguf.fp16.bin",
+    "Q8_0": "./models/llama-2-7b.gguf.q8_0.bin",
+    "Q5_K_M": "./models/llama-2-7b.gguf.q5_K_M.bin",
+    "Q4_K_M": "./models/llama-2-7b.gguf.q4_K_M.bin",
+}
+
+test_prompt = "Explain quantum computing in simple terms:"
+results = {}
+
+for quant_level, model_path in model_paths.items():
+    print(f"\n{'='*60}")
+    print(f"Testando: {quant_level}")
+    print(f"{'='*60}")
+
+    if not os.path.exists(model_path):
+        print(f"⚠️  Modelo não encontrado: {model_path}")
+        print(f"   Baixe de: https://huggingface.co/TheBloke/Llama-2-7B-GGUF")
+        continue
+
+    # Medir memória antes
+    mem_before = get_memory_usage()
+
+    # Carregar modelo
+    print(f"📦 Carregando modelo {quant_level}...")
+    start_load = time.time()
+
+    llm = Llama(
+        model_path=model_path,
+        n_ctx=512,
+        n_threads=4,
+    )
+
+    load_time = time.time() - start_load
+    mem_after = get_memory_usage()
+    mem_used = mem_after - mem_before
+
+    print(f"✅ Carregado em {load_time:.2f}s")
+    print(f"💾 Memória utilizada: {mem_used:.0f} MB")
+
+    # Medir latência de inferência
+    print(f"🔄 Gerando resposta...")
+    start_gen = time.time()
+
+    output = llm(
+        test_prompt,
+        max_tokens=100,
+        temperature=0.7,
+        top_p=0.9,
+    )
+
+    gen_time = time.time() - start_gen
+    generated_text = output['choices'][0]['text']
+    tokens_generated = output['usage']['completion_tokens']
+    tokens_per_sec = tokens_generated / gen_time
+
+    print(f"✅ Geração completa em {gen_time:.2f}s")
+    print(f"📊 Throughput: {tokens_per_sec:.1f} tokens/s")
+    print(f"📝 Output: {generated_text[:100]}...")
+
+    # Salvar resultados
+    results[quant_level] = {
+        "load_time": load_time,
+        "memory_mb": mem_used,
+        "gen_time": gen_time,
+        "tokens_per_sec": tokens_per_sec,
+        "output": generated_text
+    }
+
+    # Liberar memória
+    del llm
+
+# Comparação final
+print(f"\n{'='*60}")
+print("📊 COMPARAÇÃO DE PERFORMANCE")
+print(f"{'='*60}\n")
+
+print(f"{'Quantização':<12} {'Memória (MB)':<15} {'Load (s)':<12} {'Gen (s)':<12} {'Tokens/s':<12}")
+print("-"*60)
+
+baseline = results.get("FP16") or results.get("Q8_0")
+for quant, metrics in results.items():
+    mem_pct = (metrics['memory_mb'] / baseline['memory_mb'] * 100) if baseline else 100
+    speed_pct = (metrics['tokens_per_sec'] / baseline['tokens_per_sec'] * 100) if baseline else 100
+
+    print(f"{quant:<12} {metrics['memory_mb']:<15.0f} {metrics['load_time']:<12.2f} "
+          f"{metrics['gen_time']:<12.2f} {metrics['tokens_per_sec']:<12.1f}")
+    print(f"             ({mem_pct:>5.1f}% mem)         ({speed_pct:>5.1f}% speed)")
+
+# Comparação de qualidade (subjetiva)
+print(f"\n{'='*60}")
+print("🎯 COMPARAÇÃO DE QUALIDADE")
+print(f"{'='*60}\n")
+
+for quant, metrics in results.items():
+    print(f"{quant}:")
+    print(f"  {metrics['output'][:150]}...")
+    print()
+
+print("="*60)
+print("💡 INSIGHTS")
+print("="*60)
+print("""
+1. Q4_K_M: ~75% de redução de memória, qualidade excelente
+2. Q5_K_M: ~65% de redução, qualidade indistinguível de FP16
+3. Q8_0: ~50% de redução, sem perda perceptível de qualidade
+4. Trade-off ideal: Q4_K_M ou Q5_K_M para produção
+5. Q4 permite rodar modelos 70B em GPUs consumidor (24GB)
+""")
+
+# Recomendações
+print(f"\n{'='*60}")
+print("🎯 RECOMENDAÇÕES PARA PRODUÇÃO")
+print(f"{'='*60}\n")
+
+print("Caso de Uso                      | Quantização Recomendada")
+print("-"*60)
+print("API de produção (qualidade)      | Q8_0 ou Q5_K_M")
+print("API de produção (custo)          | Q4_K_M")
+print("Dispositivos edge/mobile         | Q4_0 ou Q3_K_M")
+print("Pesquisa/desenvolvimento         | FP16 (baseline)")
+print("Agentes com raciocínio complexo  | Q5_K_M ou superior")
+```
+
+**Desafios adicionais:**
+
+1. **Avaliação objetiva**: Use benchmark (MMLU, HellaSwag) para medir degradação de qualidade
+2. **Profiling detalhado**: Use ferramentas de profiling para identificar gargalos
+3. **Otimizações adicionais**: Combine quantização com Flash Attention e KV-cache
+
+### Exercício 3: Implementando LLM-as-Judge para Avaliação
+
+**Objetivo:** Criar sistema de avaliação automática usando LLM como juiz.
+
+```python
+import anthropic  # ou openai
+import json
+from typing import List, Dict
+
+# Carregar dataset de avaliação
+with open("../../datasets/evaluation_examples.jsonl", "r") as f:
+    eval_data = [json.loads(line) for line in f]
+
+# Configurar cliente
+client = anthropic.Anthropic(api_key="sua-api-key")
+
+def evaluate_with_judge(question: str, model_answer: str, correct_answer: str, task: str) -> Dict:
+    """Usa Claude como judge para avaliar resposta"""
+
+    judge_prompt = f"""Você é um avaliador imparcial de respostas de modelos de linguagem.
+
+Tarefa: {task}
+Pergunta: {question}
+Resposta esperada: {correct_answer}
+Resposta do modelo: {model_answer}
+
+Avalie a resposta do modelo nos seguintes critérios (0-5):
+1. Correção factual: A resposta está factualmente correta?
+2. Completude: A resposta é completa e aborda toda a pergunta?
+3. Clareza: A resposta é clara e bem articulada?
+
+Forneça sua avaliação em formato JSON:
+{{
+    "factual_correctness": <score 0-5>,
+    "completeness": <score 0-5>,
+    "clarity": <score 0-5>,
+    "overall": <score 0-5>,
+    "justification": "<breve explicação>"
+}}
+"""
+
+    response = client.messages.create(
+        model="claude-3-haiku-20240307",
+        max_tokens=500,
+        messages=[{"role": "user", "content": judge_prompt}]
+    )
+
+    # Parsear resposta JSON
+    try:
+        result = json.loads(response.content[0].text)
+        return result
+    except json.JSONDecodeError:
+        return {"error": "Failed to parse judge response"}
+
+# Avaliar alguns exemplos
+print("="*60)
+print("🧪 AVALIAÇÃO COM LLM-AS-JUDGE")
+print("="*60 + "\n")
+
+# Simular respostas de dois modelos
+model_a_responses = {
+    "Qual é a capital da França?": "Paris",
+    "Quem escreveu Dom Casmurro?": "Machado de Assis",
+    "Explique o que é uma função em Python": "Uma função é um bloco de código reutilizável definido com 'def'."
+}
+
+model_b_responses = {
+    "Qual é a capital da França?": "A capital francesa é Paris, localizada no norte do país.",
+    "Quem escreveu Dom Casmurro?": "Machado de Assis, um dos maiores escritores brasileiros.",
+    "Explique o que é uma função em Python": "Em Python, uma função é um bloco de código que pode ser reutilizado. Você a define usando a palavra-chave 'def' seguida pelo nome da função."
+}
+
+results_a = []
+results_b = []
+
+for example in eval_data[:3]:  # Avaliar apenas primeiros 3 para demonstração
+    question = example['question']
+    correct = example['correct_answer']
+    task = example['task']
+
+    # Avaliar Modelo A
+    print(f"\nAvaliando: {question}")
+    print(f"Task: {task}")
+
+    if question in model_a_responses:
+        eval_a = evaluate_with_judge(question, model_a_responses[question], correct, task)
+        eval_b = evaluate_with_judge(question, model_b_responses[question], correct, task)
+
+        results_a.append(eval_a)
+        results_b.append(eval_b)
+
+        print(f"\nModelo A: {model_a_responses[question]}")
+        print(f"  Score: {eval_a.get('overall', 'N/A')}/5")
+        print(f"  Razão: {eval_a.get('justification', 'N/A')}")
+
+        print(f"\nModelo B: {model_b_responses[question]}")
+        print(f"  Score: {eval_b.get('overall', 'N/A')}/5")
+        print(f"  Razão: {eval_b.get('justification', 'N/A')}")
+
+# Comparação final
+print("\n" + "="*60)
+print("📊 RESUMO COMPARATIVO")
+print("="*60 + "\n")
+
+avg_a = sum(r.get('overall', 0) for r in results_a) / len(results_a)
+avg_b = sum(r.get('overall', 0) for r in results_b) / len(results_b)
+
+print(f"Modelo A - Score médio: {avg_a:.2f}/5")
+print(f"Modelo B - Score médio: {avg_b:.2f}/5")
+print(f"\nVencedor: {'Modelo B' if avg_b > avg_a else 'Modelo A' if avg_a > avg_b else 'Empate'}")
+```
+
+**Questões para reflexão:**
+
+1. Como o comprimento da resposta influencia a avaliação?
+2. O judge tem viés a favor de respostas mais detalhadas?
+3. Quando LLM-as-judge é apropriado vs. avaliação humana?
+
+## Conclusão
+
+Neste capítulo, exploramos as técnicas essenciais para adaptar e otimizar foundation models para casos de uso específicos. Compreendemos diferentes abordagens de fine-tuning, desde supervised fine-tuning completo até técnicas parameter-efficient como LoRA e QLoRA que democratizam o acesso ao fine-tuning de modelos grandes.
+
+Mergulhamos profundamente em quantização, entendendo como reduzir drasticamente os requisitos de memória com perdas mínimas de qualidade, tornando possível rodar modelos de 70B parâmetros em hardware consumer. Vimos exemplos práticos com llama.cpp e discutimos os trade-offs entre diferentes níveis de quantização.
+
+Exploramos RLHF, a técnica crucial que transforma modelos tecnicamente competentes em assistentes verdadeiramente úteis e alinhados com preferências humanas. Entendemos também as diferentes abordagens de avaliação, desde benchmarks padronizados até avaliação humana e o uso de LLMs como juízes.
+
+Por fim, desenvolvemos um framework prático para selecionar o modelo certo para cada tarefa, considerando fatores como tamanho, velocidade, custo, context window e requisitos de privacidade.
+
+Este conhecimento sobre fine-tuning e otimização é essencial para construir agentes de IA eficientes e econômicos em produção, preparando-nos para o próximo capítulo onde exploraremos a engenharia de aplicação prática, incluindo limitações dos modelos, capacidades emergentes e técnicas avançadas de prompt engineering.

@@ -1,0 +1,20 @@
+{"question": "Qual é a capital da França?", "correct_answer": "Paris", "task": "factual_qa"}
+{"question": "Quem escreveu Dom Casmurro?", "correct_answer": "Machado de Assis", "task": "factual_qa"}
+{"question": "Qual é a fórmula da água?", "correct_answer": "H2O", "task": "factual_qa"}
+{"question": "Em que ano o Brasil foi descoberto?", "correct_answer": "1500", "task": "factual_qa"}
+{"question": "Qual é o maior planeta do sistema solar?", "correct_answer": "Júpiter", "task": "factual_qa"}
+{"question": "Explique o que é uma função em Python", "correct_answer": "Uma função é um bloco de código reutilizável que executa uma tarefa específica. É definida usando a palavra-chave 'def' seguida pelo nome da função e parênteses.", "task": "explanation"}
+{"question": "O que é uma API REST?", "correct_answer": "API REST é uma interface de programação que usa o protocolo HTTP para comunicação entre cliente e servidor, seguindo os princípios da arquitetura REST (Representational State Transfer).", "task": "explanation"}
+{"question": "Explique o conceito de herança em programação orientada a objetos", "correct_answer": "Herança é um mecanismo que permite que uma classe (classe filha) herde atributos e métodos de outra classe (classe pai), promovendo reutilização de código e hierarquia de classes.", "task": "explanation"}
+{"question": "O que significa Big-O notation?", "correct_answer": "Big-O notation é uma notação matemática usada para descrever a complexidade computacional de um algoritmo, especialmente seu comportamento de crescimento em relação ao tamanho da entrada.", "task": "explanation"}
+{"question": "Resuma o seguinte texto: A inteligência artificial transformou drasticamente a maneira como vivemos e trabalhamos. Desde assistentes virtuais até carros autônomos, a IA está em toda parte. No entanto, também traz desafios éticos e questões sobre privacidade que precisam ser endereçados.", "correct_answer": "IA transformou nossa vida e trabalho, presente em assistentes e carros autônomos, mas traz desafios éticos e de privacidade.", "task": "summarization"}
+{"question": "Resuma: O machine learning é um subcampo da inteligência artificial que permite que computadores aprendam sem serem explicitamente programados. Ele usa algoritmos que melhoram automaticamente através da experiência e do uso de dados.", "correct_answer": "Machine learning é um subcampo de IA onde computadores aprendem automaticamente com dados, sem programação explícita.", "task": "summarization"}
+{"question": "Classifique o sentimento: Este produto é maravilhoso! Superou todas as minhas expectativas.", "correct_answer": "Positivo", "task": "sentiment"}
+{"question": "Classifique o sentimento: Péssima experiência. Não recomendo a ninguém.", "correct_answer": "Negativo", "task": "sentiment"}
+{"question": "Classifique o sentimento: O produto é ok, nada de especial.", "correct_answer": "Neutro", "task": "sentiment"}
+{"question": "Corrija o código Python:\ndef soma(a b):\n    retun a + b", "correct_answer": "def soma(a, b):\n    return a + b", "task": "code_correction"}
+{"question": "Identifique o erro: for i in range(10) print(i)", "correct_answer": "Falta dois pontos após range(10): for i in range(10): print(i)", "task": "code_correction"}
+{"question": "Traduza para inglês: A inteligência artificial está revolucionando a medicina", "correct_answer": "Artificial intelligence is revolutionizing medicine", "task": "translation"}
+{"question": "Traduza para português: Machine learning models require large datasets", "correct_answer": "Modelos de aprendizado de máquina requerem grandes conjuntos de dados", "task": "translation"}
+{"question": "Complete a sequência: 2, 4, 8, 16, __", "correct_answer": "32", "task": "reasoning"}
+{"question": "Se todos os A são B, e alguns B são C, podemos concluir que todos os A são C?", "correct_answer": "Não, não podemos concluir isso. Apenas alguns B são C, então não sabemos se os A estão entre esses B que são C.", "task": "reasoning"}

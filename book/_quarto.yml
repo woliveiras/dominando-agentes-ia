@@ -11,7 +11,10 @@ book:
     - chapters/01-intro.qmd
     - part: "Parte I: Fundamentos e Componentes Base"
       chapters:
-        - chapters/part-01/01-foundation-models.qmd
+        - chapters/part-01/01-fundamentos-transformers.qmd
+        # - chapters/part-01/02-treinamento-foundation-models.qmd
+        # - chapters/part-01/03-fine-tuning-otimizacao.qmd
+        # - chapters/part-01/04-engenharia-aplicacao-pratica.qmd
     #     - chapters/part-01/02-dominando-large-language-models.qmd
     #     - chapters/part-01/03-fundamentos-prompting.qmd
     #     - chapters/part-01/04-embeddings.qmd
@@ -32,6 +35,9 @@ book:
 
 bibliography: references.bib
 lang: pt
+
+
+css: styles.css
 
 format:
   html:

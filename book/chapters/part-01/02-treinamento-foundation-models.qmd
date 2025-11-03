@@ -1,0 +1,1155 @@
+# Capítulo 2: Treinamento de Foundation Models {.unnumbered}
+
+## Como os LLMs Aprendem e Representam Conhecimento
+
+Até agora exploramos a **arquitetura** dos Transformers, os componentes mecânicos que permitem processar linguagem. Mas arquitetura sozinha não cria inteligência. Um Transformer recém-inicializado com pesos aleatórios é essencialmente inútil, incapaz de entender ou gerar linguagem coerente.
+
+A transformação de uma arquitetura vazia em um modelo capaz acontece através do **aprendizado**. Esta seção explora como LLMs adquirem conhecimento, desenvolvem capacidades linguísticas e, surpreendentemente, demonstram comportamentos que parecem ir além do que foi explicitamente ensinado.
+
+### O Paradigma de Pré-Treinamento
+
+Imagine ensinar alguém a ser um médico. Você não começa ensinando cirurgias específicas. Primeiro, a pessoa passa por **educação básica** (fundamental e médio - lembra do que estávamos falando sobre isso?), depois **graduação em medicina** (conhecimento geral amplo), e só então se especializa em uma área específica. Os LLMs seguem um caminho similar através de um processo de duas fases: **pré-treinamento** e **fine-tuning**.
+
+**Pré-treinamento: A Educação Fundamental**
+
+O pré-treinamento é onde a "mágica" acontece. É aqui que o modelo desenvolve sua compreensão fundamental de linguagem, absorve conhecimento sobre o mundo e, surpreendentemente, desenvolve capacidades rudimentares de raciocínio, tudo isso **sem supervisão humana direta**.
+
+Pense no pré-treinamento como expor uma criança a milhões de livros, artigos, conversas e códigos. A criança não recebe instruções explícitas sobre gramática ou fatos, mas através da exposição massiva, começa a reconhecer padrões, entender estruturas linguísticas e absorver conhecimento implícito.
+
+**Como isso funciona na prática?**
+
+Durante o pré-treinamento, o modelo é exposto a um corpus **gigantesco** de texto não-anotado:
+
+- **Escala**: Centenas de gigabytes a terabytes de texto
+- **Diversidade**: Web pages, livros, código, artigos científicos, fóruns
+- **Quantidade**: Trilhões de palavras (tokens) — equivalente a milhares de anos de leitura humana
+
+A tarefa de aprendizado é **auto-supervisionada**, ou seja, os dados criam seus próprios "rótulos" automaticamente, sem necessidade de anotação humana. Não há humanos rotulando "esta frase é sobre medicina" ou "este código está correto". O modelo simplesmente observa padrões em dados brutos e aprende a modelar a **distribuição estatística** da linguagem natural.
+
+#### Self-Supervised Learning: Aprendendo Sem Labels
+
+O truque fundamental do pré-treinamento é usar self-supervision: criar tarefas de aprendizado automaticamente a partir de texto não-anotado. Para modelos decoder-only, a tarefa é **predição do próximo token**:
+
+```
+P(x_t | x_1, x_2, ..., x_{t-1})
+```
+
+Dado um corpus de texto, simplesmente "escondemos" o próximo token e treinamos o modelo para prevê-lo. Não requer anotação humana, cada posição na sequência se torna automaticamente um exemplo de treinamento.
+
+Esta tarefa aparentemente simples força o modelo a aprender representações extremamente ricas. Para prever o próximo token com precisão, o modelo precisa:
+
+1. **Sintaxe**: Entender estrutura gramatical para gerar continuações sintaticamente corretas
+1. **Semântica**: Compreender significado para gerar continuações semanticamente coerentes
+1. **Conhecimento Factual**: Memorizar fatos sobre o mundo presentes nos dados de treinamento
+1. **Raciocínio**: Realizar inferências lógicas para gerar continuações consistentes
+
+Esta é uma das descobertas mais legais da era dos LLMs: uma tarefa de treinamento simples (next token prediction) em dados massivos resulta em capacidades emergentes complexas.
+
+#### A Loss Function: Medindo o Aprendizado
+
+Agora que entendemos **o que** o modelo aprende (prever o próximo token), precisamos entender **como medimos** se ele está aprendendo bem. Durante o treinamento, precisamos de uma forma matemática de dizer "essa previsão foi boa" ou "essa previsão foi ruim". É aí que entra a **loss function** (função de perda).
+
+**Intuição: O Jogo de Adivinhação**
+
+Imagine um jogo onde você precisa adivinhar a próxima palavra de uma frase. Você tem três opções e atribui probabilidades a cada uma:
+
+```
+Frase: "O gato está dormindo no..."
+
+Suas apostas:
+
+- "sofá": 70% de certeza
+- "chão": 20% de certeza
+- "teto": 10% de certeza
+```
+
+Se a resposta correta for "sofá", você foi bem! Se for "teto", você errou feio. A loss function quantifica exatamente isso: **quão surpreendente foi a resposta correta dado o que você previu**.
+
+**Cross-Entropy: A Matemática da Surpresa**
+
+A função de loss usada é **cross-entropy** entre a distribuição prevista pelo modelo e a distribuição alvo (que é simplesmente: 100% para o token correto, 0% para todos os outros):
+
+```
+L = -Σ_t log P(x_t | x_<t)
+```
+
+Isso pode parecer complicado, mas a interpretação não é tão difícil: cross-entropy mede **quão surpreso o modelo está com o token correto**. Se o modelo atribuiu alta probabilidade ao token correto, a loss é baixa (bom!). Se atribuiu baixa probabilidade, a loss é alta (ruim!). Não ligue para a fórmula exata, o conceito é o seguinte:
+
+- **Modelo confiante e correto**: Atribuiu 90% de probabilidade ao token que realmente veio → Loss **baixa** (bom!)
+- **Modelo incerto ou errado**: Atribuiu 5% de probabilidade ao token que realmente veio → Loss **alta** (ruim!)
+
+Quanto menor a loss, melhor o modelo está prevendo. Durante o treinamento, o objetivo é minimizar essa loss ajustando os pesos do modelo através de backpropagation.
+
+**Perplexidade: Traduzindo Loss para Algo Mais Intuitivo**
+
+Embora loss seja útil matematicamente, é difícil interpretá-la diretamente. "Loss de 2.3" é bom ou ruim? É aí que entra a **perplexidade**, uma métrica mais intuitiva comumente reportada em papers:
+
+```
+PPL = exp(L)
+onde L = -1/N Σ log P(x_t | x_<t)
+```
+
+De novo, não se apegue à fórmula. A perplexidade pode ser entendida como a **"média geométrica do número de escolhas que o modelo está considerando"**.
+
+Vamos aprofundar isso.
+
+**O que perplexidade significa?**
+
+Perplexidade pode ser interpretada como **"o número efetivo de escolhas que o modelo está considerando a cada passo"**. É como medir quão "confuso" o modelo está.
+
+**Exemplos práticos:**
+
+- **Perplexidade = 2**: O modelo está, em média, confuso entre 2 opções
+  - É como escolher entre "sim" ou "não" — bem confiante!
+
+- **Perplexidade = 10**: O modelo está confuso entre ~10 opções
+  - Como escolher entre os 10 dígitos (0-9) — ainda razoável
+
+- **Perplexidade = 50.000**: O modelo está confuso entre 50 mil opções
+  - Praticamente um chute aleatório no vocabulário inteiro!
+
+**Benchmarks de referência:**
+
+- **Modelos state-of-the-art**: Perplexidade de **3-5** em benchmarks como Penn Treebank
+  - O modelo está basicamente escolhendo entre 3-5 palavras plausíveis a cada passo
+
+- **Modelos de bigram** (só olham a palavra anterior): Perplexidade de **~100**
+  - Muito mais confuso, precisa considerar 100 opções
+
+- **Modelo aleatório**: Perplexidade igual ao tamanho do vocabulário (**~50.000**)
+  - Completamente perdido, cada palavra é igualmente provável
+
+**Por que isso importa?**
+
+Perplexidade nos dá uma forma intuitiva de avaliar e comparar modelos. Se você está treinando um modelo e vê a perplexidade cair de 100 para 10 e depois para 5, você sabe que o modelo está ficando progressivamente mais confiante e preciso nas suas previsões. É um indicador direto de que o modelo está realmente aprendendo a modelar a linguagem.
+
+### Dados de Pré-Treinamento: A Matéria-Prima da Inteligência
+
+Agora chegamos a uma verdade fundamental sobre LLMs: **você é o que você come**. Mais precisamente, **o modelo sabe apenas o que viu**. Não importa quão sofisticada seja a arquitetura Transformer ou quão bem otimizado seja o processo de treinamento, se os dados de entrada forem ruins, o modelo resultante será ruim.
+
+Esta seção explora um dos aspectos mais subestimados, porém críticos, do desenvolvimento de LLMs: a curadoria de dados de treinamento. É aqui que decisões aparentemente simples, "quanto código incluir?" ou "devemos filtrar conteúdo controverso?", têm consequências profundas e duradouras nas capacidades do modelo.
+
+O ditado "garbage in, garbage out" nunca foi tão verdadeiro. A qualidade, diversidade e escala dos dados de pré-treinamento determinam **fundamentalmente** as capacidades do modelo final.
+
+Isso já era perceptível antes dos LLMs, quando modelos de reconhecimento de fala ou visão computacional dependiam fortemente dos datasets usados. Com LLMs, essa dependência é ainda mais crítica devido à natureza estatística do aprendizado de linguagem.
+
+**Por que dados importam tanto?**
+
+Diferente de sistemas programados tradicionalmente, onde você especifica explicitamente o comportamento desejado, LLMs **aprendem por imitação estatística**. Eles absorvem padrões, conhecimento factual, estilo de escrita, vieses e até raciocínio dos dados que observam. Se o modelo nunca viu discussões sobre medicina nos dados de treinamento, ele não "saberá" medicina e vai dizer que vacinas causam autismo, não importa quão grande seja o dataset.
+
+Considere estas implicações práticas:
+
+- **Um modelo treinado principalmente em código Python** será excelente em Python, mas medíocre em outras linguagens
+- **Um modelo treinado só em textos formais acadêmicos** terá dificuldade com conversas casuais
+- **Um modelo treinado em dados até 2021** não "saberá" eventos posteriores a essa data
+- **Um modelo treinado em dados racistas** reproduzirá esses vieses em suas saídas
+
+Para engenheiros construindo sistemas de produção, isso significa que **escolher o modelo certo** requer entender seus dados de treinamento. Você está construindo um agente para análise jurídica? Vale investigar se o modelo foi treinado em documentos legais e como isso implica na vida do usuário final. Um agente para código? Verifique a proporção de código nos dados de treinamento. E assim por diante.
+
+#### Composição de Datasets: A Receita do Conhecimento
+
+Modelos modernos não são treinados em um único tipo de dados. Em vez disso, usam uma **mixture cuidadosamente balanceada** de múltiplas fontes, cada uma contribuindo diferentes tipos de conhecimento e capacidades [@gao2020pile; @dodge2021documenting]:
+
+**Principais Fontes de Dados:**
+
+::: {.callout-note title="Sobre as Escalas Reportadas" appearance="simple"}
+Os números de tokens na tabela são **estimativas aproximadas** baseadas em informações divulgadas em papers como The Pile [@gao2020pile], GPT-3 [@brown2020language], e LLaMA [@touvron2023llama; @dubey2024llama3]. Datasets diferentes e versões de modelos usam proporções variadas, mas estes valores representam ordens de magnitude típicas em modelos state-of-the-art.
+:::
+
+| Fonte | Escala (estimada) | O que contribui | Trade-offs |
+|-------|--------|-----------------|------------|
+| **Common Crawl** | ~3T tokens | Diversidade linguística, conhecimento geral da web, linguagem natural variada | Muito ruído, spam, conteúdo de baixa qualidade |
+| **Livros** | ~200B tokens | Narrativas longas, coerência textual, vocabulário rico, conhecimento cultural | Viés para ficção/não-ficção publicada, direitos autorais |
+| **Wikipedia** | ~10B tokens | Conhecimento factual verificado, escrita enciclopédica, estrutura bem organizada | Formal demais, cobertura desigual de tópicos |
+| **Código** | ~300B tokens | Sintaxe de programação, lógica estruturada, resolução de problemas | Específico para desenvolvimento, menos útil para prosa |
+| **Papers Acadêmicos** | ~50B tokens | Conhecimento técnico profundo, raciocínio científico, terminologia especializada | Muito formal, barreiras de jargão técnico |
+
+**A Arte da Proporção**
+
+A mistura dessas fontes não é arbitrária, é uma das decisões mais importantes no desenvolvimento de um LLM descente. Considere os trade-offs:
+
+**Cenário 1: Muito Common Crawl (>80%)**
+
+- Modelo entende linguagem natural diversa e coloquial
+- Boa cobertura de tópicos contemporâneos
+- Aprende padrões de spam, SEO gaming, conteúdo clickbait
+- Pode reproduzir desinformação e teorias conspiratórias
+
+**Cenário 2: Muito Código (>50%)**
+
+- Excelente em programação e tarefas estruturadas
+- Forte raciocínio lógico e pattern matching
+- Piora significativa em prosa natural fluente
+- Respostas podem parecer "robóticas" ou muito estruturadas
+
+**Cenário 3: Muito Texto Formal (Wikipedia + Papers >60%)**
+
+- Conhecimento factual robusto
+- Escrita clara e bem estruturada
+- Dificuldade com linguagem casual, gírias, humor
+- Pode soar pedante ou acadêmico demais
+
+**Mixture Real (LLaMA 3 como exemplo):**
+
+Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama3] com uma mixture aproximadamente assim:
+
+- Common Crawl filtrado: ~45%
+- Código: ~30-35%
+- Wikipedia/Enciclopédico: ~10%
+- Books: ~10%
+- Papers Acadêmicos: ~5%
+
+::: {.callout-note title="Sobre a Proporção de Código" appearance="simple"}
+A proporção de código no LLaMA 3 é significativamente maior que em modelos anteriores. As versões code-optimized chegam a ter 30-35% de código no mix de treinamento, refletindo o foco crescente em capacidades de programação nos modelos modernos [@dubey2024llama3].
+:::
+
+Esta proporção foi determinada através de **extensos experimentos empíricos**, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
+
+**Evolução Temporal dos Dados**
+
+Outro aspecto crítico: **dados têm data de validade**. O conhecimento do mundo muda:
+
+- Eventos recentes (guerras, eleições, descobertas científicas)
+- Mudanças tecnológicas (frameworks populares, best practices)
+- Evolução cultural (memes, gírias, tendências sociais)
+
+Um modelo treinado em dados até 2021 literalmente não "sabe" nada sobre eventos posteriores. Quando você pergunta sobre algo de 2023, ele está **adivinhando** baseado em padrões, não em conhecimento real. É por isso que modelos são periodicamente re-treinados ou atualizados com dados mais recentes. E é por isso que em agentes de IA, integrar fontes de conhecimento dinâmicas (APIs, bases de dados atualizadas) é crucial para manter um bom desempenho.
+
+#### Data Cleaning: Transformando Lixo em Ouro
+
+Se você baixar Common Crawl raw — um snapshot da web pública — terá dezenas de terabytes de... lixo. Literalmente 90%+ é inutilizável para treinar um modelo de qualidade [@luccioni2021s]. Data cleaning é o processo meticuloso de transformar esse oceano de sujeira em algo valioso [@dodge2021documenting; @raffel2019c4].
+
+**Por que raw Common Crawl é inutilizável?**
+
+Um exemplo concreto do que você encontra:
+
+```html
+<!-- 85% do conteúdo de uma página típica -->
+<nav>Home | About | Contact | Login</nav>
+<footer>Copyright 2023 | Privacy Policy | Terms</footer>
+<script>gtag('UA-12345678-9')</script>
+<!-- Anúncios, tracking pixels, etc. -->
+
+<!-- Apenas 15% é conteúdo real útil -->
+<article>
+  O artigo começa aqui...
+</article>
+```
+
+Você já deve ter reparado que boa parte do conteúdo web que você tenta ler é **ruído**. Muito texto repetitivo, vazio, inútil, de baixa qualidade, anúncios, spam, etc. Modelos treinados nesses dados **aprendem esses padrões ruins** e acabam reproduzindo-os.
+
+Além disso, você encontra:
+
+**1. Código Boilerplate (Navigation, Footers, Sidebars)**
+
+- Menus de navegação repetidos em milhões de páginas
+- Footers idênticos: "Copyright", "Privacy Policy", "Terms"
+- Sidebars com "Related Articles" genéricos
+- **Problema**: Modelo aprende que texto "bom" sempre tem "Home | About | Contact"
+
+**2. Spam e Conteúdo de Baixa Qualidade**
+
+- Páginas geradas automaticamente para SEO ("Best [X] in [City]" × 1000 cidades)
+- Conteúdo duplicado word-for-word em milhares de sites
+- Spam de comentários: "Nice post! Check out my site [spam link]"
+- **Problema**: Modelo aprende padrões de spam como linguagem "normal"
+
+**3. Conteúdo Adulto e Tóxico**
+
+- Pornografia explícita
+- Discurso de ódio, racismo, sexismo
+- Conteúdo violento ou perturbador
+- **Problema**: Modelo pode reproduzir linguagem tóxica ou gerar conteúdo inapropriado
+
+**4. Duplicação Massiva**
+
+- Mesma notícia copiada em 500 sites de notícias
+- Wikipedia espelhada em dezenas de domains
+- Fóruns que scraped conteúdo uns dos outros
+- **Problema**: Modelo "memoriza" conteúdo específico devido à sobre-exposição
+
+**5. PII (Personally Identifiable Information)**
+
+- Emails, números de telefone, endereços
+- Números de cartão de crédito (sim, estão na web)
+- Dados médicos vazados
+- **Problema**: Questões éticas, legais e de privacidade graves
+
+**6. Problemas de Copyright**
+
+- Livros digitalizados ilegalmente
+- Artigos de jornais pagos copiados
+- Código proprietário vazado
+- **Problema**: Riscos legais massivos para quem usa o modelo
+
+**O Pipeline de Limpeza: Transformando Lixo em Ouro**
+
+Um pipeline típico de produção tem múltiplos estágios: Language Filtering, Quality Filtering, Deduplicação, PII Removal, Toxicity Filtering, Copyright Filtering. Cada estágio remove uma fração significativa do conteúdo bruto.
+
+**Estágio 1: Language Filtering**
+
+- Remove documentos em idiomas não-desejados
+- Usa detecção de idioma (fastText, langdetect)
+- Mantém: inglês, português, espanhol, etc. (dependendo do objetivo)
+- **Remove ~30-40% do crawl** (páginas em idiomas raros ou misturados)
+
+**Estágio 2: Quality Filtering**
+
+Aplicando heurísticas de qualidade textual:
+
+```python
+import math
+from collections import Counter
+
+def calculate_entropy(text):
+    """Calcula entropia de Shannon dos tokens (diversidade vocabular)"""
+    words = text.lower().split()
+    if not words:
+        return 0.0
+
+    # Conta frequência de cada palavra
+    word_counts = Counter(words)
+    total_words = len(words)
+
+    # Calcula entropia: H = -Σ(p(x) * log2(p(x)))
+    entropy = 0.0
+    for count in word_counts.values():
+        probability = count / total_words
+        entropy -= probability * math.log2(probability)
+
+    return entropy
+
+def count_stopwords(text):
+    """Conta stopwords comuns (palavras funcionais)"""
+    # Stopwords básicas em inglês
+    stopwords = {
+        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+        'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+        'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+        'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their'
+    }
+
+    words = text.lower().split()
+    stopword_count = sum(1 for word in words if word in stopwords)
+    return stopword_count
+
+def count_uppercase(text):
+    """Conta caracteres maiúsculos"""
+    return sum(1 for c in text if c.isupper())
+
+def count_duplicates(lines):
+    """Calcula proporção de linhas duplicadas"""
+    if not lines:
+        return 0.0
+    line_counts = Counter(lines)
+    duplicates = sum(count - 1 for count in line_counts.values() if count > 1)
+    return duplicates / len(lines)
+
+def is_high_quality(text):
+    # Proporção de stopwords (palavras comuns)
+    words = len(text.split())
+    if words == 0:
+        return False
+
+    stopword_ratio = count_stopwords(text) / words
+    if stopword_ratio < 0.2:  # Muito técnico ou spam
+        return False
+
+    # Entropia de tokens (diversidade vocabular)
+    token_entropy = calculate_entropy(text)
+    if token_entropy < 3.0:  # Muito repetitivo
+        return False
+
+    # Proporção de letras maiúsculas
+    if len(text) > 0:
+        upper_ratio = count_uppercase(text) / len(text)
+        if upper_ratio > 0.3:  # MUITO SPAM ASSIM
+            return False
+
+    # Número de linhas duplicadas
+    duplicate_lines = count_duplicates(text.split('\n'))
+    if duplicate_lines > 0.5:  # Mais de 50% repetido
+        return False
+
+    return True
+```
+
+**Remove ~20-30% adicional** (conteúdo de baixíssima qualidade)
+
+**Estágio 3: Deduplicação**
+
+Técnica sofisticada usando MinHash ou SimHash para detectar near-duplicates:
+
+- **Duplicação Exata**: Fácil (hash MD5), remove cópias idênticas
+- **Near-Duplicates**: Difícil — detecta documentos "quase iguais"
+
+Exemplo: "A capital da França é Paris" vs "Paris é a capital da França" são semanticamente idênticos mas literalmente diferentes.
+
+**MinHash** cria "fingerprints" que preservam similaridade:
+- Documentos similares → fingerprints similares
+- Permite detectar duplicações em **tempo sub-linear**
+- **Remove ~20-30% adicional** (conteúdo duplicado)
+
+**Estágio 4: PII Removal**
+
+Usando regex patterns e NER (Named Entity Recognition):
+
+```python
+patterns = {
+    'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+    'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
+    'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
+    'credit_card': r'\b\d{4}[- ]?\d{4}[- ]?\d{4}[- ]?\d{4}\b'
+}
+
+# Substituir por placeholders ou remover
+text = re.sub(patterns['email'], '[EMAIL]', text)
+```
+
+NER detecta nomes de pessoas, organizações, localizações e os redacta ou contextualiza apropriadamente.
+
+**Estágio 5: Toxicity Filtering**
+
+Usa modelos treinados para detectar conteúdo tóxico:
+
+- **Perspective API** (Google): Score de toxicidade 0-1
+- **Detoxify**: Modelo open-source para hate speech
+- **Custom filters**: Listas de palavras ofensivas
+
+Trade-off importante: filtrar agressivamente remove conteúdo tóxico mas também pode remover discussões legítimas sobre tópicos sensíveis.
+
+**Estágio 6: Copyright Filtering**
+
+- Detecta trechos de livros conhecidos usando n-gram matching
+- Remove artigos de jornais pagos
+- Filtra código com licenças restritivas
+- **Difícil**: Linha tênue entre "fair use" e violação
+
+**Resultado Final**
+
+Após todos esses estágios:
+- **Entrada**: 100TB de Common Crawl raw
+- **Saída**: 5-10TB de texto limpo e de qualidade
+- **Taxa de rejeição**: **~90-95%**
+
+Isso não é desperdício, é essencial. Os 5-10TB restantes são ordens de magnitude mais valiosos que os 100TB originais.
+
+**O Custo Oculto**
+
+Data cleaning é:
+
+- **Caro**: Requer computação massiva para processar petabytes
+- **Demorado**: Pode levar semanas ou MESES
+- **Trabalhoso**: Requer expertise em NLP, sistemas distribuídos
+- **Iterativo**: Múltiplas passagens, refinamento constante
+
+Mas é absolutamente crítico. A diferença entre GPT-3/4/5 e um modelo medíocre não está apenas na arquitetura, está na qualidade dos dados de treinamento.
+
+#### Implicações para Construção de Agentes
+
+Para você que está construindo agentes com LLMs, entender dados de treinamento é extremamente importante. Aqui estão algumas considerações práticas:
+
+**1. Escolha de Modelo**
+
+Pergunte: "Meu domínio estava bem representado nos dados de treinamento?"
+
+Exemplos:
+
+- **Agente médico**: Modelo treinado em papers médicos?
+- **Agente legal**: Modelo viu contratos, jurisprudência?
+- **Agente código**: Que linguagens estavam no treinamento?
+
+Se o modelo não foi treinado no seu domínio, as respostas podem ser superficiais ou erradas e todo o nosso esforço de construção de agentes eficientes pode ser em vão.
+
+**2. Limitações de Conhecimento**
+
+O modelo "sabe" apenas o que viu:
+
+- **Data cutoff**: Nada após a data de treinamento
+- **Cobertura geográfica**: Viés para conteúdo em inglês/ocidental
+- **Tópicos de nicho**: Conhecimento superficial se não estava nos dados
+
+**3. "Augmentação" via RAG**
+
+Para domínios específicos, **Retrieval-Augmented Generation** (RAG) complementa o conhecimento do modelo:
+
+- Busca documentos relevantes do seu domínio
+- Injeta no contexto antes da geração
+- Compensa lacunas nos dados de treinamento
+
+Porém, isso gera um trade-off entre latência, custo e complexidade. Se o modelo já é ruim, RAG não salva. Vamos explorar RAG em profundidade no Capítulo 5.
+
+**4. Fine-Tuning Domínio-Específico**
+
+Se o modelo base não foi treinado no seu domínio:
+
+- Continue pré-treinamento com seus dados
+- Fine-tune em exemplos do seu domínio
+- Mas cuidado com catastrophic forgetting!
+
+A mensagem fundamental: **dados são o coração do modelo**. Arquitetura sofisticada com dados ruins produz um modelo ruim. Arquitetura simples com dados excelentes produz um modelo excelente.
+
+### Tokenização: A Camada Crítica Entre Texto e Modelo
+
+Antes de qualquer processamento neural acontecer, o texto precisa ser convertido em tokens, as unidades atômicas que o modelo realmente processa. Tokenização não é apenas "dividir texto em pedaços", é uma **compressão lossy** que determina o que o modelo pode aprender e como ele generaliza. Uma má escolha de tokenização pode degradar performance em 10-20% mesmo com arquitetura e treinamento perfeitos, e diferentemente de hiperparâmetros, não pode ser ajustada depois do treinamento sem re-treinar o modelo do zero.
+
+#### O Problema Fundamental: Granularidade vs. Vocabulário
+
+Todo esquema de tokenização enfrenta um trade-off fundamental entre três fatores conflitantes: tamanho do vocabulário, comprimento da sequência e capacidade de generalização. Vamos dissecar cada um:
+
+**1. Tamanho do Vocabulário**
+
+- Vocabulário maior = mais parâmetros na embedding layer e na camada de saída
+- Para um vocabulário de 50K tokens e dimensão de modelo 4096:
+  - Embedding layer: 50K × 4096 = **200M parâmetros**
+  - Output layer (logits): 4096 × 50K = **200M parâmetros**
+  - Total: **400M parâmetros só para vocabulário** (~0.5% de um modelo 70B)
+
+**2. Comprimento de Sequência**
+
+- Tokens mais granulares (ex: caracteres) = sequências mais longas
+- Atenção é O(n²): Dobrar o comprimento = **4× mais computação**
+- Context window limitado: Mais tokens = menos contexto real
+
+**3. Capacidade de Generalização**
+
+- Vocabulário pequeno força o modelo a compor significados
+- Vocabulário grande permite memorização direta de padrões
+
+Não há solução perfeita, apenas trade-offs conscientes com os quais engenheiros de machine learning devem lidar.
+
+Vamos explorar os extremos e a solução intermediária mais popular.
+
+#### Tokenização por Caracteres: O Extremo Composicional
+
+Tokenização por caracteres usa cada caractere como um token (ex: UTF-8 bytes = 256 tokens possíveis).
+
+**Vantagens:**
+
+- Vocabulário minúsculo: 256 tokens para UTF-8
+- **Zero out-of-vocabulary (OOV)**: Qualquer string Unicode é representável
+- Máxima generalização: Modelo precisa aprender composição desde o nível mais básico
+
+**Desvantagens Práticas:**
+
+Considere a frase "The transformer architecture revolutionized NLP":
+
+```
+Tokenização por palavras: 5 tokens
+Tokenização por caracteres: 51 tokens (incluindo espaços)
+```
+
+Isso significa
+
+- **10× mais tokens** para representar o mesmo conteúdo
+- **100× mais computação** na atenção (O(n²))
+- Context window de 4096 tokens de caracteres = **apenas ~800 palavras** de contexto real
+
+**Performance Real:**
+
+Modelos baseados em caracteres como CharRNN conseguem ~30-40% mais perplexidade (pior) que modelos equivalentes baseados em subwords em benchmarks de linguagem [@kawakami2017learning; @vania2017characters]. O problema é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional.
+
+**Quando Faz Sentido:**
+
+- Tasks onde morfologia é crítica: correção ortográfica, transliteração
+- Idiomas com morfologia rica (ex: Turco, Finlandês)
+- Quando você precisa de robustez absoluta a typos e OOV
+
+#### Tokenização por Palavras: O Extremo Lexical
+
+Tokenização por palavras trata cada palavra como um token atômico.
+
+**Aparentemente Ideal:**
+
+Parece natural: palavras são unidades semânticas, certo? Em inglês, talvez. Mas considere:
+
+**Problema 1: Explosão de Vocabulário**
+
+Vocabulário real de inglês: ~170K palavras ativas, ~470K no total incluindo jargões técnicos.
+
+Agora adicione:
+
+- Inflexões: run, runs, running, ran (4 tokens)
+- Variantes: color/colour, organize/organise
+- Compostos: "machine learning", "machine-learning", "machinelearning"
+- Nomes próprios: Milhões de entidades (pessoas, lugares, empresas)
+- Números: Cada número é uma "palavra" diferente?
+- Typos comuns: "teh", "recieve", etc.
+
+Resultado: Vocabulário realista de **500K-1M+ tokens** para cobertura *razoável*.
+
+**Custo Computacional:**
+
+Para vocabulário de 500K e modelo com d=4096 (onde **d** é a dimensão do modelo, o tamanho do vetor que representa cada token internamente, também chamada de *hidden size* ou *d_model*):
+
+- Embedding: 500K × 4096 = **2B parâmetros**
+- Output layer: 4096 × 500K = **2B parâmetros**
+- **Total: 4B parâmetros (>5% de um modelo 70B) gastos apenas no vocabulário**
+
+Isso é insustentável. Pior ainda: a maioria desses tokens será vista raramente, resultando em embeddings mal-treinadas.
+
+**Problema 2: Out-of-Vocabulary (OOV)**
+
+Qualquer palavra não vista no treinamento vira `<unk>` (unknown token), e o modelo perde completamente a informação:
+
+```
+"The cytokine storm caused by SARS-CoV-2 infection"
+→ ["The", "<unk>", "storm", "caused", "by", "<unk>", "infection"]
+```
+
+**Por que isso é crítico:**
+
+1. **Perda de Informação Semântica**: O modelo não consegue decompor "cytokine" em componentes significativos como "cyto-" (célula) + "-kine" (movimento) para inferir que se trata de uma molécula de sinalização celular.
+1. **Todas as palavras desconhecidas colapsam no mesmo token**: "cytokine", "melatonin", "serotonin" e qualquer termo técnico se tornam indistinguíveis, todos viram o mesmo `<unk>`. O modelo não pode aprender nem generalizar.
+1. **Problema em Domínios Especializados**: Em textos médicos, legais ou científicos, 15-30% dos tokens podem ser OOV, tornando o modelo praticamente inútil sem fine-tuning massivo.
+1. **Números e Código**: Cada número ou identificador único vira `<unk>`, impossibilitando raciocínio aritmético ou compreensão de código.
+
+**Problema 3: Ineficiência Multilíngue**
+
+Idiomas aglutinantes como Alemão, Turco, Finlandês e Húngaro têm palavras compostas arbitrariamente longas formadas pela concatenação produtiva de morfemas:
+
+```
+Alemão: "Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft"
+(Associação de funcionários subordinados do chefe de administração dos serviços elétricos de vapor de Danúbio)
+
+Turco: "muvaffakiyetsizleştiricileştiriveremeyebileceklerimizdenmişsinizcesine"
+(como se você fosse daqueles que não poderíamos facilmente transformar em um fracasso)
+```
+
+**Problemas Técnicos Concretos:**
+
+1. **Explosão Combinatória do Vocabulário**: Em Alemão, "Software" pode combinar com centenas de substantivos: "Softwareentwicklung" (desenvolvimento), "Softwarearchitektur" (arquitetura), "Softwarequalität" (qualidade). Cada combinação seria um token único [@acs2019morphological].
+1. **Distribuição de Frequência Extremamente Long-Tail**: A palavra composta "Softwareentwicklungsingenieur" (engenheiro de desenvolvimento de software) pode aparecer 100 vezes no corpus. Mas suas variações "Softwareentwicklungsingenieurbüro" (escritório de engenheiros...), "Softwareentwicklungsingenieurteam" (equipe de engenheiros...) aparecem 2-3 vezes. Resultado: milhares de tokens com frequência < 10, embeddings **subtreinadas**.
+1. **Ineficiência de Representação**: Para cobrir razoavelmente Alemão técnico, precisaríamos de ~2M+ tokens no vocabulário apenas para esse idioma. Em modelos multilíngues, isso significa que ~80-90% dos slots de vocabulário são desperdiçados em variações que aparecem < 5 vezes no treinamento [@chung2020improving].
+1. **Impacto em Modelos Multilíngues**: GPT-3 com vocabulário de 50K tokens aloca ~40K para Inglês, sobrando apenas ~10K para todos os outros idiomas [@brown2020language]. Resultado: textos em Tailandês, Árabe ou Finlandês usam 3-5× mais tokens que Inglês para o mesmo conteúdo, custando mais e sendo truncados mais facilmente [@rust2021good].
+
+#### Byte Pair Encoding (BPE): O Compromisso Ótimo
+
+Byte Pair Encoding (BPE) [@sennrich2016neural] resolve simultaneamente todos os problemas anteriores através de um princípio elegante: **construir vocabulário bottom-up baseado em frequência estatística dos dados**. Originalmente um algoritmo de compressão de dados dos anos 1994, BPE foi adaptado para NLP por Sennrich et al. em 2016 especificamente para tradução neural, e desde então tornou-se o padrão de facto para tokenização em LLMs. Hoje é usado por GPT, LLaMA, Claude, Mistral e praticamente todos os LLMs modernos.
+
+**O que BPE garante:**
+
+- **Zero OOV**: Sempre pode decompor qualquer palavra em subwords ou, no pior caso, caracteres/bytes individuais
+- **Vocabulário fixo e controlado**: Tipicamente 32K-100K tokens — balanceando eficiência e custo computacional
+- **Adaptativo aos dados**: Tokens comuns (como "the", "ing", "tion") emergem naturalmente da frequência no corpus
+- **Multilíngue eficiente**: Morfemas compartilhados entre idiomas são reutilizados (ex: "inter-", "anti-", "-tion")
+- **Determinístico e reversível**: Mesma entrada sempre produz mesma tokenização
+
+**Trade-off fundamental**: BPE sacrifica tokenização semanticamente perfeita (que exigiria compreensão linguística profunda) por tokenização estatisticamente ótima baseada apenas em co-ocorrências, o que funciona surpreendentemente bem na prática.
+
+**Algoritmo Detalhado:**
+
+**Passo 1: Inicialização**
+
+Comece com vocabulário de caracteres individuais (ou bytes UTF-8):
+
+```python
+vocab = ['a', 'b', 'c', ..., 'z', ' ', '.', '!', ...]  # ~256 symbols
+corpus = ["low", "lower", "newest", "widest"]
+```
+
+Represente corpus como sequências de caracteres:
+
+```
+"low"    -> ['l', 'o', 'w']
+"lower"  -> ['l', 'o', 'w', 'e', 'r']
+"newest" -> ['n', 'e', 'w', 'e', 's', 't']
+"widest" -> ['w', 'i', 'd', 'e', 's', 't']
+```
+
+**Passo 2: Contar Pares Adjacentes**
+
+```
+('l', 'o'): 2 ocorrências
+('o', 'w'): 2 ocorrências  ← mais frequente
+('w', 'e'): 2 ocorrências  ← também frequente
+('e', 's'): 2 ocorrências
+('s', 't'): 2 ocorrências
+...
+```
+
+**Passo 3: Merge do Par Mais Frequente**
+
+Merge ('o', 'w') → 'ow', adicione ao vocabulário:
+
+```python
+vocab.append('ow')
+```
+
+Atualize corpus:
+
+```
+"low"    -> ['l', 'ow']
+"lower"  -> ['l', 'ow', 'e', 'r']
+"newest" -> ['n', 'e', 'w', 'e', 's', 't']  # não afetado
+"widest" -> ['w', 'i', 'd', 'e', 's', 't']  # não afetado
+```
+
+**Passo 4: Repetir até Vocabulário Desejado**
+
+Continue mergindo pares mais frequentes:
+
+```
+Iteração 2: ('e', 's') → 'es'
+Iteração 3: ('es', 't') → 'est'
+Iteração 4: ('l', 'ow') → 'low'
+Iteração 5: ('n', 'e') → 'ne'
+...
+```
+
+Resultado final após várias iterações:
+
+```
+"low"    -> ['low']           # palavra completa
+"lower"  -> ['low', 'er']     # subwords semânticos
+"newest" -> ['new', 'est']    # subwords semânticos
+"widest" -> ['wid', 'est']    # subwords semânticos
+```
+
+**Propriedades Emergentes Poderosas:**
+
+1. **Palavras Comuns = Tokens Únicos**
+
+Palavras frequentes são rapidamente *merged* em tokens únicos:
+
+```python
+"the"  -> ["the"]     # palavra completa, 1 token
+"and"  -> ["and"]     # palavra completa, 1 token
+```
+
+Isso mantém eficiência para o texto comum.
+
+2. **Palavras Raras = Composição de Subwords**
+
+Palavras raras são naturalmente decompostas:
+
+```python
+"unhappiness" -> ["un", "happi", "ness"]
+# Cada subword tem significado: un- (negação), happi (feliz), -ness (estado)
+```
+
+O modelo pode inferir significado através da composição, mesmo nunca tendo visto "unhappiness" inteiro.
+
+3. **Zero OOV Guaranteed**
+
+Como o vocabulário base são caracteres, **qualquer string** pode ser representada (no pior caso, como caracteres individuais):
+
+```python
+"supercalifragilisticexpialidocious"
+→ ["super", "cal", "if", "rag", "il", "istic", "exp", "ial", "id", "oc", "ious"]
+# Ou no pior caso: ['s', 'u', 'p', 'e', 'r', ...]
+```
+
+4. **Eficiência Multilíngue**
+
+Subwords funcionam naturalmente para múltiplos idiomas:
+
+```python
+# Inglês
+"running" -> ["run", "ning"]
+
+# Alemão (palavra composta)
+"Zusammenarbeit" -> ["Zu", "sammen", "arbeit"]
+# zusammen = junto, arbeit = trabalho
+
+# Japonês (mistura de scripts)
+"東京タワー" -> ["東京", "タ", "ワー"]
+```
+
+#### Variantes Modernas: WordPiece e SentencePiece
+
+**WordPiece (BERT, DistilBERT):**
+
+Similar a BPE, mas usa **likelihood maximization** em vez de frequência bruta. A ideia é mergir pares que aumentam a probabilidade (likelihood) do corpus ser gerado pelo vocabulário:
+
+```
+Score(pair) = log P(pair) / (P(left) × P(right))
+```
+
+**Intuição**: Este score mede **quanto mais provável** é ver os dois tokens juntos vs. separados. Se "un" e "happy" aparecem juntos muito mais frequentemente do que esperaríamos pela frequência individual de cada um, o score é alto e vale mergir em "unhappy".
+
+**Exemplo**:
+
+- "un" aparece 1000× no corpus (P(un) = 0.001)
+- "happy" aparece 500× no corpus (P(happy) = 0.0005)
+- "unhappy" aparece 300× no corpus (P(unhappy) = 0.0003)
+
+Se fossem independentes, esperaríamos "un" + "happy" juntos apenas 0.001 × 0.0005 = 0.0000005 vezes. Mas vemos 0.0003! Isso indica forte associação → alto score → merge.
+
+**Diferença vs. BPE**: BPE mergeria simplesmente o par mais frequente (pode ser "e" + " " que aparece milhões de vezes mas é semanticamente vazio). WordPiece prefere pares que têm **associação estatística forte**, não apenas frequência alta.
+
+Na prática, a diferença de performance entre BPE e WordPiece é marginal (~1-2% em benchmarks), então a escolha é mais por preferência de implementação.
+
+**SentencePiece (T5, XLNet, LLaMA):**
+
+Trata input como **sequência de bytes UTF-8** em vez de caracteres Unicode. Vantagens:
+
+1. **Language-agnostic**: Não precisa de regras de segmentação específicas por idioma
+1. **Espaços são tokens**: ` ` é tratado como token especial `▁` (underscore)
+1. **Reversibilidade perfeita**: `decode(encode(text)) == text` sempre
+
+Exemplo:
+
+```python
+# SentencePiece
+"Hello world" -> ["▁Hello", "▁world"]
+# ▁ indica início de palavra
+
+# Reversível:
+["▁Hello", "▁world"] -> "Hello world"
+```
+
+Isso permite processar qualquer idioma (incluindo idiomas sem espaços como Chinês/Japonês) uniformemente.
+
+## Exercícios Práticos
+
+Agora que você compreende como foundation models são treinados, tokenização e dados de pré-treinamento, vamos aplicar esse conhecimento na prática.
+
+### Exercício 1: Análise de Eficiência de Tokenização
+
+**Objetivo:** Entender o impacto da tokenização em diferentes idiomas e calcular custos de API.
+
+**Passo a Passo:**
+
+```python
+# Instalação necessária: pip install tiktoken transformers
+
+import tiktoken
+
+# Carregar tokenizer GPT-4
+try:
+    enc = tiktoken.encoding_for_model("gpt-4")
+except KeyError:
+    enc = tiktoken.get_encoding("cl100k_base")
+
+def analyze_tokenization(text, language):
+    """Analisa eficiência de tokenização para um texto"""
+    tokens = enc.encode(text)
+    token_count = len(tokens)
+
+    print(f"\n{'='*60}")
+    print(f"Idioma: {language}")
+    print(f"{'='*60}")
+    print(f"Texto original: {text}")
+    print(f"Número de tokens: {token_count}")
+    print(f"Caracteres: {len(text)}")
+    print(f"Razão caracteres/token: {len(text)/token_count:.2f}")
+
+    # Visualizar tokens
+    print("\nTokens decodificados:")
+    for i, token in enumerate(tokens[:10]):  # Mostrar apenas primeiros 10
+        decoded = enc.decode([token])
+        print(f"  Token {i}: '{decoded}' (ID: {token})")
+
+    if len(tokens) > 10:
+        print(f"  ... e mais {len(tokens) - 10} tokens")
+
+    return token_count
+
+# Teste 1: Comparar eficiência entre idiomas
+print("\n🔍 TESTE 1: Eficiência Multilíngue\n")
+
+texts = {
+    "Inglês": "The quick brown fox jumps over the lazy dog. Machine learning models require large datasets.",
+    "Português": "A rápida raposa marrom pula sobre o cachorro preguiçoso. Modelos de aprendizado de máquina requerem grandes conjuntos de dados.",
+    "Japonês": "素早い茶色の狐が怠け者の犬を飛び越える。機械学習モデルは大規模なデータセットを必要とする。",
+    "Espanhol": "El rápido zorro marrón salta sobre el perro perezoso. Los modelos de aprendizaje automático requieren grandes conjuntos de datos."
+}
+
+results = {}
+for lang, text in texts.items():
+    results[lang] = analyze_tokenization(text, lang)
+
+# Comparação
+print(f"\n{'='*60}")
+print("📊 COMPARAÇÃO DE EFICIÊNCIA")
+print(f"{'='*60}")
+baseline = results["Inglês"]
+for lang, count in results.items():
+    efficiency = (count / baseline) * 100
+    print(f"{lang:12} {count:4} tokens ({efficiency:6.1f}% vs Inglês)")
+
+# Teste 2: Estimar custos de API
+print("\n\n💰 TESTE 2: Estimativa de Custos de API\n")
+
+# Preços típicos (valores aproximados em USD por 1K tokens)
+pricing = {
+    "GPT-4 Turbo": {"input": 0.01, "output": 0.03},
+    "GPT-3.5 Turbo": {"input": 0.0005, "output": 0.0015},
+    "Claude 3 Opus": {"input": 0.015, "output": 0.075},
+    "Claude 3 Haiku": {"input": 0.00025, "output": 0.00125}
+}
+
+# Simular prompt típico
+prompt = texts["Português"]
+expected_output_tokens = 200  # Resposta esperada
+input_tokens = results["Português"]
+
+print(f"Prompt: '{prompt[:50]}...'")
+print(f"Tokens de input: {input_tokens}")
+print(f"Tokens de output estimados: {expected_output_tokens}")
+print(f"\nCustos estimados por requisição:\n")
+
+for model, prices in pricing.items():
+    input_cost = (input_tokens / 1000) * prices["input"]
+    output_cost = (expected_output_tokens / 1000) * prices["output"]
+    total_cost = input_cost + output_cost
+    print(f"{model:20} ${total_cost:.6f} (input: ${input_cost:.6f} + output: ${output_cost:.6f})")
+
+# Teste 3: Otimização de Prompt
+print("\n\n✂️ TESTE 3: Otimização de Prompt para Reduzir Tokens\n")
+
+verbose_prompt = """
+Por favor, você poderia me ajudar a analisar o seguinte texto e me fornecer uma análise
+completa e detalhada sobre o sentimento expresso no texto, incluindo se é positivo,
+negativo ou neutro? Aqui está o texto que eu gostaria que você analisasse:
+
+"Este produto é excelente! Recomendo fortemente."
+
+Muito obrigado pela sua ajuda!
+"""
+
+optimized_prompt = """
+Classifique o sentimento (positivo/negativo/neutro):
+
+"Este produto é excelente! Recomendo fortemente."
+"""
+
+verbose_tokens = len(enc.encode(verbose_prompt))
+optimized_tokens = len(enc.encode(optimized_prompt))
+reduction = ((verbose_tokens - optimized_tokens) / verbose_tokens) * 100
+
+print(f"Prompt verboso: {verbose_tokens} tokens")
+print(f"Prompt otimizado: {optimized_tokens} tokens")
+print(f"Redução: {reduction:.1f}%")
+print(f"\nEconomia em 1000 requisições (GPT-4):")
+saved_tokens = (verbose_tokens - optimized_tokens) * 1000
+saved_cost = (saved_tokens / 1000) * pricing["GPT-4 Turbo"]["input"]
+print(f"  Tokens economizados: {saved_tokens:,}")
+print(f"  Custo economizado: ${saved_cost:.2f}")
+```
+
+**Desafios adicionais:**
+
+1. **Compare tokenizers diferentes**: Use `AutoTokenizer.from_pretrained()` para comparar GPT-4, LLaMA e Mistral
+2. **Analise código**: Tokenize código Python/JavaScript e veja como diferentes tokenizers lidam com sintaxe
+3. **Crie um otimizador de prompts**: Função que sugere versões mais curtas mantendo o significado
+
+### Exercício 2: Explorando Dados de Pré-Treinamento
+
+**Objetivo:** Entender a composição e qualidade de datasets usados para treinar foundation models.
+
+**Passo a Passo:**
+
+```python
+# Instalação: pip install datasets
+
+from datasets import load_dataset
+from collections import Counter
+import re
+
+# Carregar uma amostra do dataset C4 (usado para treinar T5, LLaMA)
+print("📦 Carregando amostra do dataset C4 (Common Crawl)...\n")
+
+# Carregar apenas uma pequena amostra para análise
+dataset = load_dataset("c4", "en", split="train", streaming=True)
+
+# Analisar primeiros 100 exemplos
+sample_size = 100
+texts = []
+domains = []
+
+print(f"Analisando {sample_size} documentos...\n")
+
+for i, example in enumerate(dataset):
+    if i >= sample_size:
+        break
+
+    text = example['text']
+    url = example.get('url', '')
+
+    texts.append(text)
+
+    # Extrair domínio do URL
+    domain_match = re.search(r'https?://(?:www\.)?([^/]+)', url)
+    if domain_match:
+        domains.append(domain_match.group(1))
+
+# Análise 1: Estatísticas de comprimento
+print("="*60)
+print("📊 ESTATÍSTICAS DE COMPRIMENTO")
+print("="*60)
+
+lengths = [len(text.split()) for text in texts]
+avg_length = sum(lengths) / len(lengths)
+min_length = min(lengths)
+max_length = max(lengths)
+
+print(f"Comprimento médio: {avg_length:.0f} palavras")
+print(f"Comprimento mínimo: {min_length} palavras")
+print(f"Comprimento máximo: {max_length} palavras")
+
+# Análise 2: Distribuição de domínios
+print(f"\n{'='*60}")
+print("🌐 DISTRIBUIÇÃO DE DOMÍNIOS (Top 10)")
+print(f"{'='*60}\n")
+
+domain_counts = Counter(domains)
+for domain, count in domain_counts.most_common(10):
+    percentage = (count / len(domains)) * 100
+    print(f"{domain:40} {count:3} ({percentage:5.1f}%)")
+
+# Análise 3: Tipos de conteúdo (heurística simples)
+print(f"\n{'='*60}")
+print("📝 TIPOS DE CONTEÚDO (baseado em heurísticas)")
+print(f"{'='*60}\n")
+
+content_types = {
+    "Código": 0,
+    "Conversação/Forum": 0,
+    "Notícia/Artigo": 0,
+    "Técnico/Documentação": 0,
+    "Outros": 0
+}
+
+for text in texts:
+    # Heurísticas simples para classificar tipo de conteúdo
+    if any(keyword in text.lower() for keyword in ['def ', 'class ', 'function', 'import ', 'return']):
+        content_types["Código"] += 1
+    elif any(keyword in text.lower() for keyword in ['posted by', 'reply', 'comment', 'said:']):
+        content_types["Conversação/Forum"] += 1
+    elif any(keyword in text.lower() for keyword in ['according to', 'reported', 'published']):
+        content_types["Notícia/Artigo"] += 1
+    elif any(keyword in text.lower() for keyword in ['tutorial', 'documentation', 'api', 'parameter']):
+        content_types["Técnico/Documentação"] += 1
+    else:
+        content_types["Outros"] += 1
+
+for content_type, count in content_types.items():
+    percentage = (count / len(texts)) * 100
+    print(f"{content_type:25} {count:3} ({percentage:5.1f}%)")
+
+# Análise 4: Qualidade dos dados (heurísticas)
+print(f"\n{'='*60}")
+print("✅ QUALIDADE DOS DADOS")
+print(f"{'='*60}\n")
+
+quality_issues = {
+    "Muito curtos (< 50 palavras)": 0,
+    "Muita repetição": 0,
+    "Excesso de URLs": 0,
+    "Caracteres não-ASCII": 0
+}
+
+for text in texts:
+    words = text.split()
+
+    if len(words) < 50:
+        quality_issues["Muito curtos (< 50 palavras)"] += 1
+
+    # Detectar repetição (palavras duplicadas consecutivas)
+    if len(words) > 10:
+        repetitions = sum(1 for i in range(len(words)-1) if words[i] == words[i+1])
+        if repetitions > len(words) * 0.1:  # Mais de 10% de repetição
+            quality_issues["Muita repetição"] += 1
+
+    # URLs
+    url_count = len(re.findall(r'http[s]?://', text))
+    if url_count > 5:
+        quality_issues["Excesso de URLs"] += 1
+
+    # Caracteres não-ASCII (pode indicar encoding issues)
+    non_ascii = sum(1 for c in text if ord(c) > 127)
+    if non_ascii > len(text) * 0.05:  # Mais de 5%
+        quality_issues["Caracteres não-ASCII"] += 1
+
+for issue, count in quality_issues.items():
+    percentage = (count / len(texts)) * 100
+    print(f"{issue:35} {count:3} ({percentage:5.1f}%)")
+
+print(f"\n{'='*60}")
+print("💡 INSIGHTS")
+print(f"{'='*60}")
+print("""
+1. Datasets de pré-treinamento contêm conteúdo extremamente diverso
+2. Qualidade varia significativamente entre documentos
+3. Data cleaning é crucial para remover conteúdo problemático
+4. Balanceamento de domínios afeta conhecimento do modelo
+5. Comprimento dos documentos influencia context window necessário
+""")
+
+```
+
+**Desafios adicionais:**
+
+1. **Compare datasets**: Analise C4, Wikipedia, OpenWebText
+2. **Data cleaning pipeline**: Implemente filtros para remover conteúdo de baixa qualidade
+3. **Análise de viés**: Detecte viés de domínio/tópico no dataset
+
+### Exercício 3: Experimente com Tokenizers Diferentes
+
+**Objetivo:** Comparar comportamento de diferentes estratégias de tokenização.
+
+```python
+from transformers import AutoTokenizer
+
+# Carregar diferentes tokenizers
+tokenizers = {
+    "GPT-2": AutoTokenizer.from_pretrained("gpt2"),
+    "LLaMA 2": AutoTokenizer.from_pretrained("meta-llama/Llama-2-7b-hf"),
+    "Code Llama": AutoTokenizer.from_pretrained("codellama/CodeLlama-7b-hf"),
+    "Mistral": AutoTokenizer.from_pretrained("mistralai/Mistral-7B-v0.1")
+}
+
+# Teste 1: Texto natural
+print("="*60)
+print("TESTE 1: Texto Natural")
+print("="*60)
+
+text_natural = "The transformer architecture revolutionized natural language processing."
+
+for name, tokenizer in tokenizers.items():
+    tokens = tokenizer.encode(text_natural)
+    print(f"\n{name}:")
+    print(f"  Tokens: {len(tokens)}")
+    print(f"  Decodificação: {tokenizer.convert_ids_to_tokens(tokens)[:10]}")
+
+# Teste 2: Código
+print(f"\n{'='*60}")
+print("TESTE 2: Código Python")
+print("="*60)
+
+code = """
+def fibonacci(n):
+    if n <= 1:
+        return n
+    return fibonacci(n-1) + fibonacci(n-2)
+"""
+
+for name, tokenizer in tokenizers.items():
+    tokens = tokenizer.encode(code)
+    print(f"\n{name}:")
+    print(f"  Tokens: {len(tokens)}")
+    decoded_tokens = tokenizer.convert_ids_to_tokens(tokens)
+    print(f"  Primeiros tokens: {decoded_tokens[:15]}")
+
+print("\n💡 Observe que Code Llama tokeniza código mais eficientemente!")
+```
+
+**Questões para reflexão:**
+
+1. Qual tokenizer é mais eficiente para texto em português?
+2. Como tokenizers otimizados para código diferem dos genéricos?
+3. Qual impacto isso tem em aplicações de agentes que processam código?
+
+## Conclusão
+
+Neste capítulo, exploramos como foundation models aprendem e representam conhecimento através do paradigma de pré-treinamento. Compreendemos a importância fundamental dos dados de treinamento, desde a composição cuidadosa de datasets até o processo meticuloso de data cleaning que transforma dados brutos em recursos valiosos para o aprendizado.
+
+Mergulhamos profundamente em tokenização, a camada crítica entre texto e modelo, explorando diferentes abordagens (caracteres, palavras, BPE) e suas implicações práticas para construção de agentes. Vimos como escolhas de tokenização afetam não apenas a eficiência computacional, mas também as capacidades fundamentais do modelo em tarefas como aritmética, processamento multilíngue e compreensão de código.
+
+Entendemos também as capacidades emergentes que surgem em modelos suficientemente grandes, como in-context learning, chain-of-thought reasoning e instruction following — fenômenos que não foram explicitamente programados mas emergem naturalmente do processo de treinamento em escala massiva.
+
+Por fim, exploramos os desafios práticos de treinar modelos gigantes: scaling laws que nos permitem prever performance, técnicas de paralelização necessárias para distribuir computação, questões de estabilidade numérica e estratégias de learning rate scheduling.
+
+Este conhecimento sobre o processo de treinamento é essencial para entender as capacidades e limitações dos foundation models, preparando-nos para o próximo capítulo onde exploraremos fine-tuning, técnicas de otimização e como adaptar esses modelos para tarefas e domínios específicos.
