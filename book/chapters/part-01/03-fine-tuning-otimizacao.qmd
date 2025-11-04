@@ -1,8 +1,21 @@
 # Capítulo 3: Fine-Tuning e Otimização {.unnumbered}
 
+Nos capítulos anteriores, exploramos a arquitetura dos Transformers e entendemos como foundation models são treinados em escala massiva usando trilhões de tokens. Esses modelos pré-treinados possuem capacidades gerais impressionantes, mas frequentemente precisam ser adaptados para domínios específicos ou tarefas particulares onde seu desempenho genérico não é suficiente.
+
+Imagine que você precisa construir um agente de IA especializado em análise de contratos jurídicos. Um modelo como GPT-4 ou LLaMA possui conhecimento geral sobre linguagem e alguns conceitos legais, mas não foi otimizado para entender a terminologia específica, precedentes jurídicos brasileiros ou formatos contratuais particulares da sua aplicação. Como fazer essa transição de conhecimento geral para expertise específica?
+
+A resposta está no **fine-tuning** - o processo de ajustar um modelo pré-treinado usando dados específicos do seu domínio ou tarefa. Mas fine-tuning não é apenas "treinar mais um pouco". Envolve decisões cruciais sobre:
+
+- **Quais parâmetros atualizar?** Todos os 70 bilhões de parâmetros de um LLaMA ou apenas uma fração pequena?
+- **Como balancear custo e performance?** Fine-tuning completo pode custar dezenas de milhares de dólares em GPUs.
+- **Como evitar *catastrophic forgetting*?** O modelo pode "esquecer" capacidades gerais ao especializar-se demais.
+- **Como avaliar se realmente melhorou?** Métricas tradicionais nem sempre capturam qualidade em tarefas complexas.
+
+Neste capítulo, exploraremos as técnicas modernas que tornam fine-tuning prático e econômico, desde abordagens tradicionais até métodos revolucionários como LoRA e QLoRA que democratizaram o acesso a modelos grandes. Também entenderemos quantização, RLHF (o segredo por trás de assistentes como ChatGPT) e frameworks para selecionar o modelo certo para cada situação.
+
 ## Fine-Tuning: Adaptando Foundation Models
 
-Enquanto o pré-treinamento cria modelos com capacidades gerais, o fine-tuning os adapta para tarefas ou domínios específicos. Existem várias estratégias populares. Vamos explorar as principais.
+Existem várias estratégias de fine-tuning, cada uma adequada para diferentes cenários. Vamos explorar as principais abordagens, começando pelas mais diretas até técnicas avançadas de parameter-efficient fine-tuning.
 
 ### Supervised Fine-Tuning (SFT)
 
@@ -520,17 +533,17 @@ Agora que você compreende técnicas de fine-tuning e otimização, vamos aplica
 
 ```python
 # Instalação necessária:
-# pip install transformers peft datasets accelerate bitsandbytes torch
+# uv pip install transformers peft datasets accelerate bitsandbytes torch
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from datasets import load_dataset
+from peft import LoraConfig, get_peft_model
 import json
+import os
 
 # Configuração
-MODEL_NAME = "meta-llama/Llama-2-7b-hf"  # ou "gpt2" para teste rápido
-OUTPUT_DIR = "./llama2-tech-translator-lora"
+MODEL_NAME = "gpt2"  # Modelo pequeno para teste rápido (use Llama-2-7b-hf se tiver acesso)
+OUTPUT_DIR = "./gpt2-tech-translator-lora"
 
 print("🔄 Carregando modelo base...")
 
@@ -575,16 +588,67 @@ print("\n📦 Carregando dataset...")
 
 # Carregar nosso dataset criado anteriormente
 def load_tech_terms_dataset(file_path):
-    """Carrega dataset JSONL de termos técnicos"""
+    """
+    Carrega dataset JSONL de termos técnicos.
+
+    Args:
+        file_path: Caminho para arquivo JSONL
+
+    Returns:
+        Lista de dicionários com 'input' e 'output'
+
+    Raises:
+        FileNotFoundError: Se arquivo não existir
+        json.JSONDecodeError: Se JSON for inválido
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(
+            f"Dataset não encontrado: {file_path}\n"
+            f"Crie o arquivo com exemplos no formato:\n"
+            f'{{"input": "Traduza...", "output": "machine learning"}}'
+        )
+
     data = []
     with open(file_path, 'r', encoding='utf-8') as f:
-        for line in f:
-            data.append(json.loads(line))
+        for line_num, line in enumerate(f, 1):
+            try:
+                data.append(json.loads(line))
+            except json.JSONDecodeError as e:
+                print(f"⚠️  Erro na linha {line_num}: {e}")
+                continue
+
+    if not data:
+        raise ValueError(f"Dataset vazio: {file_path}")
+
     return data
 
-# Carregar dados
+# Carregar dados - ajuste o path conforme sua estrutura
 dataset_path = "../../datasets/tech_terms_pt_en.jsonl"
-data = load_tech_terms_dataset(dataset_path)
+
+try:
+    data = load_tech_terms_dataset(dataset_path)
+except FileNotFoundError as e:
+    print(f"⚠️  {e}")
+    print("📝 Criando dataset de exemplo...")
+
+    # Criar dataset de exemplo se não existir
+    os.makedirs("../../datasets", exist_ok=True)
+    example_data = [
+        {"input": "Traduza o termo técnico de português para inglês: aprendizado de máquina",
+         "output": "machine learning"},
+        {"input": "Traduza o termo técnico de português para inglês: rede neural",
+         "output": "neural network"},
+        {"input": "Traduza o termo técnico de português para inglês: inteligência artificial",
+         "output": "artificial intelligence"},
+        # Adicione mais exemplos aqui...
+    ]
+
+    with open(dataset_path, 'w', encoding='utf-8') as f:
+        for item in example_data:
+            f.write(json.dumps(item, ensure_ascii=False) + '\n')
+
+    data = example_data
+    print(f"✅ Dataset de exemplo criado em {dataset_path}")
 
 # Dividir em treino/validação (80/20)
 split_idx = int(len(data) * 0.8)
@@ -713,6 +777,12 @@ print("""
 3. **QLoRA**: Adicione quantização 4-bit ao modelo base antes de aplicar LoRA
 4. **Avalie quantitativamente**: Calcule BLEU score ou accuracy em dataset de teste
 
+**Questões para reflexão:**
+
+1. Por que LoRA consegue adaptar o modelo com <1% dos parâmetros? O que isso sugere sobre a natureza da adaptação de tarefas?
+2. Quais são os trade-offs entre usar LoRA vs. fine-tuning completo em um cenário de produção real?
+3. Como você decidiria o valor de `r` (rank) para um novo projeto? Quais fatores consideraria?
+
 ### Exercício 2: Quantização e Benchmark de Performance
 
 **Objetivo:** Quantizar um modelo e medir impacto em latência, memória e qualidade.
@@ -720,12 +790,18 @@ print("""
 **Passo a Passo:**
 
 ```python
-# Instalação: pip install llama-cpp-python
+# Instalação: uv pip install llama-cpp-python psutil
 
 import time
 import psutil
 import os
-from llama_cpp import Llama
+
+try:
+    from llama_cpp import Llama
+except ImportError:
+    print("❌ llama-cpp-python não instalado.")
+    print("   Instale com: uv pip install llama-cpp-python")
+    raise
 
 # Função para medir uso de memória
 def get_memory_usage():
@@ -739,16 +815,34 @@ print("="*60)
 
 # Você precisará baixar modelos GGUF previamente
 # Exemplo: https://huggingface.co/TheBloke/Llama-2-7B-GGUF
+#
+# Download com: huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q4_K_M.gguf --local-dir ./models
 
 model_paths = {
-    "FP16": "./models/llama-2-7b.gguf.fp16.bin",
-    "Q8_0": "./models/llama-2-7b.gguf.q8_0.bin",
-    "Q5_K_M": "./models/llama-2-7b.gguf.q5_K_M.bin",
-    "Q4_K_M": "./models/llama-2-7b.gguf.q4_K_M.bin",
+    "Q8_0": "./models/llama-2-7b.Q8_0.gguf",
+    "Q5_K_M": "./models/llama-2-7b.Q5_K_M.gguf",
+    "Q4_K_M": "./models/llama-2-7b.Q4_K_M.gguf",
 }
 
 test_prompt = "Explain quantum computing in simple terms:"
 results = {}
+
+# Verificar se pelo menos um modelo existe
+models_found = [p for p in model_paths.values() if os.path.exists(p)]
+if not models_found:
+    print("⚠️  NENHUM modelo encontrado!")
+    print("\n📥 Para executar este exercício, baixe modelos GGUF:")
+    print("   1. Instale: uv pip install huggingface-hub")
+    print("   2. Baixe modelos:")
+    print("      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q4_K_M.gguf --local-dir ./models")
+    print("      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q5_K_M.gguf --local-dir ./models")
+    print("      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q8_0.gguf --local-dir ./models")
+    print("\n   Ou use qualquer modelo GGUF de sua escolha.")
+    print("\n💡 Para este exercício, você pode:")
+    print("   - Baixar apenas Q4_K_M (mais leve, ~4GB)")
+    print("   - Comparar com Q8_0 para ver diferença de qualidade")
+else:
+    print(f"✅ {len(models_found)} modelo(s) encontrado(s): {models_found}")
 
 for quant_level, model_path in model_paths.items():
     print(f"\n{'='*60}")
@@ -870,21 +964,51 @@ print("Agentes com raciocínio complexo  | Q5_K_M ou superior")
 2. **Profiling detalhado**: Use ferramentas de profiling para identificar gargalos
 3. **Otimizações adicionais**: Combine quantização com Flash Attention e KV-cache
 
+**Questões para reflexão:**
+
+1. Qual é o ponto de "sweet spot" entre compressão e qualidade para sua aplicação? Como você mediria isso?
+2. Por que Q4_K_M geralmente oferece melhor trade-off que Q4_0, apesar de serem ambos 4-bit?
+3. Em que cenários a perda de qualidade de quantização seria inaceitável? Como você testaria isso antes de deployment?
+
 ### Exercício 3: Implementando LLM-as-Judge para Avaliação
 
 **Objetivo:** Criar sistema de avaliação automática usando LLM como juiz.
 
 ```python
-import anthropic  # ou openai
+# Instalação: uv pip install anthropic
+
+import anthropic
 import json
+import os
 from typing import List, Dict
 
 # Carregar dataset de avaliação
-with open("../../datasets/evaluation_examples.jsonl", "r") as f:
-    eval_data = [json.loads(line) for line in f]
+dataset_path = "../../datasets/evaluation_examples.jsonl"
+
+if not os.path.exists(dataset_path):
+    print(f"⚠️  Dataset não encontrado: {dataset_path}")
+    print("   Este dataset foi criado no Capítulo 2.")
+    print("   Você pode criá-lo ou usar exemplos inline.")
+    eval_data = []
+else:
+    with open(dataset_path, "r", encoding="utf-8") as f:
+        eval_data = [json.loads(line) for line in f]
 
 # Configurar cliente
-client = anthropic.Anthropic(api_key="sua-api-key")
+# IMPORTANTE: Defina ANTHROPIC_API_KEY como variável de ambiente
+# export ANTHROPIC_API_KEY="sua-chave-aqui"
+api_key = os.environ.get("ANTHROPIC_API_KEY")
+
+if not api_key:
+    raise ValueError(
+        "❌ ANTHROPIC_API_KEY não definida!\n"
+        "   Defina a variável de ambiente:\n"
+        "   export ANTHROPIC_API_KEY='sua-chave-aqui'\n"
+        "\n   Obtenha sua chave em: https://console.anthropic.com/"
+    )
+
+client = anthropic.Anthropic(api_key=api_key)
+print("✅ Cliente Anthropic configurado")
 
 def evaluate_with_judge(question: str, model_answer: str, correct_answer: str, task: str) -> Dict:
     """Usa Claude como judge para avaliar resposta"""
@@ -998,4 +1122,4 @@ Exploramos RLHF, a técnica crucial que transforma modelos tecnicamente competen
 
 Por fim, desenvolvemos um framework prático para selecionar o modelo certo para cada tarefa, considerando fatores como tamanho, velocidade, custo, context window e requisitos de privacidade.
 
-Este conhecimento sobre fine-tuning e otimização é essencial para construir agentes de IA eficientes e econômicos em produção, preparando-nos para o próximo capítulo onde exploraremos a engenharia de aplicação prática, incluindo limitações dos modelos, capacidades emergentes e técnicas avançadas de prompt engineering.
+Este conhecimento sobre fine-tuning e otimização é essencial para construir agentes de IA eficientes e econômicos em produção. Com essas técnicas, você pode adaptar modelos para suas necessidades específicas, balanceando custo, performance e requisitos de infraestrutura.
