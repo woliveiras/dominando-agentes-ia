@@ -241,7 +241,8 @@ div.csl-indent {
   <li><a href="#feedforward-networks-processamento-não-linear" id="toc-feedforward-networks-processamento-não-linear" class="nav-link" data-scroll-target="#feedforward-networks-processamento-não-linear">Feedforward Networks: Processamento Não-Linear</a></li>
   <li><a href="#mixture-of-experts-moe-eficiência-através-de-especialização" id="toc-mixture-of-experts-moe-eficiência-através-de-especialização" class="nav-link" data-scroll-target="#mixture-of-experts-moe-eficiência-através-de-especialização">Mixture of Experts (MoE): Eficiência através de Especialização</a></li>
   <li><a href="#layer-normalization-e-residual-connections" id="toc-layer-normalization-e-residual-connections" class="nav-link" data-scroll-target="#layer-normalization-e-residual-connections">Layer Normalization e Residual Connections</a></li>
-  <li><a href="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder" id="toc-arquiteturas-encoder-only-decoder-only-e-encoder-decoder" class="nav-link" data-scroll-target="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas Encoder-Only, Decoder-Only e Encoder-Decoder</a></li>
+  <li><a href="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder" id="toc-arquiteturas-encoder-only-decoder-only-e-encoder-decoder" class="nav-link" data-scroll-target="#arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas <em>Encoder-Only</em>, <em>Decoder-Only</em> e <em>Encoder-Decoder</em></a></li>
+  <li><a href="#comparação-entre-arquiteturas-transformer" id="toc-comparação-entre-arquiteturas-transformer" class="nav-link" data-scroll-target="#comparação-entre-arquiteturas-transformer">Comparação entre Arquiteturas Transformer</a></li>
   </ul></li>
   <li><a href="#conclusão" id="toc-conclusão" class="nav-link" data-scroll-target="#conclusão">Conclusão</a></li>
   </ul>
@@ -272,7 +273,7 @@ div.csl-indent {
 <p>Foundation models são considerados a espinha dorsal dos agentes inteligentes. Compreender sua arquitetura, funcionamento interno e capacidades é essencial para que consigamos construir sistemas “agenticos” eficientes, seguros e viáveis financeiramente. Neste capítulo, vamos explorar os conceitos fundamentais por trás dos foundation models, com foco especial na Arquitetura Transformer que os torna possíveis.</p>
 <section id="introdução-a-revolução-dos-foundation-models" class="level2">
 <h2 class="anchored" data-anchor-id="introdução-a-revolução-dos-foundation-models">Introdução: A Revolução dos Foundation Models</h2>
-<p>Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas <em>downstream</em> através de <strong>fine-tuning</strong> ou <strong>prompting</strong> - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.</p>
+<p>Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas <em>downstream</em> através de <em>fine-tuning</em> ou <em>prompting</em> - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.</p>
 <p>Esta mudança de paradigma não é apenas uma questão de conveniência, ela reflete uma compreensão mais profunda de como o conhecimento pode ser representado e transferido em sistemas artificiais.</p>
 <p>O termo “foundation model” foi cunhado por pesquisadores de Stanford em 2021 <span class="citation" data-cites="bommasani2021opportunities">(<a href="../99-references.html#ref-bommasani2021opportunities" role="doc-biblioref">Bommasani et al. 2021</a>)</span> para descrever modelos que são (1) treinados em dados amplos e diversos usando <em>self-supervision</em>, (2) servem como base para uma variedade de tarefas downstream, e (3) demonstram capacidades emergentes que não foram explicitamente programadas para fazer. Large Language Models (LLMs) como GPT <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>, BERT <span class="citation" data-cites="devlin2018bert">(<a href="../99-references.html#ref-devlin2018bert" role="doc-biblioref">Devlin et al. 2018</a>)</span>, LLaMA <span class="citation" data-cites="touvron2023llama">(<a href="../99-references.html#ref-touvron2023llama" role="doc-biblioref">Touvron et al. 2023</a>)</span> e Claude são exemplos proeminentes de foundation models, mas o conceito se estende a outras modalidades como CLIP e DALL-E para imagens ou Codex e StarCoder para código.</p>
 <p>Para engenheiros que construirão agentes inteligentes, compreender os foundation models não é opcional, é um conhecimento base para todo o resto. Os agentes de IA modernos são, em sua essência, sistemas que orquestram foundation models para <em>perceber o ambiente</em>, <em>raciocinar</em> sobre ele e <em>tomar ações</em>. Sem uma compreensão profunda de como esses modelos funcionam, suas capacidades e limitações, é impossível construir agentes robustos e, acima de tudo, <strong>confiáveis</strong>.</p>
@@ -332,25 +333,25 @@ graph TD
 <section id="o-que-são-tokens" class="level2">
 <h2 class="anchored" data-anchor-id="o-que-são-tokens">O Que São Tokens?</h2>
 <p>Antes de mergulharmos na arquitetura Transformer, precisamos entender um conceito fundamental que permeia todo este capítulo: <strong>tokens</strong>. Você já deve ter notado que mencionamos “tokens” algumas vezes até agora, mas o que exatamente são eles?</p>
-<p>Tokens são as <strong>unidades básicas de processamento</strong> que os modelos de linguagem utilizam. Pense neles como os “pedaços” ou “blocos” em que o texto é dividido antes de ser processado pelo modelo. Diferente do que você pode imaginar inicialmente, tokens não são necessariamente palavras completas.</p>
+<p>Tokens são as unidades mínimas que os modelos de linguagem processam. Eles representam segmentos do texto, que podem ser palavras inteiras, partes de palavras ou até mesmo caracteres, dependendo do algoritmo de tokenização utilizado. Essa abordagem permite ao modelo lidar com diferentes idiomas, neologismos e variações linguísticas de forma eficiente, sem depender de um vocabulário fixo de palavras completas.</p>
 <section id="por-que-não-usar-palavras-diretamente" class="level3">
 <h3 class="anchored" data-anchor-id="por-que-não-usar-palavras-diretamente">Por Que Não Usar Palavras Diretamente?</h3>
-<p>Uma pergunta natural é: por que não simplesmente usar palavras como unidade básica? A resposta está na praticidade e eficiência:</p>
+<p>Por que não usar palavras inteiras como unidade básica? Embora pareça intuitivo, essa escolha traria desafios práticos e de eficiência:</p>
 <ol type="1">
-<li><strong>Vocabulário imenso</strong>: O português possui centenas de milhares de palavras. Considerar todas as flexões verbais, conjugações, e variações seria inviável. Imagine para outros idiomas com ainda mais complexidade morfológica!</li>
-<li><strong>Palavras novas</strong>: Novas palavras surgem constantemente (neologismos, gírias, termos técnicos, nomes próprios).</li>
-<li><strong>Multilinguismo</strong>: Um modelo que precisa trabalhar com múltiplos idiomas teria um vocabulário astronômico.</li>
-<li><strong>Eficiência computacional</strong>: Um vocabulário menor significa menos parâmetros no modelo e processamento mais rápido.</li>
+<li>O vocabulário seria gigantesco, tornando o treinamento e a inferência inviáveis.</li>
+<li>Novos termos, gírias e nomes próprios surgem constantemente, dificultando a atualização do vocabulário.</li>
+<li>Modelos multilingues exigiriam um vocabulário ainda maior, aumentando a complexidade.</li>
+<li>Um vocabulário menor reduz o número de parâmetros e acelera o processamento.</li>
 </ol>
 </section>
 <section id="como-funciona-a-tokenização" class="level3">
 <h3 class="anchored" data-anchor-id="como-funciona-a-tokenização">Como Funciona a Tokenização?</h3>
-<p>Os modelos modernos usam algoritmos sofisticados de <strong>sub-word tokenization</strong> como <strong>Byte-Pair Encoding (BPE)</strong>, <strong>WordPiece</strong> ou <strong>SentencePiece</strong>. Esses algoritmos funcionam da seguinte forma:</p>
+<p>Para contornar esses desafios, os modelos modernos utilizam algoritmos de tokenização por subpalavras, como <em>Byte-Pair Encoding (BPE)</em>, <em>WordPiece</em> ou <em>SentencePiece</em>. Eles seguem etapas como:</p>
 <ol type="1">
-<li><strong>Começam com caracteres</strong>: Inicialmente, cada caractere é um token</li>
-<li><strong>Identificam padrões frequentes</strong>: Encontram sequências de caracteres ou sub-palavras que aparecem frequentemente juntas</li>
-<li><strong>Mesclam em tokens</strong>: Combinam esses padrões frequentes em tokens únicos</li>
-<li><strong>Repetem o processo</strong>: Continuam mesclando até atingir um tamanho de vocabulário desejado (geralmente entre 30.000 e 100.000 tokens)</li>
+<li>Inicialmente, cada caractere é tratado como um token.</li>
+<li>O algoritmo identifica sequências frequentes de caracteres ou subpalavras.</li>
+<li>Essas sequências são agrupadas em tokens únicos.</li>
+<li>O processo se repete até atingir o tamanho de vocabulário desejado (geralmente entre 30.000 e 100.000 tokens).</li>
 </ol>
 <section id="exemplo-de-tokenização" class="level4">
 <h4 class="anchored" data-anchor-id="exemplo-de-tokenização">Exemplo de Tokenização</h4>
@@ -446,32 +447,36 @@ graph TD
 <span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Número de tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
 <span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Demonstrar decodificação (tokens → texto)</span></span>
-<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
-<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Decodificação: Tokens → Texto"</span>)</span>
-<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
-<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>exemplo_ids <span class="op">=</span> [<span class="dv">32</span>, <span class="dv">4132</span>, <span class="dv">328</span>, <span class="dv">14722</span>, <span class="dv">15075</span>]  <span class="co"># IDs fictícios para exemplo</span></span>
-<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>texto_decodificado <span class="op">=</span> tokenizer_gpt2.decode(</span>
-<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>    tokenizer_gpt2.encode(<span class="st">"inteligência artificial"</span>)[:<span class="dv">5</span>]</span>
-<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto original: 'inteligência artificial'"</span>)</span>
-<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokenizer_gpt2<span class="sc">.</span>tokenize(<span class="st">'inteligência artificial'</span>)[:<span class="dv">5</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto decodificado: '</span><span class="sc">{</span>texto_decodificado<span class="sc">}</span><span class="ss">'"</span>)</span>
-<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação de eficiência entre idiomas</span></span>
-<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
-<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Comparação: Português vs Inglês"</span>)</span>
-<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
-<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>texto_pt <span class="op">=</span> <span class="st">"A inteligência artificial está revolucionando o mundo."</span></span>
-<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a>texto_en <span class="op">=</span> <span class="st">"Artificial intelligence is revolutionizing the world."</span></span>
-<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>tokens_pt <span class="op">=</span> tokenizer_gpt2.tokenize(texto_pt)</span>
-<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a>tokens_en <span class="op">=</span> tokenizer_gpt2.tokenize(texto_en)</span>
-<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Português: '</span><span class="sc">{</span>texto_pt<span class="sc">}</span><span class="ss">'"</span>)</span>
-<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_pt<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Inglês: '</span><span class="sc">{</span>texto_en<span class="sc">}</span><span class="ss">'"</span>)</span>
-<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_en)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_en<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Eficiência: Inglês usa ~</span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="op">/</span><span class="bu">len</span>(tokens_en)<span class="sc">:.2f}</span><span class="ss">x menos tokens"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a><span class="co"># O processo inverso: converter IDs numéricos de volta para texto</span></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Decodificação: Tokens → Texto"</span>)</span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a><span class="co"># Pega os primeiros 5 tokens de "inteligência artificial" e reconstrói o texto</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>texto_decodificado <span class="op">=</span> tokenizer_gpt2.decode(</span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>    tokenizer_gpt2.encode(<span class="st">"inteligência artificial"</span>)[:<span class="dv">5</span>]</span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto original: 'inteligência artificial'"</span>)</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens: </span><span class="sc">{</span>tokenizer_gpt2<span class="sc">.</span>tokenize(<span class="st">'inteligência artificial'</span>)[:<span class="dv">5</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Texto decodificado: '</span><span class="sc">{</span>texto_decodificado<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação de eficiência entre idiomas</span></span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelos treinados em inglês geralmente tokenizam português menos eficientemente</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Comparação: Português vs Inglês"</span>)</span>
+<span id="cb2-91"><a href="#cb2-91" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span> <span class="op">*</span> <span class="dv">60</span>)</span>
+<span id="cb2-92"><a href="#cb2-92" aria-hidden="true" tabindex="-1"></a>texto_pt <span class="op">=</span> <span class="st">"A inteligência artificial está revolucionando o mundo."</span></span>
+<span id="cb2-93"><a href="#cb2-93" aria-hidden="true" tabindex="-1"></a>texto_en <span class="op">=</span> <span class="st">"Artificial intelligence is revolutionizing the world."</span></span>
+<span id="cb2-94"><a href="#cb2-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-95"><a href="#cb2-95" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokeniza a mesma frase em dois idiomas</span></span>
+<span id="cb2-96"><a href="#cb2-96" aria-hidden="true" tabindex="-1"></a>tokens_pt <span class="op">=</span> tokenizer_gpt2.tokenize(texto_pt)</span>
+<span id="cb2-97"><a href="#cb2-97" aria-hidden="true" tabindex="-1"></a>tokens_en <span class="op">=</span> tokenizer_gpt2.tokenize(texto_en)</span>
+<span id="cb2-98"><a href="#cb2-98" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-99"><a href="#cb2-99" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Português: '</span><span class="sc">{</span>texto_pt<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-100"><a href="#cb2-100" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_pt<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-101"><a href="#cb2-101" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Inglês: '</span><span class="sc">{</span>texto_en<span class="sc">}</span><span class="ss">'"</span>)</span>
+<span id="cb2-102"><a href="#cb2-102" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens_en)<span class="sc">}</span><span class="ss"> - </span><span class="sc">{</span>tokens_en<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb2-103"><a href="#cb2-103" aria-hidden="true" tabindex="-1"></a><span class="co"># Note como português requer mais tokens (custo maior em APIs)</span></span>
+<span id="cb2-104"><a href="#cb2-104" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Eficiência: Inglês usa ~</span><span class="sc">{</span><span class="bu">len</span>(tokens_pt)<span class="op">/</span><span class="bu">len</span>(tokens_en)<span class="sc">:.2f}</span><span class="ss">x menos tokens"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p>O resultado será similar a este:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode bash code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">============================================================</span></span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">GPT-2</span> Tokenization <span class="er">(</span><span class="ex">BPE</span><span class="kw">)</span></span>
@@ -785,48 +790,60 @@ Softmax transforma em:
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_k):</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
 <span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Matrizes de projeção aprendidas durante treinamento</span></span>
-<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Query projection</span></span>
-<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Key projection</span></span>
-<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Value projection</span></span>
-<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k</span>
-<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, X):</span>
-<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
-<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a><span class="co">        X: (batch, seq_len, d_model) - embeddings de entrada</span></span>
-<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">        Retorna: (batch, seq_len, d_k) - representações contextualizadas</span></span>
-<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
-<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Projetar X em espaços Q, K, V</span></span>
-<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a>        Q <span class="op">=</span> <span class="va">self</span>.W_Q(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
-<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a>        K <span class="op">=</span> <span class="va">self</span>.W_K(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
-<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> <span class="va">self</span>.W_V(X)  <span class="co"># (batch, seq_len, d_k)</span></span>
-<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Computar attention scores</span></span>
-<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
-<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># scores: (batch, seq_len, seq_len)</span></span>
-<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Aplicar softmax para obter pesos de atenção</span></span>
-<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Essas matrizes transformam embeddings em queries, keys e values</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Projeta para "o que buscar"</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Projeta para "o que oferecer"</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_k)  <span class="co"># Projeta para "a informação"</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k  <span class="co"># Dimensão das keys (usado para normalização)</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, X):</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="co">        Calcula self-attention sobre a sequência de entrada.</span></span>
+<span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
+<span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb8-19"><a href="#cb8-19" aria-hidden="true" tabindex="-1"></a><span class="co">            X: (batch, seq_len, d_model) - embeddings de entrada</span></span>
+<span id="cb8-20"><a href="#cb8-20" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
+<span id="cb8-21"><a href="#cb8-21" aria-hidden="true" tabindex="-1"></a><span class="co">        Returns:</span></span>
+<span id="cb8-22"><a href="#cb8-22" aria-hidden="true" tabindex="-1"></a><span class="co">            (batch, seq_len, d_k) - representações contextualizadas</span></span>
+<span id="cb8-23"><a href="#cb8-23" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb8-24"><a href="#cb8-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 1: Projetar X em espaços Q, K, V</span></span>
+<span id="cb8-25"><a href="#cb8-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cada token é transformado em 3 representações diferentes</span></span>
+<span id="cb8-26"><a href="#cb8-26" aria-hidden="true" tabindex="-1"></a>        Q <span class="op">=</span> <span class="va">self</span>.W_Q(X)  <span class="co"># (batch, seq_len, d_k) - "Perguntas"</span></span>
+<span id="cb8-27"><a href="#cb8-27" aria-hidden="true" tabindex="-1"></a>        K <span class="op">=</span> <span class="va">self</span>.W_K(X)  <span class="co"># (batch, seq_len, d_k) - "Chaves"</span></span>
+<span id="cb8-28"><a href="#cb8-28" aria-hidden="true" tabindex="-1"></a>        V <span class="op">=</span> <span class="va">self</span>.W_V(X)  <span class="co"># (batch, seq_len, d_k) - "Valores"</span></span>
 <span id="cb8-29"><a href="#cb8-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Ponderar valores V pelos pesos de atenção</span></span>
-<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, seq_len, d_k)</span></span>
-<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb8-30"><a href="#cb8-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 2: Computar attention scores (similaridade entre Q e K)</span></span>
+<span id="cb8-31"><a href="#cb8-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># @ é multiplicação matricial: cada query compara com todas as keys</span></span>
+<span id="cb8-32"><a href="#cb8-32" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
+<span id="cb8-33"><a href="#cb8-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># scores: (batch, seq_len, seq_len) - matriz de similaridades</span></span>
+<span id="cb8-34"><a href="#cb8-34" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Dividimos por √d_k para evitar valores muito grandes</span></span>
+<span id="cb8-35"><a href="#cb8-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-36"><a href="#cb8-36" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 3: Aplicar softmax para obter pesos de atenção</span></span>
+<span id="cb8-37"><a href="#cb8-37" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Transforma scores em probabilidades que somam 1</span></span>
+<span id="cb8-38"><a href="#cb8-38" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb8-39"><a href="#cb8-39" aria-hidden="true" tabindex="-1"></a>        <span class="co"># attention_weights[i][j] = quanto o token i presta atenção no token j</span></span>
+<span id="cb8-40"><a href="#cb8-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-41"><a href="#cb8-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 4: Ponderar valores V pelos pesos de atenção</span></span>
+<span id="cb8-42"><a href="#cb8-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cada token recebe uma combinação ponderada de todos os valores</span></span>
+<span id="cb8-43"><a href="#cb8-43" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, seq_len, d_k)</span></span>
+<span id="cb8-44"><a href="#cb8-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-45"><a href="#cb8-45" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>O que cada matriz aprende:</strong></p>
 <ul>
 <li><strong>W_Q</strong>: Transforma embeddings em “perguntas” - o que cada token busca</li>
 <li><strong>W_K</strong>: Transforma embeddings em “chaves” - como cada token se descreve</li>
 <li><strong>W_V</strong>: Transforma embeddings em “valores” - que informação cada token carrega</li>
 </ul>
-<p>Essas matrizes são <strong>aprendidas via backpropagation</strong> durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.</p>
-<p>Backpropagation é o algoritmo que permite que redes neurais aprendam. O seu funcionamento básico é:</p>
+<p>Essas matrizes são aprendidas via <em>backpropagation</em> durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.</p>
+<p><em>Backpropagation</em> é o algoritmo que permite que redes neurais aprendam. O seu funcionamento básico é:</p>
 <ul>
-<li>Forward pass: O modelo faz uma previsão com os pesos atuais</li>
+<li><em>Forward pass</em>: O modelo faz uma previsão com os pesos atuais</li>
 <li>Cálculo do erro: Compara a previsão com o resultado correto</li>
-<li>Backward pass (backpropagation): Propaga o erro de volta através das camadas, calculando quanto cada peso contribuiu para o erro</li>
+<li><em>Backward pass</em> (<em>backpropagation</em>): Propaga o erro de volta através das camadas, calculando quanto cada peso contribuiu para o erro</li>
 <li>Atualização dos pesos: Ajusta os pesos (matrizes <code>W_Q</code>, <code>W_K</code>, <code>W_V</code>) para reduzir o erro</li>
 </ul>
 <p>No contexto das matrizes de atenção (<code>W_Q</code>, <code>W_K</code>, <code>W_V</code>), seria:</p>
-<p>O modelo não sabe a priori como transformar embeddings em queries, keys e values. Durante o treinamento, ele experimenta diferentes valores para essas matrizes. Através de backpropagation, descobre automaticamente quais transformações funcionam melhor. Aprende, por exemplo, que uma matriz <code>W_Q</code> deve extrair características que representam “o que buscar”, enquanto <code>W_K</code> deve extrair características que representam “o que oferecer”.</p>
+<p>O modelo não sabe a priori como transformar embeddings em queries, keys e values. Durante o treinamento, ele experimenta diferentes valores para essas matrizes. Através de <em>backpropagation</em>, descobre automaticamente quais transformações funcionam melhor. Aprende, por exemplo, que uma matriz <code>W_Q</code> deve extrair características que representam “o que buscar”, enquanto <code>W_K</code> deve extrair características que representam “o que oferecer”.</p>
 <p>Agora, vamos ver como essa atenção é estendida para capturar múltiplas relações simultaneamente.</p>
 </section>
 </section>
@@ -836,8 +853,8 @@ Softmax transforma em:
 <pre><code>MultiHead(Q, K, V) = Concat(head_1, ..., head_h) W^O
 onde head_i = Attention(QW^Q_i, KW^K_i, VW^V_i)</code></pre>
 <p>Cada “head” aprende a focar em diferentes tipos de relações. Por exemplo, um head pode aprender a identificar relações sujeito-verbo, outro pode focar em resolver pronomes, e outro pode capturar relações de longo alcance como correspondências entre abertura e fechamento de parênteses. Esta decomposição é aprendida automaticamente durante o treinamento, não é necessário especificar explicitamente o que cada head deve fazer.</p>
-<p>O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também <strong>aumentam o custo computacional</strong> e podem levar a overfitting se não houver dados suficientes.</p>
-<p>Chamamos de overfitting quando o modelo aprende a memorizar os dados de treinamento em vez de generalizar para novos dados. Isso pode acontecer se o modelo for muito complexo (muitos parâmetros) em relação à quantidade de dados disponíveis.</p>
+<p>O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também <strong>aumentam o custo computacional</strong> e podem levar a <em>overfitting</em> se não houver dados suficientes.</p>
+<p>Chamamos de <em>overfitting</em> quando o modelo aprende a memorizar os dados de treinamento em vez de generalizar para novos dados. Isso pode acontecer se o modelo for muito complexo (muitos parâmetros) em relação à quantidade de dados disponíveis.</p>
 </section>
 <section id="otimizações-modernas-de-atenção" class="level3">
 <h3 class="anchored" data-anchor-id="otimizações-modernas-de-atenção">Otimizações Modernas de Atenção</h3>
@@ -1034,21 +1051,21 @@ for bloco_q in blocos(Q):                    # Itera sobre blocos de queries
 </ul>
 <p><strong>Softmax Online (Incremental)</strong></p>
 <p>Um desafio técnico é que softmax requer normalização global, você precisa saber o máximo e a soma de todos os valores. Flash Attention usa uma técnica chamada “online softmax” que atualiza essas estatísticas incrementalmente à medida que processa blocos, sem precisar ter a matriz completa na memória.</p>
-<p><strong>Recomputation Durante Backward Pass</strong></p>
-<p>Um aspecto engenhoso: durante o backward pass (cálculo de gradientes), em vez de armazenar as matrizes S e P (que consumiriam memória massiva), Flash Attention simplesmente <strong>recalcula</strong> esses valores on-the-fly. Como os cálculos são extremamente rápidos (acontecem em SRAM), recomputar é mais barato que armazenar.</p>
+<p><strong>Recomputation Durante <em>Backward Pass</em></strong></p>
+<p>Um aspecto engenhoso: durante o <em>backward pass</em> (cálculo de gradientes), em vez de armazenar as matrizes S e P (que consumiriam memória massiva), Flash Attention simplesmente <strong>recalcula</strong> esses valores <em>on-the-fly</em>. Como os cálculos são extremamente rápidos (acontecem em SRAM), recomputar é mais barato que armazenar.</p>
 <p><strong>Resultados Práticos</strong></p>
 <p>Para engenheiros construindo sistemas de produção, os ganhos são substanciais:</p>
 <ul>
 <li><strong>Velocidade</strong>: 2-4× mais rápido que atenção padrão, especialmente para sequências longas</li>
 <li><strong>Memória</strong>: Reduz uso de memória de O(n²) para O(n), permitindo sequências muito mais longas</li>
 <li><strong>Exatidão</strong>: Resultado é <strong>numericamente idêntico</strong> à atenção padrão (não é uma aproximação)</li>
-<li><strong>Transparência</strong>: Drop-in replacement — não requer mudanças no código do modelo</li>
+<li><strong>Transparência</strong>: <em>Drop-in replacement</em> — não requer mudanças no código do modelo</li>
 </ul>
 <p>Frameworks modernos como PyTorch (via <code>torch.nn.functional.scaled_dot_product_attention</code>) e bibliotecas como Hugging Transformers já integram Flash Attention automaticamente quando disponível. Para engenheiros, isso significa que você obtém os ganhos “de graça” apenas usando APIs modernas, mas entender <strong>por que</strong> funciona ajuda a tomar decisões arquiteturais informadas sobre tamanhos de sequência, batch sizes, e deployment.</p>
 </section>
 <section id="kv-cache-evitando-recomputação-em-geração-autoregressiva" class="level4">
 <h4 class="anchored" data-anchor-id="kv-cache-evitando-recomputação-em-geração-autoregressiva">KV-Cache: Evitando Recomputação em Geração Autoregressiva</h4>
-<p>Durante a geração de texto token-por-token em modelos decoder-only, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para <strong>todos os tokens anteriores</strong> do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.</p>
+<p>Durante a geração de texto token-por-token em modelos <em>decoder-only</em>, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para <strong>todos os tokens anteriores</strong> do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.</p>
 <p><strong>O Problema: Recomputação Redundante</strong></p>
 <p>Considere gerar a frase “The cat sat on”:</p>
 <pre><code>Passo 1: Gera "The"
@@ -1072,71 +1089,82 @@ Passo 4: Gera "on"
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> KVCachedAttention(nn.Module):</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_k, d_v):</span>
 <span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)</span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_v)</span>
-<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k</span>
-<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cache para K e V</span></span>
-<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_k)</span></span>
-<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_v)</span></span>
-<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, use_cache<span class="op">=</span><span class="va">True</span>):</span>
-<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
-<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="co">        x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa</span></span>
-<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
-<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>        batch_size <span class="op">=</span> x.size(<span class="dv">0</span>)</span>
-<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute Q, K, V apenas para o novo token</span></span>
-<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a>        Q_new <span class="op">=</span> <span class="va">self</span>.W_Q(x)  <span class="co"># (batch, 1, d_k)</span></span>
-<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a>        K_new <span class="op">=</span> <span class="va">self</span>.W_K(x)  <span class="co"># (batch, 1, d_k)</span></span>
-<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>        V_new <span class="op">=</span> <span class="va">self</span>.W_V(x)  <span class="co"># (batch, 1, d_v)</span></span>
-<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache <span class="kw">and</span> <span class="va">self</span>.k_cache <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
-<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Concatena novo K e V com cache existente</span></span>
-<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> torch.cat([<span class="va">self</span>.k_cache, K_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_k)</span></span>
-<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> torch.cat([<span class="va">self</span>.v_cache, V_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_v)</span></span>
-<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
-<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Primeira iteração ou cache desabilitado</span></span>
-<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> K_new</span>
-<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> V_new</span>
-<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Atualiza cache</span></span>
-<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache:</span>
-<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.k_cache <span class="op">=</span> K.detach()  <span class="co"># Detach para não acumular gradientes</span></span>
-<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.v_cache <span class="op">=</span> V.detach()</span>
-<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Compute attention usando K e V completos (incluindo cache)</span></span>
-<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q_new <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Matrizes de projeção (mesmas do SelfAttention)</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_Q <span class="op">=</span> nn.Linear(d_model, d_k)</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_K <span class="op">=</span> nn.Linear(d_model, d_k)</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.W_V <span class="op">=</span> nn.Linear(d_model, d_v)</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.d_k <span class="op">=</span> d_k</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cache para armazenar K e V de tokens já processados</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Isso evita recomputar K e V toda vez que geramos um novo token</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_k)</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span>  <span class="co"># Shape: (batch, seq_len, d_v)</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x, use_cache<span class="op">=</span><span class="va">True</span>):</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a><span class="co">        Processa novo token usando cache de K e V anteriores.</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="co">            x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co">            use_cache: se True, usa e atualiza o cache</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>        batch_size <span class="op">=</span> x.size(<span class="dv">0</span>)</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 1: Compute Q, K, V APENAS para o novo token</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Economiza computação pois não recalcula tokens anteriores</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a>        Q_new <span class="op">=</span> <span class="va">self</span>.W_Q(x)  <span class="co"># (batch, 1, d_k) - Query do novo token</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>        K_new <span class="op">=</span> <span class="va">self</span>.W_K(x)  <span class="co"># (batch, 1, d_k) - Key do novo token</span></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>        V_new <span class="op">=</span> <span class="va">self</span>.W_V(x)  <span class="co"># (batch, 1, d_v) - Value do novo token</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 2: Combinar novo K/V com cache existente</span></span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache <span class="kw">and</span> <span class="va">self</span>.k_cache <span class="kw">is</span> <span class="kw">not</span> <span class="va">None</span>:</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Concatena K e V novos com os já computados anteriormente</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> torch.cat([<span class="va">self</span>.k_cache, K_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_k)</span></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> torch.cat([<span class="va">self</span>.v_cache, V_new], dim<span class="op">=</span><span class="dv">1</span>)  <span class="co"># (batch, seq_len+1, d_v)</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>        <span class="cf">else</span>:</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Primeira iteração ou cache desabilitado</span></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>            K <span class="op">=</span> K_new</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>            V <span class="op">=</span> V_new</span>
 <span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Máscara causal não é necessária aqui pois Q_new é apenas o último token</span></span>
-<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>        <span class="co"># que naturalmente só atende a tokens anteriores + ele mesmo</span></span>
-<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, 1, d_v)</span></span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 3: Atualiza cache para a próxima iteração</span></span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> use_cache:</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Detach evita acumular gradientes desnecessários no cache</span></span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.k_cache <span class="op">=</span> K.detach()</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>            <span class="va">self</span>.v_cache <span class="op">=</span> V.detach()</span>
 <span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span>
-<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> clear_cache(<span class="va">self</span>):</span>
-<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Limpa cache entre diferentes gerações"""</span></span>
-<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span></span>
-<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 4: Compute attention usando K e V completos (incluindo cache)</span></span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>        scores <span class="op">=</span> (Q_new <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(<span class="va">self</span>.d_k))</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Máscara causal não é necessária aqui pois Q_new é apenas o último token</span></span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>        <span class="co"># que naturalmente só atende a tokens anteriores + ele mesmo</span></span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>        attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> attention_weights <span class="op">@</span> V  <span class="co"># (batch, 1, d_v)</span></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> clear_cache(<span class="va">self</span>):</span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""Limpa cache entre diferentes gerações (importante entre prompts)"""</span></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.k_cache <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.v_cache <span class="op">=</span> <span class="va">None</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Geração com KV-Cache:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Geração eficiente de sequência</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Exemplo de como usar KV-Cache na prática</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> TransformerWithKVCache(...)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>prompt_tokens <span class="op">=</span> tokenize(<span class="st">"Era uma vez"</span>)</span>
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Encode prompt (sem cache)</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Fase 1: Encode prompt completo (sem cache ainda)</span></span>
 <span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> model(prompt_tokens, use_cache<span class="op">=</span><span class="va">False</span>)</span>
 <span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Geração autoregressiva (com cache)</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>generated_tokens <span class="op">=</span> []</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_new_tokens):</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apenas processa o último token gerado</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    next_token_logits <span class="op">=</span> model(last_token, use_cache<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    next_token <span class="op">=</span> sample(next_token_logits)</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    generated_tokens.append(next_token)</span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    last_token <span class="op">=</span> next_token</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Fase 2: Geração autoregressiva (com cache)</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Aqui é onde KV-Cache realmente economiza computação</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>generated_tokens <span class="op">=</span> []</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(max_new_tokens):</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Processa APENAS o último token gerado</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="co"># K e V dos tokens anteriores vêm do cache</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    next_token_logits <span class="op">=</span> model(last_token, use_cache<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    next_token <span class="op">=</span> sample(next_token_logits)  <span class="co"># Escolhe próximo token</span></span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    generated_tokens.append(next_token)</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    last_token <span class="op">=</span> next_token  <span class="co"># Prepara para próxima iteração</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Ganhos Computacionais:</strong></p>
 <p>Para gerar uma sequência de N tokens:</p>
 <ul>
@@ -1352,40 +1380,57 @@ Figura&nbsp;6: Fluxo de processamento em uma camada Mixture of Experts
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> MoELayer(nn.Module):</span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>, d_model, d_ff, num_experts<span class="op">=</span><span class="dv">8</span>, top_k<span class="op">=</span><span class="dv">2</span>):</span>
 <span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>().<span class="fu">__init__</span>()</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Múltiplos experts (FFNs independentes)</span></span>
-<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.experts <span class="op">=</span> nn.ModuleList([</span>
-<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>            FFN(d_model, d_ff) <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(num_experts)</span>
-<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>        ])</span>
-<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Router que decide quais experts ativar</span></span>
-<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.router <span class="op">=</span> nn.Linear(d_model, num_experts)</span>
-<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.top_k <span class="op">=</span> top_k</span>
-<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
-<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>        <span class="co"># x: (batch, seq_len, d_model)</span></span>
-<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Router computa scores para cada expert</span></span>
-<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a>        router_logits <span class="op">=</span> <span class="va">self</span>.router(x)  <span class="co"># (batch, seq_len, num_experts)</span></span>
-<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a>        router_probs <span class="op">=</span> torch.softmax(router_logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Seleciona top-k experts por token</span></span>
-<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a>        top_k_probs, top_k_indices <span class="op">=</span> torch.topk(router_probs, <span class="va">self</span>.top_k, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Normaliza probabilidades dos top-k</span></span>
-<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a>        top_k_probs <span class="op">=</span> top_k_probs <span class="op">/</span> top_k_probs.<span class="bu">sum</span>(dim<span class="op">=-</span><span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Processa cada token pelos seus top-k experts</span></span>
-<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> torch.zeros_like(x)</span>
-<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.top_k):</span>
-<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>            expert_idx <span class="op">=</span> top_k_indices[:, :, i]</span>
-<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a>            expert_prob <span class="op">=</span> top_k_probs[:, :, i:i<span class="op">+</span><span class="dv">1</span>]</span>
-<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Roteamento dinâmico: diferentes tokens vão para diferentes experts</span></span>
-<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> expert_id, expert <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.experts):</span>
-<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>                mask <span class="op">=</span> (expert_idx <span class="op">==</span> expert_id)</span>
-<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> mask.<span class="bu">any</span>():</span>
-<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a>                    expert_output <span class="op">=</span> expert(x)</span>
-<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>                    output <span class="op">+=</span> expert_output <span class="op">*</span> expert_prob <span class="op">*</span> mask.unsqueeze(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cria múltiplos experts (cada um é uma FFN independente)</span></span>
+<span id="cb27-5"><a href="#cb27-5" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Cada expert pode se especializar em diferentes tipos de conteúdo</span></span>
+<span id="cb27-6"><a href="#cb27-6" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.experts <span class="op">=</span> nn.ModuleList([</span>
+<span id="cb27-7"><a href="#cb27-7" aria-hidden="true" tabindex="-1"></a>            FFN(d_model, d_ff) <span class="cf">for</span> _ <span class="kw">in</span> <span class="bu">range</span>(num_experts)</span>
+<span id="cb27-8"><a href="#cb27-8" aria-hidden="true" tabindex="-1"></a>        ])</span>
+<span id="cb27-9"><a href="#cb27-9" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Router: rede neural que decide quais experts usar para cada token</span></span>
+<span id="cb27-10"><a href="#cb27-10" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.router <span class="op">=</span> nn.Linear(d_model, num_experts)</span>
+<span id="cb27-11"><a href="#cb27-11" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.top_k <span class="op">=</span> top_k  <span class="co"># Quantos experts ativar por token (geralmente 2)</span></span>
+<span id="cb27-12"><a href="#cb27-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-13"><a href="#cb27-13" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb27-14"><a href="#cb27-14" aria-hidden="true" tabindex="-1"></a>        <span class="co">"""</span></span>
+<span id="cb27-15"><a href="#cb27-15" aria-hidden="true" tabindex="-1"></a><span class="co">        Processa tokens através de experts selecionados dinamicamente.</span></span>
+<span id="cb27-16"><a href="#cb27-16" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
+<span id="cb27-17"><a href="#cb27-17" aria-hidden="true" tabindex="-1"></a><span class="co">        Args:</span></span>
+<span id="cb27-18"><a href="#cb27-18" aria-hidden="true" tabindex="-1"></a><span class="co">            x: (batch, seq_len, d_model) - tokens de entrada</span></span>
+<span id="cb27-19"><a href="#cb27-19" aria-hidden="true" tabindex="-1"></a><span class="co">        </span></span>
+<span id="cb27-20"><a href="#cb27-20" aria-hidden="true" tabindex="-1"></a><span class="co">        Returns:</span></span>
+<span id="cb27-21"><a href="#cb27-21" aria-hidden="true" tabindex="-1"></a><span class="co">            (batch, seq_len, d_model) - tokens processados por experts</span></span>
+<span id="cb27-22"><a href="#cb27-22" aria-hidden="true" tabindex="-1"></a><span class="co">        """</span></span>
+<span id="cb27-23"><a href="#cb27-23" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb27-24"><a href="#cb27-24" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 1: Router computa scores para cada expert</span></span>
+<span id="cb27-25"><a href="#cb27-25" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Para cada token, determina quão relevante é cada expert</span></span>
+<span id="cb27-26"><a href="#cb27-26" aria-hidden="true" tabindex="-1"></a>        router_logits <span class="op">=</span> <span class="va">self</span>.router(x)  <span class="co"># (batch, seq_len, num_experts)</span></span>
+<span id="cb27-27"><a href="#cb27-27" aria-hidden="true" tabindex="-1"></a>        router_probs <span class="op">=</span> torch.softmax(router_logits, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb27-28"><a href="#cb27-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-29"><a href="#cb27-29" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 2: Seleciona top-k experts por token</span></span>
+<span id="cb27-30"><a href="#cb27-30" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Em vez de usar todos os 8 experts, usa apenas os 2 melhores</span></span>
+<span id="cb27-31"><a href="#cb27-31" aria-hidden="true" tabindex="-1"></a>        top_k_probs, top_k_indices <span class="op">=</span> torch.topk(router_probs, <span class="va">self</span>.top_k, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb27-32"><a href="#cb27-32" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Normaliza probabilidades dos top-k para somarem 1</span></span>
+<span id="cb27-33"><a href="#cb27-33" aria-hidden="true" tabindex="-1"></a>        top_k_probs <span class="op">=</span> top_k_probs <span class="op">/</span> top_k_probs.<span class="bu">sum</span>(dim<span class="op">=-</span><span class="dv">1</span>, keepdim<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb27-34"><a href="#cb27-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-35"><a href="#cb27-35" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Passo 3: Processa cada token pelos seus top-k experts</span></span>
+<span id="cb27-36"><a href="#cb27-36" aria-hidden="true" tabindex="-1"></a>        output <span class="op">=</span> torch.zeros_like(x)</span>
+<span id="cb27-37"><a href="#cb27-37" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="va">self</span>.top_k):</span>
+<span id="cb27-38"><a href="#cb27-38" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Índice do i-ésimo melhor expert para cada token</span></span>
+<span id="cb27-39"><a href="#cb27-39" aria-hidden="true" tabindex="-1"></a>            expert_idx <span class="op">=</span> top_k_indices[:, :, i]</span>
+<span id="cb27-40"><a href="#cb27-40" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Peso (probabilidade) deste expert</span></span>
+<span id="cb27-41"><a href="#cb27-41" aria-hidden="true" tabindex="-1"></a>            expert_prob <span class="op">=</span> top_k_probs[:, :, i:i<span class="op">+</span><span class="dv">1</span>]</span>
+<span id="cb27-42"><a href="#cb27-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-43"><a href="#cb27-43" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Roteamento dinâmico: diferentes tokens vão para diferentes experts</span></span>
+<span id="cb27-44"><a href="#cb27-44" aria-hidden="true" tabindex="-1"></a>            <span class="co"># Um token sobre Python pode ir para Expert 1, sobre medicina para Expert 3</span></span>
+<span id="cb27-45"><a href="#cb27-45" aria-hidden="true" tabindex="-1"></a>            <span class="cf">for</span> expert_id, expert <span class="kw">in</span> <span class="bu">enumerate</span>(<span class="va">self</span>.experts):</span>
+<span id="cb27-46"><a href="#cb27-46" aria-hidden="true" tabindex="-1"></a>                <span class="co"># Máscara: quais tokens devem usar este expert?</span></span>
+<span id="cb27-47"><a href="#cb27-47" aria-hidden="true" tabindex="-1"></a>                mask <span class="op">=</span> (expert_idx <span class="op">==</span> expert_id)</span>
+<span id="cb27-48"><a href="#cb27-48" aria-hidden="true" tabindex="-1"></a>                <span class="cf">if</span> mask.<span class="bu">any</span>():</span>
+<span id="cb27-49"><a href="#cb27-49" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># Processa tokens pela FFN do expert</span></span>
+<span id="cb27-50"><a href="#cb27-50" aria-hidden="true" tabindex="-1"></a>                    expert_output <span class="op">=</span> expert(x)</span>
+<span id="cb27-51"><a href="#cb27-51" aria-hidden="true" tabindex="-1"></a>                    <span class="co"># Adiciona saída ponderada pela probabilidade do router</span></span>
+<span id="cb27-52"><a href="#cb27-52" aria-hidden="true" tabindex="-1"></a>                    output <span class="op">+=</span> expert_output <span class="op">*</span> expert_prob <span class="op">*</span> mask.unsqueeze(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb27-53"><a href="#cb27-53" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb27-54"><a href="#cb27-54" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> output</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Exemplo Real - <a href="https://huggingface.co/mistralai/Mixtral-8x7B-v0.1">Mixtral 8x7B</a>:</strong></p>
 <p>Mixtral <span class="citation" data-cites="jiang2024mixtral">(<a href="../99-references.html#ref-jiang2024mixtral" role="doc-biblioref">Jiang et al. 2024</a>)</span>, desenvolvido pela Mistral AI, é um dos modelos MoE mais bem-sucedidos atualmente disponíveis. Ele demonstra como MoE pode alcançar alta performance com eficiência de inferência.</p>
 <p>O Mixtral 8x7B possui:</p>
@@ -1422,12 +1467,12 @@ Figura&nbsp;6: Fluxo de processamento em uma camada Mixture of Experts
 </ul></li>
 <li><strong>Complexidade de treinamento</strong>: Treinamento distribuído mais complexo
 <ul>
-<li>Necessita de all-to-all communication entre GPUs</li>
+<li>Necessita de <em>all-to-all communication</em> entre GPUs</li>
 <li>Framework como Megatron-LM ou DeepSpeed oferecem suporte</li>
 </ul></li>
 <li><strong>Overfitting de routing</strong>: Router pode memorizar padrões de treinamento
 <ul>
-<li>Solução: Dropout no router, noise no gating</li>
+<li>Solução: <em>Dropout</em> no router, <em>noise</em> no <em>gating</em></li>
 </ul></li>
 </ol>
 <p><strong>Quando usar MoE:</strong></p>
@@ -1540,20 +1585,20 @@ onde RMS(x) = √(Σx²/n)</code></pre>
 </section>
 </section>
 <section id="arquiteturas-encoder-only-decoder-only-e-encoder-decoder" class="level3">
-<h3 class="anchored" data-anchor-id="arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas Encoder-Only, Decoder-Only e Encoder-Decoder</h3>
-<p>O Transformer original era um modelo encoder-decoder para tradução. Desde então, três variantes principais emergiram:</p>
+<h3 class="anchored" data-anchor-id="arquiteturas-encoder-only-decoder-only-e-encoder-decoder">Arquiteturas <em>Encoder-Only</em>, <em>Decoder-Only</em> e <em>Encoder-Decoder</em></h3>
+<p>O Transformer original era um modelo <em>encoder-decoder</em> para tradução. Desde então, três variantes principais emergiram:</p>
 <section id="encoder-only-bert-like" class="level4">
-<h4 class="anchored" data-anchor-id="encoder-only-bert-like">Encoder-Only (BERT-like)</h4>
-<p>Modelos encoder-only como BERT usam atenção <strong>bidirecional</strong>. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, question answering, etc.</p>
-<p>O treinamento usa <strong>masked language modeling</strong> (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.</p>
+<h4 class="anchored" data-anchor-id="encoder-only-bert-like"><em>Encoder-Only</em> (BERT-like)</h4>
+<p>Modelos <em>encoder-only</em> como BERT usam atenção <strong>bidirecional</strong>. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, <em>question answering</em>, etc.</p>
+<p>O treinamento usa <em>masked language modeling</em> (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.</p>
 <p>Exemplo de MLM:</p>
 <pre><code>Input:  "The [MASK] sat on the [MASK]"
 Target: "The cat sat on the mat"</code></pre>
 <p>O modelo vê a frase com palavras faltando, mascaradas ([MASK]), e deve inferir as palavras corretas com base no contexto completo.</p>
 </section>
 <section id="decoder-only-gpt-like" class="level4">
-<h4 class="anchored" data-anchor-id="decoder-only-gpt-like">Decoder-Only (GPT-like)</h4>
-<p>Modelos decoder-only como GPT usam atenção <strong>causal</strong> (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma “causal mask” que zera os attention scores para posições futuras.</p>
+<h4 class="anchored" data-anchor-id="decoder-only-gpt-like"><em>Decoder-Only</em> (GPT-like)</h4>
+<p>Modelos <em>decoder-only</em> como GPT usam atenção <strong>causal</strong> (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma “<em>causal mask</em>” que zera os <em>attention scores</em> para posições futuras.</p>
 <p><strong>Como Funciona a Causal Mask Tecnicamente:</strong></p>
 <p>A máscara causal é implementada como uma matriz triangular inferior que bloqueia a atenção em tokens futuros. Aqui está como isso funciona:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb35"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
@@ -1561,51 +1606,71 @@ Target: "The cat sat on the mat"</code></pre>
 <span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> create_causal_mask(seq_len):</span>
 <span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
 <span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a><span class="co">    Cria máscara causal para impedir atenção em tokens futuros.</span></span>
-<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Retorna matriz triangular inferior de 1s (permitido) e 0s (bloqueado).</span></span>
-<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
-<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima</span></span>
-<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> torch.tril(torch.ones(seq_len, seq_len))</span>
-<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Na prática, usamos -inf para posições bloqueadas antes do softmax</span></span>
-<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Isso garante que softmax(score + mask) = 0 para posições futuras</span></span>
-<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">'-inf'</span>))</span>
-<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">1</span>, <span class="fl">0.0</span>)</span>
-<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mask</span>
-<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização para seq_len=5 (antes de aplicar -inf):</span></span>
-<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a><span class="co"># [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo</span></span>
-<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1</span></span>
-<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2</span></span>
-<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3</span></span>
-<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a><span class="co">    Essencial para modelos *decoder-only* (GPT-like) que não podem "trapacear"</span></span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a><span class="co">    olhando para o futuro durante o treinamento.</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb35-10"><a href="#cb35-10" aria-hidden="true" tabindex="-1"></a><span class="co">        seq_len: comprimento da sequência</span></span>
+<span id="cb35-11"><a href="#cb35-11" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb35-12"><a href="#cb35-12" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb35-13"><a href="#cb35-13" aria-hidden="true" tabindex="-1"></a><span class="co">        mask: matriz (seq_len, seq_len) com 0s onde permitido, -inf onde bloqueado</span></span>
+<span id="cb35-14"><a href="#cb35-14" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb35-15"><a href="#cb35-15" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima</span></span>
+<span id="cb35-16"><a href="#cb35-16" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Cada linha representa um token, cada coluna um token que pode ser visto</span></span>
+<span id="cb35-17"><a href="#cb35-17" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> torch.tril(torch.ones(seq_len, seq_len))</span>
+<span id="cb35-18"><a href="#cb35-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-19"><a href="#cb35-19" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Na prática, usamos -inf para posições bloqueadas antes do softmax</span></span>
+<span id="cb35-20"><a href="#cb35-20" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Quando somamos -inf ao attention score, softmax transforma em ~0</span></span>
+<span id="cb35-21"><a href="#cb35-21" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Isso garante que softmax(score + mask) ≈ 0 para posições futuras</span></span>
+<span id="cb35-22"><a href="#cb35-22" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">0</span>, <span class="bu">float</span>(<span class="st">'-inf'</span>))  <span class="co"># Posições bloqueadas = -inf</span></span>
+<span id="cb35-23"><a href="#cb35-23" aria-hidden="true" tabindex="-1"></a>    mask <span class="op">=</span> mask.masked_fill(mask <span class="op">==</span> <span class="dv">1</span>, <span class="fl">0.0</span>)            <span class="co"># Posições permitidas = 0</span></span>
 <span id="cb35-24"><a href="#cb35-24" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplicação na atenção:</span></span>
-<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> masked_attention(Q, K, V, mask):</span>
-<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Atenção com máscara causal"""</span></span>
-<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a>    d_k <span class="op">=</span> Q.size(<span class="op">-</span><span class="dv">1</span>)</span>
-<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(d_k))</span>
-<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Adiciona máscara antes do softmax</span></span>
-<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a>    <span class="co"># scores + mask onde mask=-inf para posições bloqueadas</span></span>
-<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> scores <span class="op">+</span> mask</span>
-<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Softmax transforma -inf em ~0</span></span>
-<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
-<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> attention_weights <span class="op">@</span> V</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb35-25"><a href="#cb35-25" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> mask</span>
+<span id="cb35-26"><a href="#cb35-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-27"><a href="#cb35-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualização para seq_len=5 (antes de aplicar -inf):</span></span>
+<span id="cb35-28"><a href="#cb35-28" aria-hidden="true" tabindex="-1"></a><span class="co"># [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo</span></span>
+<span id="cb35-29"><a href="#cb35-29" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1</span></span>
+<span id="cb35-30"><a href="#cb35-30" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2</span></span>
+<span id="cb35-31"><a href="#cb35-31" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3</span></span>
+<span id="cb35-32"><a href="#cb35-32" aria-hidden="true" tabindex="-1"></a><span class="co">#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4</span></span>
+<span id="cb35-33"><a href="#cb35-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-34"><a href="#cb35-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplicação na atenção:</span></span>
+<span id="cb35-35"><a href="#cb35-35" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> masked_attention(Q, K, V, mask):</span>
+<span id="cb35-36"><a href="#cb35-36" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb35-37"><a href="#cb35-37" aria-hidden="true" tabindex="-1"></a><span class="co">    Calcula atenção com máscara causal aplicada.</span></span>
+<span id="cb35-38"><a href="#cb35-38" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb35-39"><a href="#cb35-39" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb35-40"><a href="#cb35-40" aria-hidden="true" tabindex="-1"></a><span class="co">        Q, K, V: queries, keys, values</span></span>
+<span id="cb35-41"><a href="#cb35-41" aria-hidden="true" tabindex="-1"></a><span class="co">        mask: máscara causal criada por create_causal_mask()</span></span>
+<span id="cb35-42"><a href="#cb35-42" aria-hidden="true" tabindex="-1"></a><span class="co">    </span></span>
+<span id="cb35-43"><a href="#cb35-43" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb35-44"><a href="#cb35-44" aria-hidden="true" tabindex="-1"></a><span class="co">        output com atenção causal aplicada</span></span>
+<span id="cb35-45"><a href="#cb35-45" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb35-46"><a href="#cb35-46" aria-hidden="true" tabindex="-1"></a>    d_k <span class="op">=</span> Q.size(<span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb35-47"><a href="#cb35-47" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Calcula scores de atenção normalizados</span></span>
+<span id="cb35-48"><a href="#cb35-48" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> (Q <span class="op">@</span> K.transpose(<span class="op">-</span><span class="dv">2</span>, <span class="op">-</span><span class="dv">1</span>)) <span class="op">/</span> torch.sqrt(torch.tensor(d_k))</span>
+<span id="cb35-49"><a href="#cb35-49" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-50"><a href="#cb35-50" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Adiciona máscara antes do softmax</span></span>
+<span id="cb35-51"><a href="#cb35-51" aria-hidden="true" tabindex="-1"></a>    <span class="co"># scores + mask onde mask=-inf para posições bloqueadas</span></span>
+<span id="cb35-52"><a href="#cb35-52" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Isso faz com que essas posições tenham probabilidade ~0 após softmax</span></span>
+<span id="cb35-53"><a href="#cb35-53" aria-hidden="true" tabindex="-1"></a>    scores <span class="op">=</span> scores <span class="op">+</span> mask</span>
+<span id="cb35-54"><a href="#cb35-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-55"><a href="#cb35-55" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Softmax transforma -inf em ~0, efetivamente bloqueando atenção futura</span></span>
+<span id="cb35-56"><a href="#cb35-56" aria-hidden="true" tabindex="-1"></a>    attention_weights <span class="op">=</span> torch.softmax(scores, dim<span class="op">=-</span><span class="dv">1</span>)</span>
+<span id="cb35-57"><a href="#cb35-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-58"><a href="#cb35-58" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> attention_weights <span class="op">@</span> V</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Por que isso importa:</strong></p>
 <ol type="1">
 <li><strong>Previne data leakage durante treinamento</strong>: O modelo não pode “trapacear” olhando para tokens futuros que deve prever</li>
 <li><strong>Garante consistência entre treino e inferência</strong>: Durante geração, tokens futuros não existem ainda, então o modelo deve aprender sem eles</li>
 <li><strong>Permite paralelização do treinamento</strong>: Todos os tokens podem ser processados simultaneamente, com a máscara garantindo causalidade</li>
 </ol>
-<p>O treinamento usa <strong>causal language modeling</strong> (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.</p>
+<p>O treinamento usa <em>causal language modeling</em> (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.</p>
 <p>Exemplo de CLM:</p>
 <pre><code>Input:  "The cat sat"
 Target: "on"</code></pre>
 <p>Onde o modelo vê “The cat sat” e deve prever o próximo token “on” baseado apenas no contexto anterior.</p>
-<p>Decoder-only models têm se tornado dominantes (GPT-3 <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>, PaLM <span class="citation" data-cites="anil2023palm">(<a href="../99-references.html#ref-anil2023palm" role="doc-biblioref">Anil et al. 2023</a>)</span>, LLaMA <span class="citation" data-cites="touvron2023llama">(<a href="../99-references.html#ref-touvron2023llama" role="doc-biblioref">Touvron et al. 2023</a>)</span>, Claude) porque:</p>
+<p><em>Decoder-only models</em> têm se tornado dominantes (GPT-3 <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>, PaLM <span class="citation" data-cites="anil2023palm">(<a href="../99-references.html#ref-anil2023palm" role="doc-biblioref">Anil et al. 2023</a>)</span>, LLaMA <span class="citation" data-cites="touvron2023llama">(<a href="../99-references.html#ref-touvron2023llama" role="doc-biblioref">Touvron et al. 2023</a>)</span>, Claude) porque:</p>
 <ol type="1">
 <li>São mais simples arquiteturalmente</li>
 <li>Escalam melhor para tamanhos massivos</li>
@@ -1614,17 +1679,106 @@ Target: "on"</code></pre>
 </ol>
 </section>
 <section id="encoder-decoder-t5-like" class="level4">
-<h4 class="anchored" data-anchor-id="encoder-decoder-t5-like">Encoder-Decoder (T5-like)</h4>
-<p>O Encoder-Decoder mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via cross-attention.</p>
-<p>Encoder-decoder models como T5 <span class="citation" data-cites="raffel2020exploring">(<a href="../99-references.html#ref-raffel2020exploring" role="doc-biblioref">Raffel et al. 2020</a>)</span> são particularmente bons para tarefas sequence-to-sequence: tradução, sumarização, question answering generativo. Eles separam explicitamente “compreensão” (encoder) de “geração” (decoder).</p>
+<h4 class="anchored" data-anchor-id="encoder-decoder-t5-like"><em>Encoder-Decoder</em> (T5-like)</h4>
+<p>O <em>Encoder-Decoder</em> mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via <em>cross-attention</em>.</p>
+<p><em>Encoder-decoder models</em> como T5 <span class="citation" data-cites="raffel2020exploring">(<a href="../99-references.html#ref-raffel2020exploring" role="doc-biblioref">Raffel et al. 2020</a>)</span> são particularmente bons para tarefas <em>sequence-to-sequence</em>: tradução, sumarização, <em>question answering</em> generativo. Eles separam explicitamente “compreensão” (encoder) de “geração” (decoder).</p>
 <p>No entanto, são mais complexos e custosos de treinar e inferir devido à arquitetura dupla.</p>
 </section>
+</section>
+<section id="comparação-entre-arquiteturas-transformer" class="level3">
+<h3 class="anchored" data-anchor-id="comparação-entre-arquiteturas-transformer">Comparação entre Arquiteturas Transformer</h3>
+<p>A tabela abaixo resume as principais diferenças entre as três variantes de arquiteturas Transformer:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 24%">
+<col style="width: 24%">
+<col style="width: 24%">
+<col style="width: 27%">
+</colgroup>
+<thead>
+<tr class="header">
+<th><strong>Característica</strong></th>
+<th><strong><em>Encoder-Only</em></strong></th>
+<th><strong><em>Decoder-Only</em></strong></th>
+<th><strong><em>Encoder-Decoder</em></strong></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Tipo de Atenção</strong></td>
+<td>Bidirecional (vê passado e futuro)</td>
+<td>Causal (só vê passado)</td>
+<td>Encoder: bidirecional<br>Decoder: causal + <em>cross-attention</em></td>
+</tr>
+<tr class="even">
+<td><strong>Treinamento</strong></td>
+<td><em>Masked Language Modeling</em> (MLM)</td>
+<td><em>Causal Language Modeling</em> (CLM)</td>
+<td><em>Sequence-to-sequence</em></td>
+</tr>
+<tr class="odd">
+<td><strong>Objetivo Principal</strong></td>
+<td>Compreensão de texto</td>
+<td>Geração de texto</td>
+<td>Transformação de sequências</td>
+</tr>
+<tr class="even">
+<td><strong>Tarefas Típicas</strong></td>
+<td>Classificação<br>NER<br><em>Question Answering</em><br>Análise de sentimento</td>
+<td>Geração de texto<br>Completação<br>Conversação<br>Code generation</td>
+<td>Tradução<br>Sumarização<br><em>Question Answering</em> generativo</td>
+</tr>
+<tr class="odd">
+<td><strong>Exemplos de Modelos</strong></td>
+<td>BERT<br>RoBERTa<br>ALBERT<br>DeBERTa</td>
+<td>GPT-3/4<br>LLaMA<br>PaLM<br>Claude<br>Mistral</td>
+<td>T5<br>BART<br>mT5<br>Flan-T5</td>
+</tr>
+<tr class="even">
+<td><strong>Complexidade</strong></td>
+<td>Moderada</td>
+<td>Simples</td>
+<td>Alta (arquitetura dupla)</td>
+</tr>
+<tr class="odd">
+<td><strong>Escalabilidade</strong></td>
+<td>Boa</td>
+<td>Excelente</td>
+<td>Moderada</td>
+</tr>
+<tr class="even">
+<td><strong>Custo de Inferência</strong></td>
+<td>Baixo a moderado</td>
+<td>Moderado (com KV-cache)</td>
+<td>Alto</td>
+</tr>
+<tr class="odd">
+<td><strong>Uso Atual</strong></td>
+<td>Tarefas de compreensão específicas</td>
+<td><strong>Dominante</strong> para modelos de uso geral</td>
+<td>Tarefas especializadas de transformação</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Tendência Atual
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Modelos <em>decoder-only</em> têm se tornado a arquitetura dominante para foundation models de uso geral devido à sua simplicidade, escalabilidade e versatilidade. Eles podem ser usados tanto para compreensão quanto para geração, tornando-os ideais para construir agentes inteligentes.</p>
+</div>
+</div>
 </section>
 </section>
 <section id="conclusão" class="level2">
 <h2 class="anchored" data-anchor-id="conclusão">Conclusão</h2>
 <p>Neste capítulo, exploramos os fundamentos dos Transformers, a arquitetura que revolucionou o processamento de linguagem natural e tornou possível os foundation models modernos. Compreendemos o mecanismo de self-attention, que permite aos modelos capturar relações complexas entre tokens, e vimos como técnicas como multi-head attention, otimizações modernas (GQA, Flash Attention, KV-Cache) e componentes arquiteturais (feedforward networks, MoE, residual connections, layer normalization) trabalham em conjunto para criar modelos poderosos e eficientes.</p>
-<p>Entendemos também como embeddings posicionais resolvem a limitação fundamental de permutation-invariance dos Transformers, e exploramos as três variantes principais de arquiteturas: encoder-only, decoder-only e encoder-decoder, cada uma adequada para diferentes tipos de tarefas.</p>
+<p>Entendemos também como embeddings posicionais resolvem a limitação fundamental de <em>permutation-invariance</em> dos Transformers, e exploramos as três variantes principais de arquiteturas: <em>encoder-only</em>, <em>decoder-only</em> e <em>encoder-decoder</em>, cada uma adequada para diferentes tipos de tarefas.</p>
 <p>Este conhecimento fundamental é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes inteligentes que aproveitam suas capacidades de forma eficaz e confiável.</p>
 
 
