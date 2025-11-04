@@ -96,6 +96,7 @@ result = process()     # Faltam imports e definições
 - Incluir exemplo de uso após definições
 - Tratar erros quando apropriado
 - Código deve ser sempre executável (copy-paste-run)
+- Todos os exemplos devem estar no corpo do texto e também em um arquivo separado na pasta `sandbox/`
 
 ### 3. **Callouts e Avisos**
 

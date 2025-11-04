@@ -1,16 +1,53 @@
 # Capítulo 1: Fundamentos dos Transformers {.unnumbered}
 
-Foundation models são considerados a espinha dorsal dos agentes inteligentes. Compreender sua arquitetura, funcionamento interno e capacidades é essencial para que consigamos construir sistemas "agenticos" eficientes, seguros e viáveis financeiramente. Neste capítulo, vamos explorar os conceitos fundamentais por trás dos foundation models, com foco especial na Arquitetura Transformer que os torna possíveis.
+Em 2017, um paper relativamente curto da Google Brain mudou para sempre o curso da inteligência artificial. "Attention Is All You Need" [@vaswani2017attention] introduziu a arquitetura Transformer, que na época parecia apenas mais uma melhoria incremental para tradução neural. Poucos imaginavam que essa arquitetura se tornaria a base de praticamente todos os avanços revolucionários em IA da última década.
+
+Hoje, quando você interage com ChatGPT, Claude ou qualquer outro agente inteligente moderno, está usando um sistema fundamentado em Transformers. Quando GitHub Copilot completa seu código, quando DALL-E gera imagens a partir de texto, ou quando AlphaCode resolve problemas de programação competitiva - todos esses sistemas compartilham a mesma arquitetura base.
+
+Mas o que torna os Transformers tão especiais? Por que essa arquitetura específica desbloqueou capacidades que pareciam impossíveis apenas alguns anos atrás? E, mais importante para construir agentes de IA: **o que você realmente precisa entender sobre Transformers para usá-los efetivamente em produção?**
+
+Este capítulo responde essas questões. Não apenas explicando *o que* são Transformers, mas revelando *por que* eles funcionam, quais são suas limitações práticas, e como escolher e otimizar modelos baseados nessa arquitetura para suas aplicações específicas.
+
+Vamos começar entendendo o contexto histórico que tornou os Transformers necessários, depois mergulhar em sua mecânica interna, e finalmente explorar as otimizações modernas que os tornam práticos em escala de produção.
 
 ## Introdução: A Revolução dos Foundation Models
 
-Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas *downstream* através de *fine-tuning* ou *prompting* - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.
+Os foundation models representam uma mudança de paradigma em como construímos sistemas de IA. Antes deles, cada aplicação de machine learning seguia o mesmo padrão custoso:
 
-Esta mudança de paradigma não é apenas uma questão de conveniência, ela reflete uma compreensão mais profunda de como o conhecimento pode ser representado e transferido em sistemas artificiais.
+1. **Definir uma tarefa específica** (ex: classificação de sentimentos, tradução, reconhecimento de entidades)
+2. **Coletar e anotar milhares de exemplos** específicos para essa tarefa
+3. **Treinar um modelo do zero** ou partir de um modelo pré-treinado genérico
+4. **Repetir todo o processo** para cada nova tarefa ou domínio
 
-O termo "foundation model" foi cunhado por pesquisadores de Stanford em 2021 [@bommasani2021opportunities] para descrever modelos que são (1) treinados em dados amplos e diversos usando *self-supervision*, (2) servem como base para uma variedade de tarefas downstream, e (3) demonstram capacidades emergentes que não foram explicitamente programadas para fazer. Large Language Models (LLMs) como GPT [@brown2020language], BERT [@devlin2018bert], LLaMA [@touvron2023llama] e Claude são exemplos proeminentes de foundation models, mas o conceito se estende a outras modalidades como CLIP e DALL-E para imagens ou Codex e StarCoder para código.
+Imagine construir um agente de atendimento ao cliente. Nessa abordagem antiga, você precisaria:
 
-Para engenheiros que construirão agentes inteligentes, compreender os foundation models não é opcional, é um conhecimento base para todo o resto. Os agentes de IA modernos são, em sua essência, sistemas que orquestram foundation models para *perceber o ambiente*, *raciocinar* sobre ele e *tomar ações*. Sem uma compreensão profunda de como esses modelos funcionam, suas capacidades e limitações, é impossível construir agentes robustos e, acima de tudo, **confiáveis**.
+- Um modelo para entender intenção do usuário
+- Outro modelo para extrair informações (nome, número de pedido, etc.)
+- Outro para classificar o tipo de problema
+- Outro para gerar respostas
+- E mais modelos para cada nova funcionalidade
+
+Cada um desses modelos exigia seu próprio dataset anotado, seu próprio processo de treinamento, e sua própria infraestrutura de deployment. O custo e complexidade eram proibitivos para a maioria das organizações.
+
+**Foundation models invertem essa equação.** Em vez de treinar modelos especializados para cada tarefa, treinamos um único modelo massivo em dados diversos (texto, código, imagens) que desenvolve capacidades gerais de compreensão e geração. Esse modelo pode então ser **adaptado** para tarefas específicas através de **Prompting**, simplesmente descrever a tarefa em linguagem natural, **Few-shot learning**, fornecer alguns exemplos da tarefa, **Fine-Tuning**, ajustar o modelo com dados específicos do domínio (tema do Capítulo 3)
+
+O termo "foundation" (fundação) é propositalmente arquitetônico, esses modelos servem como **base sobre a qual construímos aplicações especializadas**, da mesma forma que fundações de edifícios suportam estruturas diversas acima delas.
+
+A hipótese central do porque isso funciona é que linguagem (e outras modalidades) contêm padrões profundos e transferíveis. Um modelo que aprende a prever a próxima palavra em textos diversos desenvolve, como efeito colateral, representações internas ricas sobre:
+
+- Estrutura gramatical e semântica
+- Conhecimento factual sobre o mundo
+- Raciocínio lógico e matemático
+- Padrões de código e algoritmos
+- Até mesmo teoria da mente (entender intenções e crenças)
+
+Essas representações podem ser aproveitadas para tarefas que o modelo nunca viu explicitamente durante o treinamento, uma propriedade chamada **capacidade emergente** que exploraremos mais adiante.
+
+Formalmente, o termo "foundation model" foi cunhado por pesquisadores de Stanford em 2021 [@bommasani2021opportunities] para descrever modelos que são: (1) treinados em dados amplos e diversos usando *self-supervision*, (2) servem como base para uma variedade de tarefas downstream, e (3) demonstram capacidades emergentes que não foram explicitamente programadas. Large Language Models (LLMs) como GPT [@brown2020language], BERT [@devlin2018bert], LLaMA [@touvron2023llama] e Claude são exemplos proeminentes de foundation models, mas o conceito se estende a outras modalidades como CLIP e DALL-E para imagens ou Codex e StarCoder para código.
+
+E no coração de todos esses foundation models modernos - GPT-4, Claude, LLaMA, Gemini - está a arquitetura **Transformer**. Vamos entender por que essa arquitetura específica tornou tudo isso possível.
+
+Para engenheiros que construirão agentes inteligentes, compreender foundation models não é opcional, é conhecimento base para todo o resto. Os agentes de IA modernos são, em sua essência, sistemas que orquestram foundation models para *perceber o ambiente*, *raciocinar* sobre ele e *tomar ações*. Sem uma compreensão profunda de como esses modelos funcionam, suas capacidades e limitações, é impossível construir agentes robustos e, acima de tudo, **confiáveis**.
 
 Neste capítulo, vamos explorar os componentes centrais dos foundation models, entender a arquitetura Transformer que os torna possíveis, e entender como eles aprendem e representam conhecimento. Esta base será essencial para os próximos capítulos, onde aplicaremos esses conceitos na construção de agentes inteligentes capazes de operar em ambientes complexos e dinâmicos. Se você não está familiarizado com conceitos como *self-attention*, *positional encoding* ou *multi-head attention*, não se preocupe, vamos cobrir tudo isso em detalhes.
 
@@ -305,7 +342,7 @@ Observe como:
 - Cada token tem um ID numérico único no vocabulário do modelo
 :::
 
-Este exemplo prático demonstra como a tokenização funciona "nos bastidores" dos foundation models que você usará para construir agentes inteligentes.
+Este exemplo prático demonstra como a tokenização funciona "nos bastidores" dos foundation models que você usará para construir agentes.
 
 ### Tipos de Tokens
 
@@ -351,7 +388,7 @@ Agora que compreendemos o que são tokens, podemos prosseguir para entender como
 
 ### Atenção é tudo o que você precisa
 
-A arquitetura Transformer, introduzida no paper seminal "Attention Is All You Need" [@vaswani2017attention], representa uma grande evolução sobre as arquiteturas sequenciais que a precederam. *Recurrent neural network (RNNs)* e suas variantes como *Long short-term memory (LSTMs)* processam sequências token por token, mantendo um estado oculto que carrega informação contextual. Esta abordagem tem duas limitações críticas: (1) o processamento sequencial impede a paralelização durante o treinamento, tornando o processo extremamente lento para sequências longas, e (2) o estado oculto fixo cria um gargalo de informação, dificultando o aprendizado de dependências de longo alcance.
+A arquitetura Transformer representa uma grande evolução sobre as arquiteturas sequenciais que a precederam. *Recurrent neural networks (RNNs)* e suas variantes como *Long short-term memory (LSTMs)* processam sequências token por token, mantendo um estado oculto que carrega informação contextual. Esta abordagem tem duas limitações críticas: (1) o processamento sequencial impede a paralelização durante o treinamento, tornando o processo extremamente lento para sequências longas, e (2) o estado oculto fixo cria um gargalo de informação, dificultando o aprendizado de dependências de longo alcance.
 
 O Transformer elimina completamente a recorrência, substituindo-a por um mecanismo de atenção que permite que cada posição na sequência "olhe" para todas as outras posições simultaneamente. Esta mudança não é apenas uma otimização, ela acaba mudando **o que** o modelo pode aprender. Enquanto RNNs têm um viés indutivo sequencial (processam informação left-to-right), Transformers têm um viés indutivo relacional (modelam relações entre quaisquer dois elementos da sequência).
 
@@ -408,27 +445,19 @@ Vamos explorar os componentes centrais do Transformer que o tornam tão poderoso
 
 ### Self-Attention: O Mecanismo de Memória Associativa
 
-O mecanismo de self-attention é o núcleo do Transformer. Ele é um mecanismo que permite que o modelo considere todas as partes da entrada simultaneamente, em vez de processá-las sequencialmente. Isso pode ser entendido como uma forma de memória associativa diferenciável.
+O mecanismo de self-attention é o núcleo do Transformer. Ele permite que o modelo considere todas as partes da entrada simultaneamente, funcionando como uma forma de memória associativa diferenciável.
 
-Para cada token na sequência, o modelo computa três vetores:
+Para cada token, o modelo computa três vetores através de **projeções aprendidas** (matrizes W_Q, W_K e W_V):
 
-1. **Query (Q)**: Representa "o que este token está **procurando**"
-2. **Key (K)**: Representa "o que este token **oferece**"
-3. **Value (V)**: Representa "a informação que este token **carrega**"
+1. **Query (Q)**: "o que este token está procurando"
+2. **Key (K)**: "o que este token oferece"
+3. **Value (V)**: "a informação que este token carrega"
 
-Matematicamente, a operação de atenção é definida como:
+Matematicamente: `Attention(Q, K, V) = softmax(QK^T / √d_k) V`
 
-```
-Attention(Q, K, V) = softmax(QK^T / √d_k) V
-```
+Onde QK^T computa similaridade entre tokens, √d_k normaliza para evitar gradientes instáveis, e softmax transforma em probabilidades que ponderam os valores V.
 
-O termo `QK^T` computa um score de similaridade entre cada par de tokens (a relevância). A divisão por `√d_k` é um fator de escala crítico, sem ele, os valores de `QK^T` podem crescer muito, empurrando a função softmax para regiões onde os gradientes se tornam extremamente pequenos, dificultando o treinamento. O softmax transforma esses scores em uma distribuição de probabilidade, determinando quanto "atenção" cada token deve receber. Finalmente, essa distribuição pondera os valores V, produzindo uma representação contextualizada.
-
-É importante entender que Q, K e V não são propriedades inerentes dos tokens, eles são **projeções aprendidas** das embeddings dos tokens. Para cada camada de atenção, o modelo aprende três matrizes de projeção: W_Q, W_K e W_V. Estas matrizes transformam as embeddings de entrada em espaços onde diferentes tipos de relações semânticas podem ser capturadas.
-
-Se você, assim como eu, não teve o privilégio de estudar álgebra linear profundamente, aqui vai uma intuição: pense em Q, K e V como diferentes "lentes" através das quais o modelo vê os tokens. Cada lente destaca diferentes aspectos das relações entre tokens, permitindo que o modelo aprenda a focar em diferentes tipos de conexões (sintáticas, semânticas, etc.).
-
-Para que você não termine este capítulo sem entender completamente o mecanismo de atenção, vamos entender isso através de uma metáfora!
+Para entender isso de forma intuitiva, vamos usar uma metáfora!
 
 #### Metáfora da Biblioteca
 
@@ -695,7 +724,7 @@ Mas, assim como qualquer outra abordagem, há *trade-offs*. A escolha do número
 - **GQA (8 grupos)**: 8 K + 8 V = ~85-95% da qualidade, 25% da memória
 - **MQA**: 1 K + 1 V = ~75-85% da qualidade, 3% da memória
 
-Para sistemas de produção, GQA oferece o melhor equilíbrio: permite que modelos grandes rodem em hardware mais acessível sem sacrificar significativamente a qualidade das respostas. Isso é algo importante para o nosso contexto como engenheiros de software construindo agentes inteligentes, pois estamos sempre buscando otimizações que permitam escalar modelos sem explodir custos.
+Para sistemas de produção, GQA oferece o melhor equilíbrio: permite que modelos grandes rodem em hardware mais acessível sem sacrificar significativamente a qualidade das respostas. Isso é importante para engenheiros de software construindo agentes, pois estamos sempre buscando otimizações que permitam escalar modelos sem explodir custos.
 
 #### Flash Attention
 
@@ -1569,7 +1598,7 @@ A tabela abaixo resume as principais diferenças entre as três variantes de arq
 ::: {.callout-note}
 # Tendência Atual
 
-Modelos *decoder-only* têm se tornado a arquitetura dominante para foundation models de uso geral devido à sua simplicidade, escalabilidade e versatilidade. Eles podem ser usados tanto para compreensão quanto para geração, tornando-os ideais para construir agentes inteligentes.
+Modelos *decoder-only* têm se tornado a arquitetura dominante para foundation models de uso geral devido à sua simplicidade, escalabilidade e versatilidade. Eles podem ser usados tanto para compreensão quanto para geração, tornando-os ideais para construir agentes.
 :::
 
 ## Conclusão
@@ -1578,4 +1607,4 @@ Neste capítulo, exploramos os fundamentos dos Transformers, a arquitetura que r
 
 Entendemos também como embeddings posicionais resolvem a limitação fundamental de *permutation-invariance* dos Transformers, e exploramos as três variantes principais de arquiteturas: *encoder-only*, *decoder-only* e *encoder-decoder*, cada uma adequada para diferentes tipos de tarefas.
 
-Este conhecimento fundamental é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes inteligentes que aproveitam suas capacidades de forma eficaz e confiável.
+Este conhecimento é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes que aproveitam suas capacidades de forma eficaz e confiável.
