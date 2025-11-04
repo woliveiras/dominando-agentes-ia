@@ -519,7 +519,47 @@ Usa modelos treinados para detectar conteúdo tóxico:
 - **Detoxify**: Modelo open-source para hate speech
 - **Custom filters**: Listas de palavras ofensivas
 
-Trade-off importante: filtrar agressivamente remove conteúdo tóxico mas também pode remover discussões legítimas sobre tópicos sensíveis.
+::: {.callout-warning title="Dilema Ético: Over-Filtering vs Under-Filtering"}
+
+**O Problema**: Filtrar conteúdo tóxico é essencial para criar modelos seguros, mas filtros agressivos demais podem causar danos não intencionais. Aqui estão alguns exemplos de como isso pode acontecer:
+
+**1. Apagamento de Vozes Marginalizadas**
+
+Discussões sobre racismo, homofobia ou sexismo frequentemente contêm as palavras que descrevem esses problemas. Filtros baseados em keywords podem remover testemunhos de vítimas e discussões educacionais.
+
+Exemplo: Um texto dizendo *"Sofri racismo no trabalho quando me chamaram de..."* pode ser filtrado pelo termo ofensivo, removendo justamente o relato que documenta discriminação.
+
+**2. Viés de Representação**
+
+Se termos relacionados a "LGBTQ+", "transgênero" ou "orientação sexual" disparam filtros de conteúdo adulto (comum em sistemas mal calibrados), o modelo aprenderá **menos** sobre essas comunidades, perpetuando invisibilidade.
+
+**3. Remoção de Contexto Educacional**
+
+Textos médicos, históricos ou jornalísticos sobre tópicos sensíveis podem ser filtrados incorretamente:
+- Artigos sobre saúde sexual
+- Documentação histórica de genocídios
+- Reportagens investigativas sobre crimes
+
+**Abordagens Recomendadas:**
+
+1. **Filtros Contextuais**: Use modelos que entendem contexto (ex: Perspective API com context awareness), não apenas keywords
+
+2. **Allowlists Educacionais**: Mantenha listas de termos técnicos, médicos e acadêmicos permitidos
+
+3. **Documentação Transparente**: Publique estatísticas de filtragem para auditoria externa
+   - Quantos textos foram removidos?
+   - Quais categorias foram mais afetadas?
+   - Como isso afeta representação de grupos minoritários?
+
+4. **Avaliação de Viés**: Teste se filtering afeta desproporcionalmente certos grupos
+   - Compare taxas de remoção entre textos sobre diferentes comunidades
+   - Meça representação pré e pós-filtragem
+
+**Referência**: Ver discussão em @dodge2021documenting sobre documentação ética de corpus.
+
+:::
+
+Trade-off fundamental: filtrar agressivamente remove conteúdo tóxico mas também pode remover discussões legítimas sobre tópicos sensíveis. A calibração correta requer balanceamento cuidadoso e consciente entre segurança e representatividade.
 
 **Estágio 6: Copyright Filtering**
 
@@ -1277,6 +1317,30 @@ for text in test_texts:
     print(f"Tokens ({len(tokens)}): {tokens}\n")
 
 # 2. Calcular fertility rate (tokens por palavra)
+#
+# FERTILITY RATE: Métrica crucial para avaliar eficiência de tokenização
+# Mede quantos tokens são necessários, em média, para representar uma palavra
+#
+# Fórmula: Fertility = Total de Tokens / Total de Palavras
+#
+# Interpretação:
+# - Fertility ≈ 1.0: IDEAL! Em média, 1 palavra = 1 token
+#   Exemplo: "hello world" → ["hello", "world"] = 2 tokens / 2 palavras = 1.0
+#
+# - Fertility ≈ 1.2-1.5: BOM! Tokenização eficiente
+#   Exemplo: "unhappiness" → ["un", "happiness"] = 2 tokens / 1 palavra = 2.0 para esta palavra
+#   Mas médio sobre corpus inteiro é ~1.2-1.5 (palavras simples compensam as compostas)
+#
+# - Fertility > 2.0: RUIM! Vocabulário muito pequeno
+#   Palavras sendo fragmentadas excessivamente → sequências muito longas → mais custo
+#
+# - Fertility < 1.0: IMPOSSÍVEL! Cada palavra precisa de pelo menos 1 token
+#
+# Por que isso importa?
+# - Fertility alto → mais tokens → mais computação → maior custo de API
+# - Fertility alto → sequências mais longas → pode exceder context window
+# - Fertility baixo → tokenização eficiente → melhor performance → menor custo
+
 def fertility_rate(texts):
     total_words = sum(len(text.split()) for text in texts)
     total_tokens = sum(len(tokenizer.encode(text).tokens) for text in texts)
@@ -1284,7 +1348,16 @@ def fertility_rate(texts):
 
 fertility = fertility_rate(validation_texts)
 print(f"Fertility rate: {fertility:.2f}")
-# Ideal: 1.2-1.5 (próximo de 1 palavra = 1 token em média)
+
+# Interpretação do resultado
+if fertility < 1.2:
+    print("✅ EXCELENTE: Tokenização muito eficiente!")
+elif fertility < 1.5:
+    print("✅ BOM: Tokenização eficiente")
+elif fertility < 2.0:
+    print("⚠️  MODERADO: Tokenização aceitável mas pode melhorar")
+else:
+    print("❌ RUIM: Vocabulário muito pequeno, considere aumentar vocab_size")
 
 # 3. Verificar cobertura de vocabulário
 vocab = tokenizer.get_vocab()
@@ -1681,12 +1754,32 @@ print("\n💡 Observe que Code Llama tokeniza código mais eficientemente!")
 
 ## Conclusão
 
-Neste capítulo, exploramos como foundation models aprendem e representam conhecimento através do paradigma de pré-treinamento. Compreendemos a importância fundamental dos dados de treinamento, desde a composição cuidadosa de datasets até o processo meticuloso de data cleaning que transforma dados brutos em recursos valiosos para o aprendizado.
+Neste capítulo, exploramos os fundamentos de como foundation models são treinados, focando em três pilares essenciais que determinam suas capacidades:
 
-Mergulhamos profundamente em tokenização, a camada crítica entre texto e modelo, explorando diferentes abordagens (caracteres, palavras, BPE) e suas implicações práticas para construção de agentes. Vimos como escolhas de tokenização afetam não apenas a eficiência computacional, mas também as capacidades fundamentais do modelo em tarefas como aritmética, processamento multilíngue e compreensão de código.
+**1. Self-Supervised Learning e Métricas de Treinamento**
 
-Entendemos também as capacidades emergentes que surgem em modelos suficientemente grandes, como in-context learning, chain-of-thought reasoning e instruction following — fenômenos que não foram explicitamente programados mas emergem naturalmente do processo de treinamento em escala massiva.
+Compreendemos como modelos aprendem através do paradigma de predição do próximo token, uma tarefa aparentemente simples que, em escala massiva, produz representações ricas de linguagem. Exploramos como medimos esse aprendizado através de loss function e perplexidade, e—criticamente—entendemos as limitações dessas métricas: perplexidade baixa não garante utilidade prática, e otimizar apenas para loss pode levar a modelos que "decoram" sem realmente compreender.
 
-Por fim, exploramos os desafios práticos de treinar modelos gigantes: scaling laws que nos permitem prever performance, técnicas de paralelização necessárias para distribuir computação, questões de estabilidade numérica e estratégias de learning rate scheduling.
+**2. Dados de Pré-Treinamento: A Matéria-Prima do Conhecimento**
 
-Este conhecimento sobre o processo de treinamento é essencial para entender as capacidades e limitações dos foundation models, preparando-nos para o próximo capítulo onde exploraremos fine-tuning, técnicas de otimização e como adaptar esses modelos para tarefas e domínios específicos.
+Investigamos a composição de datasets modernos (Common Crawl, livros, código, Wikipedia) e o processo meticuloso de data cleaning que transforma petabytes de texto bruto em dados de alta qualidade. Vimos que data cleaning não é apenas um passo técnico—envolve decisões éticas complexas sobre o que incluir ou excluir, com impactos profundos nas capacidades e vieses do modelo resultante. A qualidade e diversidade dos dados de treinamento são fundamentais: "garbage in, garbage out" nunca foi tão verdadeiro quanto em foundation models.
+
+**3. Tokenização: A Camada Crítica Entre Texto e Modelo**
+
+Mergulhamos profundamente em como texto é convertido em sequências numéricas que modelos podem processar. Exploramos diferentes estratégias (tokenização por caracteres, palavras, e subword tokenization via BPE e variantes) e suas implicações práticas. Vimos como escolhas de tokenização afetam não apenas eficiência computacional, mas capacidades fundamentais do modelo: aritmética, processamento multilíngue, compreensão de código, e até mesmo custos de API. Aprendemos a treinar tokenizers customizados e avaliar sua qualidade através de métricas como fertility rate.
+
+**Aplicação Prática: Por que isso importa para Agentes de IA**
+
+Este conhecimento não é puramente acadêmico—ele é essencial para construir agentes de IA eficazes:
+
+- **Seleção de Modelos**: Entender como modelos foram treinados ajuda a escolher o modelo certo para cada tarefa. Um modelo treinado predominantemente em código (Code Llama) terá capacidades diferentes de um treinado em linguagem natural geral.
+
+- **Otimização de Prompts**: Conhecer limitações de tokenização permite escrever prompts mais eficientes, reduzindo custos e latência.
+
+- **Debugging de Comportamento**: Quando um agente falha em uma tarefa, entender o processo de treinamento ajuda a diagnosticar se é uma limitação fundamental do modelo ou um problema de prompt/configuração.
+
+- **Gerenciamento de Custos**: Compreender que custos de API são baseados em tokens—e que tokenização varia entre idiomas—permite estimativas precisas de custo operacional.
+
+**Preparação para o Próximo Capítulo**
+
+Com essa fundação sólida sobre como modelos são treinados, estamos prontos para explorar como **adaptá-los** para casos de uso específicos. No próximo capítulo, mergulharemos em fine-tuning e técnicas de otimização: como pegar um modelo pré-treinado e especializá-lo para suas tarefas específicas, balanceando qualidade, custo e latência para construir agentes de IA eficientes em produção.
