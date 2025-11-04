@@ -4,7 +4,7 @@ Foundation models são considerados a espinha dorsal dos agentes inteligentes. C
 
 ## Introdução: A Revolução dos Foundation Models
 
-Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas *downstream* através de **fine-tuning** ou **prompting** - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.
+Os foundation models representam uma mudança na forma como construímos sistemas de inteligência artificial. Diferente das abordagens tradicionais de machine learning, onde cada tarefa requer um modelo especializado treinado do zero, os foundation models são treinados uma única vez em escala massiva e depois adaptados para múltiplas tarefas *downstream* através de *fine-tuning* ou *prompting* - temas que vamos aprofundar mais adiante, mas explico o que são tarefas downstream logo abaixo nesta introdução.
 
 Esta mudança de paradigma não é apenas uma questão de conveniência, ela reflete uma compreensão mais profunda de como o conhecimento pode ser representado e transferido em sistemas artificiais.
 
@@ -69,25 +69,25 @@ O modelo é adaptado para tarefas específicas como:
 
 Antes de mergulharmos na arquitetura Transformer, precisamos entender um conceito fundamental que permeia todo este capítulo: **tokens**. Você já deve ter notado que mencionamos "tokens" algumas vezes até agora, mas o que exatamente são eles?
 
-Tokens são as **unidades básicas de processamento** que os modelos de linguagem utilizam. Pense neles como os "pedaços" ou "blocos" em que o texto é dividido antes de ser processado pelo modelo. Diferente do que você pode imaginar inicialmente, tokens não são necessariamente palavras completas.
+Tokens são as unidades mínimas que os modelos de linguagem processam. Eles representam segmentos do texto, que podem ser palavras inteiras, partes de palavras ou até mesmo caracteres, dependendo do algoritmo de tokenização utilizado. Essa abordagem permite ao modelo lidar com diferentes idiomas, neologismos e variações linguísticas de forma eficiente, sem depender de um vocabulário fixo de palavras completas.
 
 ### Por Que Não Usar Palavras Diretamente?
 
-Uma pergunta natural é: por que não simplesmente usar palavras como unidade básica? A resposta está na praticidade e eficiência:
+Por que não usar palavras inteiras como unidade básica? Embora pareça intuitivo, essa escolha traria desafios práticos e de eficiência:
 
-1. **Vocabulário imenso**: O português possui centenas de milhares de palavras. Considerar todas as flexões verbais, conjugações, e variações seria inviável. Imagine para outros idiomas com ainda mais complexidade morfológica!
-2. **Palavras novas**: Novas palavras surgem constantemente (neologismos, gírias, termos técnicos, nomes próprios).
-3. **Multilinguismo**: Um modelo que precisa trabalhar com múltiplos idiomas teria um vocabulário astronômico.
-4. **Eficiência computacional**: Um vocabulário menor significa menos parâmetros no modelo e processamento mais rápido.
+1. O vocabulário seria gigantesco, tornando o treinamento e a inferência inviáveis.
+2. Novos termos, gírias e nomes próprios surgem constantemente, dificultando a atualização do vocabulário.
+3. Modelos multilingues exigiriam um vocabulário ainda maior, aumentando a complexidade.
+4. Um vocabulário menor reduz o número de parâmetros e acelera o processamento.
 
 ### Como Funciona a Tokenização?
 
-Os modelos modernos usam algoritmos sofisticados de **sub-word tokenization** como **Byte-Pair Encoding (BPE)**, **WordPiece** ou **SentencePiece**. Esses algoritmos funcionam da seguinte forma:
+Para contornar esses desafios, os modelos modernos utilizam algoritmos de tokenização por subpalavras, como *Byte-Pair Encoding (BPE)*, *WordPiece* ou *SentencePiece*. Eles seguem etapas como:
 
-1. **Começam com caracteres**: Inicialmente, cada caractere é um token
-2. **Identificam padrões frequentes**: Encontram sequências de caracteres ou sub-palavras que aparecem frequentemente juntas
-3. **Mesclam em tokens**: Combinam esses padrões frequentes em tokens únicos
-4. **Repetem o processo**: Continuam mesclando até atingir um tamanho de vocabulário desejado (geralmente entre 30.000 e 100.000 tokens)
+1. Inicialmente, cada caractere é tratado como um token.
+2. O algoritmo identifica sequências frequentes de caracteres ou subpalavras.
+3. Essas sequências são agrupadas em tokens únicos.
+4. O processo se repete até atingir o tamanho de vocabulário desejado (geralmente entre 30.000 e 100.000 tokens).
 
 #### Exemplo de Tokenização
 
@@ -190,10 +190,11 @@ for palavra in palavras:
     print(f"  Número de tokens: {len(tokens)}")
 
 # Demonstrar decodificação (tokens → texto)
+# O processo inverso: converter IDs numéricos de volta para texto
 print("\n" + "=" * 60)
 print("Decodificação: Tokens → Texto")
 print("=" * 60)
-exemplo_ids = [32, 4132, 328, 14722, 15075]  # IDs fictícios para exemplo
+# Pega os primeiros 5 tokens de "inteligência artificial" e reconstrói o texto
 texto_decodificado = tokenizer_gpt2.decode(
     tokenizer_gpt2.encode("inteligência artificial")[:5]
 )
@@ -202,12 +203,14 @@ print(f"Tokens: {tokenizer_gpt2.tokenize('inteligência artificial')[:5]}")
 print(f"Texto decodificado: '{texto_decodificado}'")
 
 # Comparação de eficiência entre idiomas
+# Modelos treinados em inglês geralmente tokenizam português menos eficientemente
 print("\n" + "=" * 60)
 print("Comparação: Português vs Inglês")
 print("=" * 60)
 texto_pt = "A inteligência artificial está revolucionando o mundo."
 texto_en = "Artificial intelligence is revolutionizing the world."
 
+# Tokeniza a mesma frase em dois idiomas
 tokens_pt = tokenizer_gpt2.tokenize(texto_pt)
 tokens_en = tokenizer_gpt2.tokenize(texto_en)
 
@@ -215,6 +218,7 @@ print(f"Português: '{texto_pt}'")
 print(f"  Tokens: {len(tokens_pt)} - {tokens_pt}")
 print(f"\nInglês: '{texto_en}'")
 print(f"  Tokens: {len(tokens_en)} - {tokens_en}")
+# Note como português requer mais tokens (custo maior em APIs)
 print(f"\nEficiência: Inglês usa ~{len(tokens_pt)/len(tokens_en):.2f}x menos tokens")
 ```
 
@@ -517,29 +521,41 @@ class SelfAttention(nn.Module):
     def __init__(self, d_model, d_k):
         super().__init__()
         # Matrizes de projeção aprendidas durante treinamento
-        self.W_Q = nn.Linear(d_model, d_k)  # Query projection
-        self.W_K = nn.Linear(d_model, d_k)  # Key projection
-        self.W_V = nn.Linear(d_model, d_k)  # Value projection
-        self.d_k = d_k
+        # Essas matrizes transformam embeddings em queries, keys e values
+        self.W_Q = nn.Linear(d_model, d_k)  # Projeta para "o que buscar"
+        self.W_K = nn.Linear(d_model, d_k)  # Projeta para "o que oferecer"
+        self.W_V = nn.Linear(d_model, d_k)  # Projeta para "a informação"
+        self.d_k = d_k  # Dimensão das keys (usado para normalização)
 
     def forward(self, X):
         """
-        X: (batch, seq_len, d_model) - embeddings de entrada
-        Retorna: (batch, seq_len, d_k) - representações contextualizadas
+        Calcula self-attention sobre a sequência de entrada.
+        
+        Args:
+            X: (batch, seq_len, d_model) - embeddings de entrada
+        
+        Returns:
+            (batch, seq_len, d_k) - representações contextualizadas
         """
-        # Projetar X em espaços Q, K, V
-        Q = self.W_Q(X)  # (batch, seq_len, d_k)
-        K = self.W_K(X)  # (batch, seq_len, d_k)
-        V = self.W_V(X)  # (batch, seq_len, d_k)
+        # Passo 1: Projetar X em espaços Q, K, V
+        # Cada token é transformado em 3 representações diferentes
+        Q = self.W_Q(X)  # (batch, seq_len, d_k) - "Perguntas"
+        K = self.W_K(X)  # (batch, seq_len, d_k) - "Chaves"
+        V = self.W_V(X)  # (batch, seq_len, d_k) - "Valores"
 
-        # Computar attention scores
+        # Passo 2: Computar attention scores (similaridade entre Q e K)
+        # @ é multiplicação matricial: cada query compara com todas as keys
         scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
-        # scores: (batch, seq_len, seq_len)
+        # scores: (batch, seq_len, seq_len) - matriz de similaridades
+        # Dividimos por √d_k para evitar valores muito grandes
 
-        # Aplicar softmax para obter pesos de atenção
+        # Passo 3: Aplicar softmax para obter pesos de atenção
+        # Transforma scores em probabilidades que somam 1
         attention_weights = torch.softmax(scores, dim=-1)
+        # attention_weights[i][j] = quanto o token i presta atenção no token j
 
-        # Ponderar valores V pelos pesos de atenção
+        # Passo 4: Ponderar valores V pelos pesos de atenção
+        # Cada token recebe uma combinação ponderada de todos os valores
         output = attention_weights @ V  # (batch, seq_len, d_k)
 
         return output
@@ -551,18 +567,18 @@ class SelfAttention(nn.Module):
 - **W_K**: Transforma embeddings em "chaves" - como cada token se descreve
 - **W_V**: Transforma embeddings em "valores" - que informação cada token carrega
 
-Essas matrizes são **aprendidas via backpropagation** durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.
+Essas matrizes são aprendidas via *backpropagation* durante o treinamento. O modelo descobre automaticamente que tipos de perguntas fazer, que características destacar nas chaves, e que informações preservar nos valores.
 
-Backpropagation é o algoritmo que permite que redes neurais aprendam. O seu funcionamento básico é:
+*Backpropagation* é o algoritmo que permite que redes neurais aprendam. O seu funcionamento básico é:
 
-- Forward pass: O modelo faz uma previsão com os pesos atuais
+- *Forward pass*: O modelo faz uma previsão com os pesos atuais
 - Cálculo do erro: Compara a previsão com o resultado correto
-- Backward pass (backpropagation): Propaga o erro de volta através das camadas, calculando quanto cada peso contribuiu para o erro
+- *Backward pass* (*backpropagation*): Propaga o erro de volta através das camadas, calculando quanto cada peso contribuiu para o erro
 - Atualização dos pesos: Ajusta os pesos (matrizes `W_Q`, `W_K`, `W_V`) para reduzir o erro
 
 No contexto das matrizes de atenção (`W_Q`, `W_K`, `W_V`), seria:
 
-O modelo não sabe a priori como transformar embeddings em queries, keys e values. Durante o treinamento, ele experimenta diferentes valores para essas matrizes. Através de backpropagation, descobre automaticamente quais transformações funcionam melhor. Aprende, por exemplo, que uma matriz `W_Q` deve extrair características que representam "o que buscar", enquanto `W_K` deve extrair características que representam "o que oferecer".
+O modelo não sabe a priori como transformar embeddings em queries, keys e values. Durante o treinamento, ele experimenta diferentes valores para essas matrizes. Através de *backpropagation*, descobre automaticamente quais transformações funcionam melhor. Aprende, por exemplo, que uma matriz `W_Q` deve extrair características que representam "o que buscar", enquanto `W_K` deve extrair características que representam "o que oferecer".
 
 Agora, vamos ver como essa atenção é estendida para capturar múltiplas relações simultaneamente.
 
@@ -577,9 +593,9 @@ onde head_i = Attention(QW^Q_i, KW^K_i, VW^V_i)
 
 Cada "head" aprende a focar em diferentes tipos de relações. Por exemplo, um head pode aprender a identificar relações sujeito-verbo, outro pode focar em resolver pronomes, e outro pode capturar relações de longo alcance como correspondências entre abertura e fechamento de parênteses. Esta decomposição é aprendida automaticamente durante o treinamento, não é necessário especificar explicitamente o que cada head deve fazer.
 
-O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também **aumentam o custo computacional** e podem levar a overfitting se não houver dados suficientes.
+O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também **aumentam o custo computacional** e podem levar a *overfitting* se não houver dados suficientes.
 
-Chamamos de overfitting quando o modelo aprende a memorizar os dados de treinamento em vez de generalizar para novos dados. Isso pode acontecer se o modelo for muito complexo (muitos parâmetros) em relação à quantidade de dados disponíveis.
+Chamamos de *overfitting* quando o modelo aprende a memorizar os dados de treinamento em vez de generalizar para novos dados. Isso pode acontecer se o modelo for muito complexo (muitos parâmetros) em relação à quantidade de dados disponíveis.
 
 ### Otimizações Modernas de Atenção
 
@@ -777,9 +793,9 @@ for bloco_q in blocos(Q):                    # Itera sobre blocos de queries
 
 Um desafio técnico é que softmax requer normalização global, você precisa saber o máximo e a soma de todos os valores. Flash Attention usa uma técnica chamada "online softmax" que atualiza essas estatísticas incrementalmente à medida que processa blocos, sem precisar ter a matriz completa na memória.
 
-**Recomputation Durante Backward Pass**
+**Recomputation Durante *Backward Pass***
 
-Um aspecto engenhoso: durante o backward pass (cálculo de gradientes), em vez de armazenar as matrizes S e P (que consumiriam memória massiva), Flash Attention simplesmente **recalcula** esses valores on-the-fly. Como os cálculos são extremamente rápidos (acontecem em SRAM), recomputar é mais barato que armazenar.
+Um aspecto engenhoso: durante o *backward pass* (cálculo de gradientes), em vez de armazenar as matrizes S e P (que consumiriam memória massiva), Flash Attention simplesmente **recalcula** esses valores *on-the-fly*. Como os cálculos são extremamente rápidos (acontecem em SRAM), recomputar é mais barato que armazenar.
 
 **Resultados Práticos**
 
@@ -788,13 +804,13 @@ Para engenheiros construindo sistemas de produção, os ganhos são substanciais
 - **Velocidade**: 2-4× mais rápido que atenção padrão, especialmente para sequências longas
 - **Memória**: Reduz uso de memória de O(n²) para O(n), permitindo sequências muito mais longas
 - **Exatidão**: Resultado é **numericamente idêntico** à atenção padrão (não é uma aproximação)
-- **Transparência**: Drop-in replacement — não requer mudanças no código do modelo
+- **Transparência**: *Drop-in replacement* — não requer mudanças no código do modelo
 
 Frameworks modernos como PyTorch (via `torch.nn.functional.scaled_dot_product_attention`) e bibliotecas como Hugging Transformers já integram Flash Attention automaticamente quando disponível. Para engenheiros, isso significa que você obtém os ganhos "de graça" apenas usando APIs modernas, mas entender **por que** funciona ajuda a tomar decisões arquiteturais informadas sobre tamanhos de sequência, batch sizes, e deployment.
 
 #### KV-Cache: Evitando Recomputação em Geração Autoregressiva
 
-Durante a geração de texto token-por-token em modelos decoder-only, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para **todos os tokens anteriores** do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.
+Durante a geração de texto token-por-token em modelos *decoder-only*, há um desperdício computacional massivo: a cada novo token gerado, o modelo recalcula a atenção para **todos os tokens anteriores** do zero. KV-Cache é a otimização que resolve esse problema, sendo absolutamente crucial para inferência eficiente em produção.
 
 **O Problema: Recomputação Redundante**
 
@@ -828,28 +844,36 @@ A observação chave é: em geração autoregressiva com máscara causal, **K e 
 class KVCachedAttention(nn.Module):
     def __init__(self, d_model, d_k, d_v):
         super().__init__()
+        # Matrizes de projeção (mesmas do SelfAttention)
         self.W_Q = nn.Linear(d_model, d_k)
         self.W_K = nn.Linear(d_model, d_k)
         self.W_V = nn.Linear(d_model, d_v)
         self.d_k = d_k
 
-        # Cache para K e V
+        # Cache para armazenar K e V de tokens já processados
+        # Isso evita recomputar K e V toda vez que geramos um novo token
         self.k_cache = None  # Shape: (batch, seq_len, d_k)
         self.v_cache = None  # Shape: (batch, seq_len, d_v)
 
     def forward(self, x, use_cache=True):
         """
-        x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa
+        Processa novo token usando cache de K e V anteriores.
+        
+        Args:
+            x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa
+            use_cache: se True, usa e atualiza o cache
         """
         batch_size = x.size(0)
 
-        # Compute Q, K, V apenas para o novo token
-        Q_new = self.W_Q(x)  # (batch, 1, d_k)
-        K_new = self.W_K(x)  # (batch, 1, d_k)
-        V_new = self.W_V(x)  # (batch, 1, d_v)
+        # Passo 1: Compute Q, K, V APENAS para o novo token
+        # Economiza computação pois não recalcula tokens anteriores
+        Q_new = self.W_Q(x)  # (batch, 1, d_k) - Query do novo token
+        K_new = self.W_K(x)  # (batch, 1, d_k) - Key do novo token
+        V_new = self.W_V(x)  # (batch, 1, d_v) - Value do novo token
 
+        # Passo 2: Combinar novo K/V com cache existente
         if use_cache and self.k_cache is not None:
-            # Concatena novo K e V com cache existente
+            # Concatena K e V novos com os já computados anteriormente
             K = torch.cat([self.k_cache, K_new], dim=1)  # (batch, seq_len+1, d_k)
             V = torch.cat([self.v_cache, V_new], dim=1)  # (batch, seq_len+1, d_v)
         else:
@@ -857,12 +881,13 @@ class KVCachedAttention(nn.Module):
             K = K_new
             V = V_new
 
-        # Atualiza cache
+        # Passo 3: Atualiza cache para a próxima iteração
         if use_cache:
-            self.k_cache = K.detach()  # Detach para não acumular gradientes
+            # Detach evita acumular gradientes desnecessários no cache
+            self.k_cache = K.detach()
             self.v_cache = V.detach()
 
-        # Compute attention usando K e V completos (incluindo cache)
+        # Passo 4: Compute attention usando K e V completos (incluindo cache)
         scores = (Q_new @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
 
         # Máscara causal não é necessária aqui pois Q_new é apenas o último token
@@ -874,7 +899,7 @@ class KVCachedAttention(nn.Module):
         return output
 
     def clear_cache(self):
-        """Limpa cache entre diferentes gerações"""
+        """Limpa cache entre diferentes gerações (importante entre prompts)"""
         self.k_cache = None
         self.v_cache = None
 ```
@@ -882,21 +907,23 @@ class KVCachedAttention(nn.Module):
 **Geração com KV-Cache:**
 
 ```python
-# Geração eficiente de sequência
+# Exemplo de como usar KV-Cache na prática
 model = TransformerWithKVCache(...)
 prompt_tokens = tokenize("Era uma vez")
 
-# Encode prompt (sem cache)
+# Fase 1: Encode prompt completo (sem cache ainda)
 output = model(prompt_tokens, use_cache=False)
 
-# Geração autoregressiva (com cache)
+# Fase 2: Geração autoregressiva (com cache)
+# Aqui é onde KV-Cache realmente economiza computação
 generated_tokens = []
 for _ in range(max_new_tokens):
-    # Apenas processa o último token gerado
+    # Processa APENAS o último token gerado
+    # K e V dos tokens anteriores vêm do cache
     next_token_logits = model(last_token, use_cache=True)
-    next_token = sample(next_token_logits)
+    next_token = sample(next_token_logits)  # Escolhe próximo token
     generated_tokens.append(next_token)
-    last_token = next_token
+    last_token = next_token  # Prepara para próxima iteração
 ```
 
 **Ganhos Computacionais:**
@@ -1165,37 +1192,54 @@ graph LR
 class MoELayer(nn.Module):
     def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
         super().__init__()
-        # Múltiplos experts (FFNs independentes)
+        # Cria múltiplos experts (cada um é uma FFN independente)
+        # Cada expert pode se especializar em diferentes tipos de conteúdo
         self.experts = nn.ModuleList([
             FFN(d_model, d_ff) for _ in range(num_experts)
         ])
-        # Router que decide quais experts ativar
+        # Router: rede neural que decide quais experts usar para cada token
         self.router = nn.Linear(d_model, num_experts)
-        self.top_k = top_k
+        self.top_k = top_k  # Quantos experts ativar por token (geralmente 2)
 
     def forward(self, x):
-        # x: (batch, seq_len, d_model)
-
-        # Router computa scores para cada expert
+        """
+        Processa tokens através de experts selecionados dinamicamente.
+        
+        Args:
+            x: (batch, seq_len, d_model) - tokens de entrada
+        
+        Returns:
+            (batch, seq_len, d_model) - tokens processados por experts
+        """
+        
+        # Passo 1: Router computa scores para cada expert
+        # Para cada token, determina quão relevante é cada expert
         router_logits = self.router(x)  # (batch, seq_len, num_experts)
         router_probs = torch.softmax(router_logits, dim=-1)
 
-        # Seleciona top-k experts por token
+        # Passo 2: Seleciona top-k experts por token
+        # Em vez de usar todos os 8 experts, usa apenas os 2 melhores
         top_k_probs, top_k_indices = torch.topk(router_probs, self.top_k, dim=-1)
-        # Normaliza probabilidades dos top-k
+        # Normaliza probabilidades dos top-k para somarem 1
         top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
 
-        # Processa cada token pelos seus top-k experts
+        # Passo 3: Processa cada token pelos seus top-k experts
         output = torch.zeros_like(x)
         for i in range(self.top_k):
+            # Índice do i-ésimo melhor expert para cada token
             expert_idx = top_k_indices[:, :, i]
+            # Peso (probabilidade) deste expert
             expert_prob = top_k_probs[:, :, i:i+1]
 
             # Roteamento dinâmico: diferentes tokens vão para diferentes experts
+            # Um token sobre Python pode ir para Expert 1, sobre medicina para Expert 3
             for expert_id, expert in enumerate(self.experts):
+                # Máscara: quais tokens devem usar este expert?
                 mask = (expert_idx == expert_id)
                 if mask.any():
+                    # Processa tokens pela FFN do expert
                     expert_output = expert(x)
+                    # Adiciona saída ponderada pela probabilidade do router
                     output += expert_output * expert_prob * mask.unsqueeze(-1)
 
         return output
@@ -1232,10 +1276,10 @@ Mesmo com essas vantagens, e como tudo em engenharia, MoE apresenta alguns desaf
    - Mixtral 8x7B: Requer ~94GB VRAM (todos experts na GPU)
    - Solução: Expert parallelism (distribuir experts entre GPUs)
 3. **Complexidade de treinamento**: Treinamento distribuído mais complexo
-   - Necessita de all-to-all communication entre GPUs
+   - Necessita de *all-to-all communication* entre GPUs
    - Framework como Megatron-LM ou DeepSpeed oferecem suporte
 4. **Overfitting de routing**: Router pode memorizar padrões de treinamento
-   - Solução: Dropout no router, noise no gating
+   - Solução: *Dropout* no router, *noise* no *gating*
 
 **Quando usar MoE:**
 
@@ -1386,15 +1430,15 @@ Residual connections + Layer normalization trabalham em sinergia:
 
 Sem essas técnicas, seria praticamente impossível treinar os modelos **gigantescos** que usamos hoje.
 
-### Arquiteturas Encoder-Only, Decoder-Only e Encoder-Decoder
+### Arquiteturas *Encoder-Only*, *Decoder-Only* e *Encoder-Decoder*
 
-O Transformer original era um modelo encoder-decoder para tradução. Desde então, três variantes principais emergiram:
+O Transformer original era um modelo *encoder-decoder* para tradução. Desde então, três variantes principais emergiram:
 
-#### Encoder-Only (BERT-like)
+#### *Encoder-Only* (BERT-like)
 
-Modelos encoder-only como BERT usam atenção **bidirecional**. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, question answering, etc.
+Modelos *encoder-only* como BERT usam atenção **bidirecional**. Cada token pode atender a todos os outros tokens (anteriores e posteriores). Isso é ideal para tarefas de compreensão onde você tem acesso ao contexto completo: classificação, NER, *question answering*, etc.
 
-O treinamento usa **masked language modeling** (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.
+O treinamento usa *masked language modeling* (MLM): aleatoriamente mascara alguns tokens e treina o modelo para prevê-los. Isso força o modelo a usar contexto bidirecional.
 
 Exemplo de MLM:
 
@@ -1405,9 +1449,9 @@ Target: "The cat sat on the mat"
 
 O modelo vê a frase com palavras faltando, mascaradas ([MASK]), e deve inferir as palavras corretas com base no contexto completo.
 
-#### Decoder-Only (GPT-like)
+#### *Decoder-Only* (GPT-like)
 
-Modelos decoder-only como GPT usam atenção **causal** (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "causal mask" que zera os attention scores para posições futuras.
+Modelos *decoder-only* como GPT usam atenção **causal** (autoregressiva). Cada token pode atender apenas a tokens anteriores, nunca a tokens futuros. Isso é implementado com uma "*causal mask*" que zera os *attention scores* para posições futuras.
 
 **Como Funciona a Causal Mask Tecnicamente:**
 
@@ -1419,15 +1463,24 @@ import torch
 def create_causal_mask(seq_len):
     """
     Cria máscara causal para impedir atenção em tokens futuros.
-    Retorna matriz triangular inferior de 1s (permitido) e 0s (bloqueado).
+    Essencial para modelos *decoder-only* (GPT-like) que não podem "trapacear"
+    olhando para o futuro durante o treinamento.
+    
+    Args:
+        seq_len: comprimento da sequência
+    
+    Returns:
+        mask: matriz (seq_len, seq_len) com 0s onde permitido, -inf onde bloqueado
     """
     # Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima
+    # Cada linha representa um token, cada coluna um token que pode ser visto
     mask = torch.tril(torch.ones(seq_len, seq_len))
 
     # Na prática, usamos -inf para posições bloqueadas antes do softmax
-    # Isso garante que softmax(score + mask) = 0 para posições futuras
-    mask = mask.masked_fill(mask == 0, float('-inf'))
-    mask = mask.masked_fill(mask == 1, 0.0)
+    # Quando somamos -inf ao attention score, softmax transforma em ~0
+    # Isso garante que softmax(score + mask) ≈ 0 para posições futuras
+    mask = mask.masked_fill(mask == 0, float('-inf'))  # Posições bloqueadas = -inf
+    mask = mask.masked_fill(mask == 1, 0.0)            # Posições permitidas = 0
 
     return mask
 
@@ -1440,15 +1493,26 @@ def create_causal_mask(seq_len):
 
 # Aplicação na atenção:
 def masked_attention(Q, K, V, mask):
-    """Atenção com máscara causal"""
+    """
+    Calcula atenção com máscara causal aplicada.
+    
+    Args:
+        Q, K, V: queries, keys, values
+        mask: máscara causal criada por create_causal_mask()
+    
+    Returns:
+        output com atenção causal aplicada
+    """
     d_k = Q.size(-1)
+    # Calcula scores de atenção normalizados
     scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k))
 
     # Adiciona máscara antes do softmax
     # scores + mask onde mask=-inf para posições bloqueadas
+    # Isso faz com que essas posições tenham probabilidade ~0 após softmax
     scores = scores + mask
 
-    # Softmax transforma -inf em ~0
+    # Softmax transforma -inf em ~0, efetivamente bloqueando atenção futura
     attention_weights = torch.softmax(scores, dim=-1)
 
     return attention_weights @ V
@@ -1460,7 +1524,7 @@ def masked_attention(Q, K, V, mask):
 2. **Garante consistência entre treino e inferência**: Durante geração, tokens futuros não existem ainda, então o modelo deve aprender sem eles
 3. **Permite paralelização do treinamento**: Todos os tokens podem ser processados simultaneamente, com a máscara garantindo causalidade
 
-O treinamento usa **causal language modeling** (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.
+O treinamento usa *causal language modeling* (CLM) que prevê o próximo token dada uma sequência. Esta é a base dos modelos generativos de linguagem mais populares.
 
 Exemplo de CLM:
 
@@ -1471,25 +1535,47 @@ Target: "on"
 
 Onde o modelo vê "The cat sat" e deve prever o próximo token "on" baseado apenas no contexto anterior.
 
-Decoder-only models têm se tornado dominantes (GPT-3 [@brown2020language], PaLM [@anil2023palm], LLaMA [@touvron2023llama], Claude) porque:
+*Decoder-only models* têm se tornado dominantes (GPT-3 [@brown2020language], PaLM [@anil2023palm], LLaMA [@touvron2023llama], Claude) porque:
 
 1. São mais simples arquiteturalmente
 1. Escalam melhor para tamanhos massivos
 1. Podem ser usados tanto para compreensão quanto geração
 1. O treinamento autoregressive é mais sample-efficient
 
-#### Encoder-Decoder (T5-like)
+#### *Encoder-Decoder* (T5-like)
 
-O Encoder-Decoder mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via cross-attention.
+O *Encoder-Decoder* mantém a estrutura original do Transformer: um encoder com atenção bidirecional e um decoder com atenção causal que também atende às saídas do encoder via *cross-attention*.
 
-Encoder-decoder models como T5 [@raffel2020exploring] são particularmente bons para tarefas sequence-to-sequence: tradução, sumarização, question answering generativo. Eles separam explicitamente "compreensão" (encoder) de "geração" (decoder).
+*Encoder-decoder models* como T5 [@raffel2020exploring] são particularmente bons para tarefas *sequence-to-sequence*: tradução, sumarização, *question answering* generativo. Eles separam explicitamente "compreensão" (encoder) de "geração" (decoder).
 
 No entanto, são mais complexos e custosos de treinar e inferir devido à arquitetura dupla.
+
+### Comparação entre Arquiteturas Transformer
+
+A tabela abaixo resume as principais diferenças entre as três variantes de arquiteturas Transformer:
+
+| **Característica** | ***Encoder-Only*** | ***Decoder-Only*** | ***Encoder-Decoder*** |
+|-------------------|-------------------|-------------------|----------------------|
+| **Tipo de Atenção** | Bidirecional (vê passado e futuro) | Causal (só vê passado) | Encoder: bidirecional<br/>Decoder: causal + *cross-attention* |
+| **Treinamento** | *Masked Language Modeling* (MLM) | *Causal Language Modeling* (CLM) | *Sequence-to-sequence* |
+| **Objetivo Principal** | Compreensão de texto | Geração de texto | Transformação de sequências |
+| **Tarefas Típicas** | Classificação<br/>NER<br/>*Question Answering*<br/>Análise de sentimento | Geração de texto<br/>Completação<br/>Conversação<br/>Code generation | Tradução<br/>Sumarização<br/>*Question Answering* generativo |
+| **Exemplos de Modelos** | BERT<br/>RoBERTa<br/>ALBERT<br/>DeBERTa | GPT-3/4<br/>LLaMA<br/>PaLM<br/>Claude<br/>Mistral | T5<br/>BART<br/>mT5<br/>Flan-T5 |
+| **Complexidade** | Moderada | Simples | Alta (arquitetura dupla) |
+| **Escalabilidade** | Boa | Excelente | Moderada |
+| **Custo de Inferência** | Baixo a moderado | Moderado (com KV-cache) | Alto |
+| **Uso Atual** | Tarefas de compreensão específicas | **Dominante** para modelos de uso geral | Tarefas especializadas de transformação |
+
+::: {.callout-note}
+# Tendência Atual
+
+Modelos *decoder-only* têm se tornado a arquitetura dominante para foundation models de uso geral devido à sua simplicidade, escalabilidade e versatilidade. Eles podem ser usados tanto para compreensão quanto para geração, tornando-os ideais para construir agentes inteligentes.
+:::
 
 ## Conclusão
 
 Neste capítulo, exploramos os fundamentos dos Transformers, a arquitetura que revolucionou o processamento de linguagem natural e tornou possível os foundation models modernos. Compreendemos o mecanismo de self-attention, que permite aos modelos capturar relações complexas entre tokens, e vimos como técnicas como multi-head attention, otimizações modernas (GQA, Flash Attention, KV-Cache) e componentes arquiteturais (feedforward networks, MoE, residual connections, layer normalization) trabalham em conjunto para criar modelos poderosos e eficientes.
 
-Entendemos também como embeddings posicionais resolvem a limitação fundamental de permutation-invariance dos Transformers, e exploramos as três variantes principais de arquiteturas: encoder-only, decoder-only e encoder-decoder, cada uma adequada para diferentes tipos de tarefas.
+Entendemos também como embeddings posicionais resolvem a limitação fundamental de *permutation-invariance* dos Transformers, e exploramos as três variantes principais de arquiteturas: *encoder-only*, *decoder-only* e *encoder-decoder*, cada uma adequada para diferentes tipos de tarefas.
 
 Este conhecimento fundamental é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes inteligentes que aproveitam suas capacidades de forma eficaz e confiável.
