@@ -123,6 +123,57 @@ Perplexidade pode ser interpretada como **"o número efetivo de escolhas que o m
 
 Perplexidade nos dá uma forma intuitiva de avaliar e comparar modelos. Se você está treinando um modelo e vê a perplexidade cair de 100 para 10 e depois para 5, você sabe que o modelo está ficando progressivamente mais confiante e preciso nas suas previsões. É um indicador direto de que o modelo está realmente aprendendo a modelar a linguagem.
 
+**Limitações Importantes da Perplexidade**
+
+Embora perplexidade seja uma métrica útil, precisamos entender suas limitações para não tirar conclusões errôneas sobre a qualidade do modelo. Vamos explorar algumas das principais limitações.
+
+**1. Não Captura Qualidade Semântica**
+
+Perplexidade mede apenas **previsibilidade estatística**, não o significado ou a coerência:
+
+- Um modelo pode ter perplexidade baixa gerando texto gramaticalmente correto mas semanticamente absurdo
+- Exemplo: "O elefante verde comeu uma nuvem de metal" pode ter baixa perplexidade se as palavras forem comuns
+- Correlação fraca com qualidade percebida por humanos em tarefas de geração
+
+**2. Vulnerável a Overfitting**
+
+Modelos podem "memorizar" padrões do conjunto de teste:
+
+- Perplexidade pode melhorar artificialmente sem ganho real de capacidade de generalização
+- Importante usar conjunto de validação separado e monitorar overfitting
+- Modelos com perplexidade muito baixa podem estar apenas memorizando, não aprendendo padrões gerais
+
+**3. Não Comparável Entre Vocabulários Diferentes**
+
+Perplexidade depende fundamentalmente do tamanho do vocabulário:
+
+- Modelo com vocab 50K terá perplexidade diferente de modelo com vocab 128K no mesmo dataset
+- Tokenização diferente (BPE vs WordPiece vs caracteres) produz perplexidades incomparáveis
+- **Nunca compare perplexidade diretamente entre modelos com tokenizers diferentes**
+
+**4. Correlação Imperfeita com Downstream Performance**
+
+Menor perplexidade ≠ melhor performance em tarefas práticas:
+
+- Modelo A com perplexity 10 pode superar Modelo B com perplexity 8 em question answering
+- Tasks específicas requerem capacidades além de modelagem de linguagem pura
+- Importante avaliar em benchmarks downstream (GLUE, SuperGLUE, etc.) além de perplexity
+
+**5. Sensível ao Domínio dos Dados**
+
+Perplexidade é altamente dependente do domínio de avaliação:
+
+- Modelo treinado em código terá baixa perplexity em código, alta em poesia
+- Perplexity em Wikipedia ≠ perplexity em Twitter ≠ perplexity em documentos legais
+- Sempre reporte o dataset de avaliação junto com a métrica
+
+**Recomendações Práticas:**
+
+- **Use perplexidade como proxy inicial** durante treinamento, mas não como métrica final
+- **Complemente com avaliações humanas** e benchmarks downstream [@zheng2023judging]
+- **Compare apenas modelos com mesmo vocabulário** e tokenização
+- **Monitore múltiplas métricas** (perplexity, accuracy, F1, human eval) simultaneamente
+
 ### Dados de Pré-Treinamento: A Matéria-Prima da Inteligência
 
 Agora chegamos a uma verdade fundamental sobre LLMs: **você é o que você come**. Mais precisamente, **o modelo sabe apenas o que viu**. Não importa quão sofisticada seja a arquitetura Transformer ou quão bem otimizado seja o processo de treinamento, se os dados de entrada forem ruins, o modelo resultante será ruim.
@@ -148,11 +199,9 @@ Para engenheiros construindo sistemas de produção, isso significa que **escolh
 
 #### Composição de Datasets: A Receita do Conhecimento
 
-Modelos modernos não são treinados em um único tipo de dados. Em vez disso, usam uma **mixture cuidadosamente balanceada** de múltiplas fontes, cada uma contribuindo diferentes tipos de conhecimento e capacidades [@gao2020pile; @dodge2021documenting]:
+Modelos modernos não são treinados em um único tipo de dados. Em vez disso, usam uma **mixture cuidadosamente balanceada** de múltiplas fontes, cada uma contribuindo diferentes tipos de conhecimento e capacidades [@gao2020pile; @dodge2021documenting].
 
-**Principais Fontes de Dados:**
-
-::: {.callout-note title="Sobre as Escalas Reportadas" appearance="simple"}
+::: {.callout-note title="Sobre as Escalas Reportadas na Tabela" appearance="simple"}
 Os números de tokens na tabela são **estimativas aproximadas** baseadas em informações divulgadas em papers como The Pile [@gao2020pile], GPT-3 [@brown2020language], e LLaMA [@touvron2023llama; @dubey2024llama3]. Datasets diferentes e versões de modelos usam proporções variadas, mas estes valores representam ordens de magnitude típicas em modelos state-of-the-art.
 :::
 
@@ -199,11 +248,11 @@ Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama
 - Books: ~10%
 - Papers Acadêmicos: ~5%
 
-::: {.callout-note title="Sobre a Proporção de Código" appearance="simple"}
-A proporção de código no LLaMA 3 é significativamente maior que em modelos anteriores. As versões code-optimized chegam a ter 30-35% de código no mix de treinamento, refletindo o foco crescente em capacidades de programação nos modelos modernos [@dubey2024llama3].
+::: {.callout-warning title="Estimativas Não-Oficiais" appearance="simple"}
+As proporções acima são **estimativas aproximadas** baseadas em análises da comunidade e inferências de papers relacionados, **não informações oficiais divulgadas pela Meta**. O paper do LLaMA 3 [@dubey2024llama3] confirma o volume total de ~15T tokens mas não detalha a composição exata do dataset de treinamento. Diferentes versões e variantes do modelo podem usar mixtures distintas.
 :::
 
-Esta proporção foi determinada através de **extensos experimentos empíricos**, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
+Esta proporção foi determinada através de extensos experimentos empíricos, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
 
 **Evolução Temporal dos Dados**
 
@@ -347,11 +396,11 @@ def count_duplicates(lines):
 
 def is_high_quality(text):
     # Proporção de stopwords (palavras comuns)
-    words = len(text.split())
-    if words == 0:
+    words = text.split()
+    if len(words) == 0:
         return False
 
-    stopword_ratio = count_stopwords(text) / words
+    stopword_ratio = count_stopwords(text) / len(words)
     if stopword_ratio < 0.2:  # Muito técnico ou spam
         return False
 
@@ -385,10 +434,64 @@ Técnica sofisticada usando MinHash ou SimHash para detectar near-duplicates:
 
 Exemplo: "A capital da França é Paris" vs "Paris é a capital da França" são semanticamente idênticos mas literalmente diferentes.
 
-**MinHash** cria "fingerprints" que preservam similaridade:
-- Documentos similares → fingerprints similares
-- Permite detectar duplicações em **tempo sub-linear**
-- **Remove ~20-30% adicional** (conteúdo duplicado)
+**MinHash e Locality-Sensitive Hashing (LSH)**
+
+MinHash cria "fingerprints" compactas que preservam similaridade de Jaccard entre conjuntos. O algoritmo funciona da seguinte maneira:
+
+1. **Representa documento como conjunto de n-gramas** (ex: shingles de 3 palavras)
+2. **Gera múltiplas hash functions** (ex: 128 funções diferentes)
+3. **Para cada hash function**, calcula o valor mínimo do hash para todos os n-gramas
+4. **Concatena os mínimos** → signature compacta (128 valores em vez de milhares de n-gramas)
+
+A probabilidade de duas signatures terem o mesmo valor em uma posição é igual à similaridade de Jaccard dos documentos originais.
+
+Locality-Sensitive Hashing (LSH) acelera a busca por duplicatas [@indyk1998approximate]:
+
+- Divide a signature em **bandas** (ex: 128 valores → 32 bandas de 4 valores)
+- Documentos com mesma banda → **candidatos** a duplicatas (verificação mais detalhada)
+- **Trade-off de parâmetros**:
+  - Mais bandas/menos linhas → detecta duplicatas com menor similaridade (mais sensível, mais false positives)
+  - Menos bandas/mais linhas → detecta apenas duplicatas muito similares (menos sensível, menos false positives)
+
+**Implementação prática com `datasketch`:** [@datasketch; @broder1997resemblance]
+
+```python
+from datasketch import MinHash, MinHashLSH
+
+# Configuração LSH
+# threshold=0.8 significa detectar docs com Jaccard similarity >= 80%
+lsh = MinHashLSH(threshold=0.8, num_perm=128)
+
+def get_minhash(text, num_perm=128):
+    """Cria MinHash signature de um documento"""
+    m = MinHash(num_perm=num_perm)
+    # Tokeniza em palavras (ou use n-gramas para mais robustez)
+    words = text.lower().split()
+    for word in words:
+        m.update(word.encode('utf8'))
+    return m
+
+# Indexar documentos
+docs = {
+    "doc1": "A capital da França é Paris",
+    "doc2": "Paris é a capital da França",
+    "doc3": "Berlin é a capital da Alemanha"
+}
+
+for doc_id, text in docs.items():
+    m = get_minhash(text)
+    lsh.insert(doc_id, m)
+
+# Buscar near-duplicates de um novo documento
+query_text = "A França tem Paris como capital"
+query_minhash = get_minhash(query_text)
+duplicates = lsh.query(query_minhash)
+print(f"Duplicates found: {duplicates}")  # ['doc1', 'doc2']
+```
+
+**Performance**: LSH permite buscar duplicatas em **O(1)** em média (tempo constante), em vez de O(n) comparando com todos os documentos. Isso é crucial quando processando bilhões de documentos.
+
+**Remove ~20-30% adicional** do corpus (conteúdo duplicado ou near-duplicate)
 
 **Estágio 4: PII Removal**
 
@@ -445,6 +548,171 @@ Data cleaning é:
 
 Mas é absolutamente crítico. A diferença entre GPT-3/4/5 e um modelo medíocre não está apenas na arquitetura, está na qualidade dos dados de treinamento.
 
+**Data Cleaning em Produção: Ferramentas e Práticas**
+
+Para engenheiros implementando pipelines de data cleaning em escala, aqui estão as considerações práticas:
+
+**1. Ferramentas de Processamento Distribuído**
+
+Processar petabytes requer computação distribuída [@zaharia2016apache; @rocklin2015dask; @moritz2018ray]:
+
+**Apache Spark** [@apachespark]
+
+- Framework mais popular para data cleaning em escala
+- Suporta processamento de texto, deduplicação, filtering
+- Pode processar 100TB+ em clusters distribuídos
+- Exemplo: EleutherAI usou Spark para limpar The Pile
+
+```python
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import length, col
+
+spark = SparkSession.builder.appName("DataCleaning").getOrCreate()
+
+# Carregar Common Crawl
+df = spark.read.parquet("s3://commoncrawl/...")
+
+# Aplicar filtros de qualidade
+cleaned = df.filter(
+    (length(col("text")) > 100) &  # Mínimo 100 caracteres
+    (col("language") == "en") &     # Apenas inglês
+    (col("quality_score") > 0.7)    # Score de qualidade
+)
+
+cleaned.write.parquet("s3://cleaned-data/")
+```
+
+**Dask / Ray** [@dask; @ray]
+
+- Alternativas Python-first ao Spark
+- Melhor integração com ecosystem Python (scikit-learn, pandas)
+- Ray especialmente bom para pipelines complexos com ML
+
+**2. Reprodutibilidade e Versioning**
+
+Data cleaning não é determinístico por padrão. Garantir reprodutibilidade é crucial:
+
+**Data Version Control (DVC)** [@dvc; @petrov2019dvc]
+```bash
+# Versionar datasets como código
+dvc add data/raw/commoncrawl.parquet
+dvc push
+
+# Pipeline reproduzível
+dvc run -n clean_data \
+  -d data/raw/commoncrawl.parquet \
+  -o data/cleaned/output.parquet \
+  python scripts/clean_data.py
+```
+
+**Checksum e Hashing**
+
+- Hash cada estágio do pipeline (MD5, SHA256)
+- Detectar mudanças inesperadas nos dados
+- Garantir que experimentos sejam reproduzíveis
+
+**Data Lineage Tracking**
+
+- Documentar proveniência: de onde cada dado veio
+- Rastrear transformações aplicadas em cada estágio
+- Ferramentas: Apache Atlas, Marquez, OpenLineage
+
+**3. Métricas de Qualidade Objetivas**
+
+Não confie em intuição. Defina métricas quantitativas:
+
+```python
+def compute_quality_metrics(dataset):
+    """Métricas objetivas de qualidade do dataset"""
+    metrics = {
+        # Diversidade vocabular
+        "unique_tokens": len(set(dataset.split())),
+        "type_token_ratio": len(set(dataset.split())) / len(dataset.split()),
+        
+        # Comprimento
+        "avg_doc_length": np.mean([len(doc.split()) for doc in dataset]),
+        "median_doc_length": np.median([len(doc.split()) for doc in dataset]),
+        
+        # Duplicação
+        "duplicate_rate": count_near_duplicates(dataset) / len(dataset),
+        
+        # Qualidade
+        "avg_quality_score": np.mean([quality_score(doc) for doc in dataset]),
+        
+        # Cobertura de domínios
+        "domain_distribution": Counter([extract_domain(doc) for doc in dataset])
+    }
+    return metrics
+
+# Monitorar ao longo do pipeline
+raw_metrics = compute_quality_metrics(raw_data)
+cleaned_metrics = compute_quality_metrics(cleaned_data)
+
+# Validar mudanças esperadas
+assert cleaned_metrics["duplicate_rate"] < raw_metrics["duplicate_rate"]
+assert cleaned_metrics["avg_quality_score"] > raw_metrics["avg_quality_score"]
+```
+
+**4. Handling de Edge Cases**
+
+Casos especiais que pipelines simples não capturam:
+
+**Documentos Multilíngues**
+
+```python
+from langdetect import detect_langs
+
+def handle_multilingual(text, threshold=0.8):
+    """Detecta documentos code-switched ou multilíngues"""
+    langs = detect_langs(text)
+    primary_lang = langs[0]
+    
+    if primary_lang.prob < threshold:
+        # Documento multilíngue ou ambíguo
+        return "REJECT"  # ou processar especialmente
+    return primary_lang.lang
+```
+
+**Código Mixed com Prosa**
+
+- Documentos técnicos frequentemente misturam código e texto
+- Decisão: separar, manter junto, ou processar diferentemente?
+- Estratégia: detectar blocos de código (indentação, syntax highlighting) e marcar
+
+**Tabelas e Listas**
+
+- HTML tables, markdown tables, bullet points
+- Podem ser valiosos (dados estruturados) ou ruído (nav bars)
+- Heurísticas: tamanho da tabela, contexto, conteúdo das células
+
+**5. Monitoramento Contínuo**
+
+Data cleaning não é "one-and-done". Monitore qualidade ao longo do tempo:
+
+```python
+# Dashboard de métricas (Grafana, Datadog, etc.)
+log_metric("dataset.size_gb", dataset_size_gb)
+log_metric("dataset.duplicate_rate", duplicate_rate)
+log_metric("dataset.avg_quality", avg_quality)
+log_metric("dataset.processing_time_hours", processing_time)
+
+# Alertas para anomalias
+if duplicate_rate > 0.15:  # Threshold esperado
+    send_alert("High duplicate rate detected!")
+
+if avg_quality < 0.6:
+    send_alert("Quality degradation detected!")
+```
+
+**Trade-offs de Produção:**
+
+| Aspecto | Trade-off | Recomendação |
+|---------|-----------|--------------|
+| **Agressividade de Filtering** | Mais filtros = menos dados mas maior qualidade | Comece conservador, aumente gradualmente |
+| **Velocidade vs Qualidade** | Processar rápido vs aplicar filtros complexos | Itere: primeiro rápido e simples, refine depois |
+| **Custo de Computação** | Clusters grandes = rápido mas caro | Use spot instances, processamento batch |
+| **Reprodutibilidade** | Determinismo perfeito = mais overhead | Vale o custo para experimentos científicos |
+
 #### Implicações para Construção de Agentes
 
 Para você que está construindo agentes com LLMs, entender dados de treinamento é extremamente importante. Aqui estão algumas considerações práticas:
@@ -500,10 +768,21 @@ Todo esquema de tokenização enfrenta um trade-off fundamental entre três fato
 **1. Tamanho do Vocabulário**
 
 - Vocabulário maior = mais parâmetros na embedding layer e na camada de saída
-- Para um vocabulário de 50K tokens e dimensão de modelo 4096:
-  - Embedding layer: 50K × 4096 = **200M parâmetros**
-  - Output layer (logits): 4096 × 50K = **200M parâmetros**
-  - Total: **400M parâmetros só para vocabulário** (~0.5% de um modelo 70B)
+
+**Exemplo com vocabulário tradicional (50K tokens, dimensão 4096):**
+
+- Embedding layer: 50K × 4096 = **200M parâmetros**
+- Output layer (logits): 4096 × 50K = **200M parâmetros**
+- Total: **400M parâmetros só para vocabulário** (~0.5% de um modelo 70B)
+
+**Exemplo com vocabulário moderno (128K tokens, dimensão 8192):**
+
+Modelos modernos como LLaMA 3 70B usam vocabulários maiores e dimensões maiores:
+- Embedding layer: 128K × 8192 = **1.05B parâmetros**
+- Output layer (logits): 8192 × 128K = **1.05B parâmetros**
+- Total: **2.1B parâmetros para vocabulário** (~3% de um modelo 70B)
+
+**Trade-off:** Vocabulários maiores capturam mais nuances linguísticas e melhoram eficiência de tokenização (menos tokens por texto), mas aumentam significativamente o custo de memória e computação.
 
 **2. Comprimento de Sequência**
 
@@ -547,7 +826,7 @@ Isso significa
 
 **Performance Real:**
 
-Modelos baseados em caracteres como CharRNN conseguem ~30-40% mais perplexidade (pior) que modelos equivalentes baseados em subwords em benchmarks de linguagem [@kawakami2017learning; @vania2017characters]. O problema é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional.
+Modelos baseados em caracteres historicamente apresentam performance inferior a modelos baseados em subwords. Por exemplo, o paper de Kawakami et al. (2017) [@kawakami2017learning] reporta que modelos character-level atingem perplexidades significativamente maiores (piores) em benchmarks padrão. Modelos modernos character-level como ByT5 [@xue2021byt5] melhoraram essa lacuna, mas ainda requerem arquiteturas mais profundas e treinamento mais custoso para alcançar performance comparável a modelos subword-based. O problema fundamental é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional em padrões de baixo nível.
 
 **Quando Faz Sentido:**
 
@@ -758,12 +1037,18 @@ Subwords funcionam naturalmente para múltiplos idiomas:
 
 #### Variantes Modernas: WordPiece e SentencePiece
 
-**WordPiece (BERT, DistilBERT):**
+**WordPiece (BERT, DistilBERT):** [@schuster2012japanese; @wu2016google]
 
 Similar a BPE, mas usa **likelihood maximization** em vez de frequência bruta. A ideia é mergir pares que aumentam a probabilidade (likelihood) do corpus ser gerado pelo vocabulário:
 
 ```
-Score(pair) = log P(pair) / (P(left) × P(right))
+Score(pair) = P(pair) / (P(left) × P(right))
+```
+
+**Ou equivalentemente em log-space (para estabilidade numérica):**
+
+```
+Score(pair) = log P(pair) - (log P(left) + log P(right))
 ```
 
 **Intuição**: Este score mede **quanto mais provável** é ver os dois tokens juntos vs. separados. Se "un" e "happy" aparecem juntos muito mais frequentemente do que esperaríamos pela frequência individual de cada um, o score é alto e vale mergir em "unhappy".
@@ -778,9 +1063,39 @@ Se fossem independentes, esperaríamos "un" + "happy" juntos apenas 0.001 × 0.0
 
 **Diferença vs. BPE**: BPE mergeria simplesmente o par mais frequente (pode ser "e" + " " que aparece milhões de vezes mas é semanticamente vazio). WordPiece prefere pares que têm **associação estatística forte**, não apenas frequência alta.
 
-Na prática, a diferença de performance entre BPE e WordPiece é marginal (~1-2% em benchmarks), então a escolha é mais por preferência de implementação.
+**Comparação Detalhada: BPE vs WordPiece**
 
-**SentencePiece (T5, XLNet, LLaMA):**
+Na prática, a diferença de performance entre BPE e WordPiece é pequena, mas há nuances importantes que valem a pena entender.
+
+Alguns estudos mostram diferenças sutis:
+
+- Em WMT translation tasks, WordPiece e BPE alcançam BLEU scores quase idênticos (diferença < 0.5 BLEU)
+- Em Penn Treebank language modeling, perplexity difere em ~1-3%
+- Em downstream tasks (classificação, NER), diferença é tipicamente < 1% accuracy
+
+O custo computacional, porém, difere significativamente:
+
+- **BPE**: Mais rápido (~2-3× mais rápido que WordPiece)
+  - Simples contagem de pares e merge
+  - Pode processar 100M tokens em ~30 minutos em CPU single-core
+- **WordPiece**: Mais custoso
+  - Precisa calcular probabilidades e scores para cada par
+  - Requer múltiplas passadas sobre o corpus
+  - Pode levar 2-3× mais tempo que BPE no mesmo hardware
+
+**Quando Escolher Cada Um:**
+
+| Critério | BPE | WordPiece |
+|----------|-----|-----------|
+| **Velocidade de treinamento** | Mais rápido | Mais lento |
+| **Simplicidade** | Algoritmo simples | Mais complexo |
+| **Qualidade de segmentação** | Boa | Ligeiramente melhor |
+| **Uso em produção** | GPT, LLaMA, Mistral | BERT, DistilBERT |
+| **Suporte multilíngue** | Excelente | Excelente |
+
+**Recomendação prática**: Para novos projetos, podemos usar **BPE** (mais especificamente, SentencePiece com BPE [@kudo2018sentencepiece]) pela simplicidade e velocidade, a menos que seja necessário replicar exatamente um modelo BERT-like. A diferença de qualidade é negligível na maioria dos casos.
+
+**SentencePiece (T5, XLNet, LLaMA):** [@kudo2018sentencepiece]
 
 Trata input como **sequência de bytes UTF-8** em vez de caracteres Unicode. Vantagens:
 
@@ -800,6 +1115,228 @@ Exemplo:
 ```
 
 Isso permite processar qualquer idioma (incluindo idiomas sem espaços como Chinês/Japonês) uniformemente.
+
+#### Como Treinar Seu Próprio Tokenizer
+
+Até agora exploramos como tokenizers funcionam. Mas como você realmente treina um tokenizer customizado para seu domínio? Precisamos praticar para realmente entender como as coisas funcionam.
+
+**Quando Treinar um Tokenizer Customizado:**
+
+Não treine um tokenizer do zero a menos que você tenha uma boa razão para isso. Tokenizers pré-treinados (GPT-4, LLaMA, etc.) funcionam muito bem para a maioria dos casos.
+
+**Podemos considerar um tokenizer customizado quando:**
+
+- Seu domínio tem vocabulário muito específico (médico, legal, código específico)
+- Idiomas sub-representados em tokenizers existentes (línguas indígenas, dialetos)
+- Você precisa otimizar eficiência de tokenização para seu corpus específico
+- Vocabulário do tokenizer existente é muito grande/pequeno para suas necessidades
+
+**Não treinar quando:**
+
+- Seu domínio é bem coberto por tokenizers existentes (GPT-4, LLaMA)
+- Você não tem dados suficientes (< 1M exemplos)
+- O custo de re-treinar embeddings supera o benefício
+
+**Quantidade de Dados Necessária:**
+
+Para treinar um tokenizer de qualidade:
+
+- **Mínimo**: 10M tokens (~5MB de texto)
+  - Suficiente para vocabulário básico, mas cobertura limitada
+- **Recomendado**: 100M-1B tokens (50MB-500MB)
+  - Boa cobertura de palavras comuns e raras
+  - Usado por modelos de pesquisa e domínios específicos
+- **Ideal**: 10B+ tokens (5GB+)
+  - Cobertura excelente, incluindo termos raros
+  - Usado por modelos de produção (GPT, LLaMA)
+
+**Regra prática**: Mais dados = melhor cobertura vocabular, mas retornos diminuem após ~1B tokens para a maioria dos domínios.
+
+**Escolha de *Vocab Size*:**
+
+Trade-off fundamental entre eficiência e granularidade:
+
+| *Vocab Size* | Uso Típico | Pros | Cons |
+|------------|-----------|------|------|
+| **8K-16K** | Modelos pequenos, idiomas específicos | Rápido, poucos parâmetros | Tokens longos, menos eficiente |
+| **32K-50K** | Modelos médios (GPT-2, BERT) | Bom balanço | Padrão clássico |
+| **50K-100K** | Modelos grandes modernos | Eficiência melhorada | Mais parâmetros |
+| **128K+** | Modelos state-of-the-art (GPT-4, LLaMA 3) | Máxima eficiência, multilíngue | Embeddings grandes |
+
+**Treinamento Prático com HuggingFace Tokenizers:** [@huggingface-tokenizers; @wolf2020huggingface]
+
+```python
+from tokenizers import (
+    Tokenizer,
+    models,
+    pre_tokenizers,
+    trainers,
+    processors
+)
+
+# 1. Configurar o modelo (BPE)
+tokenizer = Tokenizer(models.BPE())
+
+# 2. Pre-tokenização (como dividir texto antes de BPE)
+tokenizer.pre_tokenizer = pre_tokenizers.ByteLevel(add_prefix_space=False)
+
+# 3. Configurar trainer
+trainer = trainers.BpeTrainer(
+    vocab_size=50000,           # Tamanho do vocabulário
+    min_frequency=2,             # Ignorar tokens que aparecem < 2 vezes
+    special_tokens=[             # Tokens especiais
+        "<s>",                   # Start of sequence
+        "</s>",                  # End of sequence  
+        "<unk>",                 # Unknown token
+        "<pad>",                 # Padding
+    ],
+    show_progress=True
+)
+
+# 4. Treinar em arquivos
+files = ["data/train.txt", "data/validation.txt"]
+tokenizer.train(files, trainer)
+
+# 5. Post-processamento (adicionar tokens especiais)
+tokenizer.post_processor = processors.ByteLevel(trim_offsets=False)
+
+# 6. Salvar
+tokenizer.save("my_tokenizer.json")
+
+# Tempo esperado: 
+# - 100M tokens: ~5-10 minutos em CPU moderna
+# - 1B tokens: ~30-60 minutos
+# - 10B tokens: ~3-6 horas
+```
+
+**Pre-Tokenization Rules:**
+
+Pre-tokenização define como dividir texto **antes** de aplicar BPE.
+
+**1. Whitespace Handling**
+
+```python
+# Opção 1: Whitespace simples
+pre_tokenizers.Whitespace()
+
+# Opção 2: ByteLevel (preserva espaços como ▁)
+pre_tokenizers.ByteLevel(add_prefix_space=True)
+
+# Opção 3: Metaspace (usado por SentencePiece)
+pre_tokenizers.Metaspace()
+```
+
+**2. Pontuação**
+
+```python
+# Separar pontuação (útil para código)
+pre_tokenizers.Punctuation(behavior="isolated")
+
+# Ou manter com palavras (melhor para prosa)
+pre_tokenizers.Punctuation(behavior="contiguous")
+```
+
+**3. Números**
+
+```python
+# Tratar dígitos individualmente (melhor para math reasoning)
+pre_tokenizers.Digits(individual_digits=True)
+
+# Ou manter números juntos
+pre_tokenizers.Digits(individual_digits=False)
+```
+
+**4. Composição (Sequence)**
+
+```python
+# Combinar múltiplas pre-tokenization rules
+from tokenizers import pre_tokenizers
+
+tokenizer.pre_tokenizer = pre_tokenizers.Sequence([
+    pre_tokenizers.Whitespace(),
+    pre_tokenizers.Punctuation(behavior="isolated"),
+    pre_tokenizers.Digits(individual_digits=True)
+])
+```
+
+**Validação do Tokenizer Treinado:**
+
+Após treinar, valide a qualidade:
+
+```python
+# 1. Testar tokenização em exemplos
+test_texts = [
+    "The quick brown fox jumps over the lazy dog.",
+    "Código Python: def fibonacci(n): return n",
+    "Número: 123456789"
+]
+
+for text in test_texts:
+    tokens = tokenizer.encode(text).tokens
+    print(f"Text: {text}")
+    print(f"Tokens ({len(tokens)}): {tokens}\n")
+
+# 2. Calcular fertility rate (tokens por palavra)
+def fertility_rate(texts):
+    total_words = sum(len(text.split()) for text in texts)
+    total_tokens = sum(len(tokenizer.encode(text).tokens) for text in texts)
+    return total_tokens / total_words
+
+fertility = fertility_rate(validation_texts)
+print(f"Fertility rate: {fertility:.2f}")
+# Ideal: 1.2-1.5 (próximo de 1 palavra = 1 token em média)
+
+# 3. Verificar cobertura de vocabulário
+vocab = tokenizer.get_vocab()
+print(f"Vocab size: {len(vocab)}")
+print(f"Most common tokens: {sorted(vocab.items(), key=lambda x: x[1])[:20]}")
+
+# 4. Checar tokens <unk> em validação
+unk_id = vocab["<unk>"]
+unk_count = sum(1 for text in validation_texts 
+                for token_id in tokenizer.encode(text).ids 
+                if token_id == unk_id)
+print(f"<unk> rate: {unk_count / total_tokens:.4%}")
+# Ideal: < 0.1% (quase nenhum unknown)
+```
+
+**Armadilhas Comuns:**
+
+1. **Vocab muito pequeno**: Fertility rate alta (>2.0), muitos tokens por palavra
+2. **Vocab muito grande**: Muitos tokens raros (frequência < 10), embeddings subtreinadas
+3. **Pre-tokenization errada**: Palavras quebradas incorretamente, números fragmentados
+4. **Dados insuficientes**: Alto <unk> rate em validação, cobertura pobre
+5. **Não incluir special tokens**: Problemas ao treinar modelo depois
+
+**Integração com Modelos:**
+
+Após treinar tokenizer, você precisa treinar embeddings correspondentes:
+
+```python
+from transformers import GPT2Config, GPT2LMHeadModel
+
+# Carregar tokenizer customizado
+from transformers import PreTrainedTokenizerFast
+tokenizer = PreTrainedTokenizerFast(tokenizer_file="my_tokenizer.json")
+
+# Criar modelo com vocab size correto
+config = GPT2Config(vocab_size=len(tokenizer))
+model = GPT2LMHeadModel(config)
+
+# Agora treinar modelo do zero com esse tokenizer
+# (ou fazer vocabulary extension se partir de modelo existente)
+```
+
+**Resumo de Decisões:**
+
+| Aspecto | Recomendação | Justificativa |
+|---------|--------------|---------------|
+| **Algoritmo** | BPE via SentencePiece | Simples, rápido, bem suportado |
+| **Vocab Size** | 32K-50K (padrão), 128K (avançado) | Balanço eficiência/cobertura |
+| **Dados** | Mínimo 100M tokens | Cobertura vocabular adequada |
+| **Pre-tokenization** | ByteLevel ou Metaspace | Preserva informação de espaços |
+| **Special tokens** | Sempre incluir <s>, </s>, <unk>, <pad> | Necessário para treinamento |
+| **Tempo** | Espere 30min-2h para 1B tokens | Planeje adequadamente |
 
 ## Exercícios Práticos
 
