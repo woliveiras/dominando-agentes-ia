@@ -1,3 +1,4 @@
+# Capítulo 1: Comparação de Tokenizers
 # Instale a biblioteca primeiro:
 # uv pip install transformers
 #
@@ -8,10 +9,10 @@
 #
 ################################################################################
 #
-# Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.
-# Para rodar sem GPU, faça o seguinte:
+# Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.
+# Para rodar sem GPU, faça o seguinte:
 # uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-# uv pip install transformers
+# uv pip install transformers
 #
 ################################################################################
 #
@@ -72,10 +73,11 @@ for palavra in palavras:
     print(f"  Número de tokens: {len(tokens)}")
 
 # Demonstrar decodificação (tokens → texto)
+# O processo inverso: converter IDs numéricos de volta para texto
 print("\n" + "=" * 60)
 print("Decodificação: Tokens → Texto")
 print("=" * 60)
-exemplo_ids = [32, 4132, 328, 14722, 15075]  # IDs fictícios para exemplo
+# Pega os primeiros 5 tokens de "inteligência artificial" e reconstrói o texto
 texto_decodificado = tokenizer_gpt2.decode(
     tokenizer_gpt2.encode("inteligência artificial")[:5]
 )
@@ -84,12 +86,14 @@ print(f"Tokens: {tokenizer_gpt2.tokenize('inteligência artificial')[:5]}")
 print(f"Texto decodificado: '{texto_decodificado}'")
 
 # Comparação de eficiência entre idiomas
+# Modelos treinados em inglês geralmente tokenizam português menos eficientemente
 print("\n" + "=" * 60)
 print("Comparação: Português vs Inglês")
 print("=" * 60)
 texto_pt = "A inteligência artificial está revolucionando o mundo."
 texto_en = "Artificial intelligence is revolutionizing the world."
 
+# Tokeniza a mesma frase em dois idiomas
 tokens_pt = tokenizer_gpt2.tokenize(texto_pt)
 tokens_en = tokenizer_gpt2.tokenize(texto_en)
 
@@ -97,4 +101,5 @@ print(f"Português: '{texto_pt}'")
 print(f"  Tokens: {len(tokens_pt)} - {tokens_pt}")
 print(f"\nInglês: '{texto_en}'")
 print(f"  Tokens: {len(tokens_en)} - {tokens_en}")
+# Note como português requer mais tokens (custo maior em APIs)
 print(f"\nEficiência: Inglês usa ~{len(tokens_pt)/len(tokens_en):.2f}x menos tokens")
