@@ -69,8 +69,6 @@ jobs:
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
           quarto render book/ --to pdf --verbose
-        env:
-          QUARTO_DENO_EXTRA_OPTIONS: "--no-check"
 
       - name: Get current date
         id: date
