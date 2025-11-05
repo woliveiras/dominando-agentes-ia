@@ -549,7 +549,7 @@ Para agentes autônomos, decoder-only é quase sempre a escolha certa.
 
 #### 3. Context Window
 
-O tamanho do context window determina quanto input/output o modelo pode processar de uma vez.
+O tamanho do context window determina quanto input/output o modelo pode processar de uma vez. O que impacta diretamente a capacidade de lidar com tarefas longas ou mais complexas.
 
 Exemplo:
 
@@ -565,11 +565,11 @@ Context window maior é crucial para:
 - **Code analysis**: Processar codebases inteiras
 - **Complex reasoning**: Incluir chain-of-thought extenso
 
-Modelos com context windows muito grandes são mais lentos e mais caros. Use o mínimo necessário.
+Modelos com context windows muito grandes são mais lentos e mais caros. Procure usar o mínimo necessário.
 
 #### 4. Velocidade e Latência
 
-Para sistemas interativos (ex: chatbots), latência importa:
+Para sistemas interativos, latência importa:
 
 - **Modelos locais**: <100ms, mas capability limitado
 - **API models (small)**: 200-500ms
@@ -580,7 +580,7 @@ Técnicas para reduzir latência:
 - **Speculative Decoding**: Usa modelo pequeno para gerar drafts, modelo grande para verificar
 - **Streaming**: Retorna tokens incrementalmente em vez de esperar resposta completa
 - **Caching**: Cacheia prompts comuns e prefixos
-- **Batching**: Processa múltiplas requests em parallel
+- **Batching**: Processa múltiplas requests em paralelo
 
 #### 5. Custo
 
@@ -594,11 +594,7 @@ Custo de inferência varia em ordens de magnitude:
 | Claude 3 Haiku | $0.00025/1K | $0.00125/1K |
 | Llama 3 70B (self-hosted) | ~$0.001/1K | ~$0.002/1K |
 
-**Nota**: Valores podem mudar frequentemente. Consulte fontes oficiais:
-
-- OpenAI: [https://openai.com/api/pricing/](https://openai.com/api/pricing/)
-- Anthropic: [https://www.anthropic.com/pricing](https://www.anthropic.com/pricing)
-- Custos de self-hosting variam com infraestrutura e otimizações
+**Nota**: Valores podem mudar frequentemente. Consulte fontes oficiais.
 
 Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:
 
@@ -612,13 +608,13 @@ Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:
 Para aplicações empresariais, considerações de privacidade e segurança são determinantes:
 
 - **API models (OpenAI, Anthropic)**: Dados são enviados para servidores third-party. Existem opções de não treinar nos dados do usuário, mas dados ainda atravessam fronteiras e você não tem controle total sobre eles, depende da confiança no provedor
-- **Self-hosted models**: Controle completo sobre dados, mas requer infraestrutura e expertise
+- **Self-hosted models**: Controle completo sobre dados, mas requer infraestrutura massiva e expertise na gestão de modelos
 
 Para setores regulados (healthcare, finance), self-hosting muitas vezes é até mesmo obrigatório.
 
 ### Framework de Decisão
 
-Para ajudar na seleção do modelo certo, aqui está um framework de decisão simplificado baseado em requisitos comuns que você pode adaptar para seu caso específico:
+Para ajudar na seleção do modelo certo, aqui está um framework de decisão simplificado baseado em requisitos comuns que você pode adaptar para seus casos específicos:
 
 ```
 INÍCIO
@@ -665,6 +661,7 @@ Agora que você compreende técnicas de fine-tuning e otimização, vamos aplica
 **Objetivo:** Fazer fine-tuning de um modelo pequeno usando LoRA para traduzir termos técnicos PT→EN.
 
 **Por que esse exercício?** Tradução de termos técnicos é uma tarefa perfeita para demonstrar fine-tuning porque:
+
 - Modelos gerais frequentemente erram termos especializados
 - Dataset pequeno é suficiente (50-100 exemplos)
 - Resultados são facilmente mensuráveis
@@ -918,15 +915,11 @@ print("""
 3. **QLoRA**: Adicione quantização 4-bit ao modelo base antes de aplicar LoRA
 4. **Avalie quantitativamente**: Calcule BLEU score ou accuracy em dataset de teste
 
-**Questões para reflexão:**
-
-1. Por que LoRA consegue adaptar o modelo com <1% dos parâmetros? O que isso sugere sobre a natureza da adaptação de tarefas?
-2. Quais são os trade-offs entre usar LoRA vs. fine-tuning completo em um cenário de produção real?
-3. Como você decidiria o valor de `r` (rank) para um novo projeto? Quais fatores consideraria?
-
 ### Exercício 2: Quantização e Benchmark de Performance
 
 **Objetivo:** Quantizar um modelo e medir impacto em latência, memória e qualidade.
+
+**Por que esse exercício?** Quantização é importante para rodar LLMs em hardware limitado. Este exercício demonstra como diferentes níveis de quantização afetam performance e qualidade, ajudando a entender trade-offs práticos.
 
 **Passo a Passo:**
 
@@ -1105,15 +1098,15 @@ print("Agentes com raciocínio complexo  | Q5_K_M ou superior")
 2. **Profiling detalhado**: Use ferramentas de profiling para identificar gargalos
 3. **Otimizações adicionais**: Combine quantização com Flash Attention e KV-cache
 
-**Questões para reflexão:**
-
-1. Qual é o ponto de "sweet spot" entre compressão e qualidade para sua aplicação? Como você mediria isso?
-2. Por que Q4_K_M geralmente oferece melhor trade-off que Q4_0, apesar de serem ambos 4-bit?
-3. Em que cenários a perda de qualidade de quantização seria inaceitável? Como você testaria isso antes de deployment?
-
 ### Exercício 3: Implementando LLM-as-Judge para Avaliação
 
 **Objetivo:** Criar sistema de avaliação automática usando LLM como juiz.
+
+**Por que esse exercício?** LLM-as-judge é uma técnica poderosa para avaliação rápida e consistente de modelos. Este exercício demonstra como implementar um sistema simples de avaliação automática usando Claude como juiz para comparar respostas de diferentes modelos.
+
+**OBS:** Este exercício requer uma chave de API da Anthropic. Cadastre-se em https://console.anthropic.com/ para obter uma.
+
+**Passo a Passo:**
 
 ```python
 # Instalação: uv pip install anthropic
@@ -1247,12 +1240,6 @@ print(f"Modelo B - Score médio: {avg_b:.2f}/5")
 print(f"\nVencedor: {'Modelo B' if avg_b > avg_a else 'Modelo A' if avg_a > avg_b else 'Empate'}")
 ```
 
-**Questões para reflexão:**
-
-1. Como o comprimento da resposta influencia a avaliação?
-2. O judge tem viés a favor de respostas mais detalhadas?
-3. Quando LLM-as-judge é apropriado vs. avaliação humana?
-
 ## Conclusão
 
 Neste capítulo, exploramos as técnicas essenciais para adaptar e otimizar foundation models para casos de uso específicos. Compreendemos diferentes abordagens de fine-tuning, desde supervised fine-tuning completo até técnicas parameter-efficient como LoRA e QLoRA que democratizam o acesso ao fine-tuning de modelos grandes.
@@ -1264,3 +1251,5 @@ Exploramos RLHF, a técnica crucial que transforma modelos tecnicamente competen
 Por fim, desenvolvemos um framework prático para selecionar o modelo certo para cada tarefa, considerando fatores como tamanho, velocidade, custo, context window e requisitos de privacidade.
 
 Este conhecimento sobre fine-tuning e otimização é essencial para construir agentes de IA eficientes e econômicos em produção. Com essas técnicas, você pode adaptar modelos para suas necessidades específicas, balanceando custo, performance e requisitos de infraestrutura.
+
+Nos próximos capítulos, aplicaremos essas técnicas para construir agentes autônomos capazes de realizar tarefas complexas de forma independente. Prepare-se para colocar em prática tudo o que aprendeu até aqui!
