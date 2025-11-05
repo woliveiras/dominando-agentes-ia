@@ -1,0 +1,2074 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt" xml:lang="pt"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.8.25">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Capítulo 3: Fine-Tuning e Otimização – Dominando Agentes de IA</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
+
+
+<script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../../">
+<link href="../../chapters/99-references.html" rel="next">
+<link href="../../chapters/part-01/02-treinamento-foundation-models.html" rel="prev">
+<script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../../site_libs/quarto-html/axe/axe-check.js" type="module"></script>
+<script src="../../site_libs/quarto-html/popper.min.js"></script>
+<script src="../../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../../site_libs/quarto-html/quarto-syntax-highlighting-7b89279ff1a6dce999919e0e67d4d9ec.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../../site_libs/bootstrap/bootstrap-0dd2bd5de344125cf763a379ddc3eb04.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "sidebar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "start",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "Nenhum resultado",
+    "search-matching-documents-text": "documentos correspondentes",
+    "search-copy-link-title": "Copiar link para a busca",
+    "search-hide-matches-text": "Esconder correspondências adicionais",
+    "search-more-match-text": "mais correspondência neste documento",
+    "search-more-matches-text": "mais correspondências neste documento",
+    "search-clear-button-title": "Limpar",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancelar",
+    "search-submit-button-title": "Enviar",
+    "search-label": "Procurar"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="../../styles.css">
+</head>
+
+<body class="nav-sidebar floating quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+  <nav class="quarto-secondary-nav">
+    <div class="container-fluid d-flex">
+      <button type="button" class="quarto-btn-toggle btn" data-bs-toggle="collapse" role="button" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+        <i class="bi bi-layout-text-sidebar-reverse"></i>
+      </button>
+        <nav class="quarto-page-breadcrumbs" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Parte I: Fundamentos e Componentes Base</a></li><li class="breadcrumb-item"><a href="../../chapters/part-01/03-fine-tuning-otimizacao.html">Capítulo 3: Fine-Tuning e Otimização</a></li></ol></nav>
+        <a class="flex-grow-1" role="navigation" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item" aria-controls="quarto-sidebar" aria-expanded="false" aria-label="Alternar barra lateral" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">      
+        </a>
+      <button type="button" class="btn quarto-search-button" aria-label="Procurar" onclick="window.quartoOpenSearch();">
+        <i class="bi bi-search"></i>
+      </button>
+    </div>
+  </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article">
+<!-- sidebar -->
+  <nav id="quarto-sidebar" class="sidebar collapse collapse-horizontal quarto-sidebar-collapse-item sidebar-navigation floating overflow-auto">
+    <div class="pt-lg-2 mt-2 text-left sidebar-header sidebar-header-stacked">
+      <a href="../../index.html" class="sidebar-logo-link">
+      </a>
+    <div class="sidebar-title mb-0 py-0">
+      <a href="../../">Dominando Agentes de IA</a> 
+    </div>
+      </div>
+        <div class="mt-2 flex-shrink-0 align-items-center">
+        <div class="sidebar-search">
+        <div id="quarto-search" class="" title="Procurar"></div>
+        </div>
+        </div>
+    <div class="sidebar-menu-container"> 
+    <ul class="list-unstyled mt-1">
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../index.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Prefácio</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/00-visao-geral.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Visão Geral do Livro</span></a>
+  </div>
+</li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/01-intro.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Introdução: O Universo dos AI Agents</span></a>
+  </div>
+</li>
+        <li class="sidebar-item sidebar-item-section">
+      <div class="sidebar-item-container"> 
+            <a class="sidebar-item-text sidebar-link text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true">
+ <span class="menu-text">Parte I: Fundamentos e Componentes Base</span></a>
+          <a class="sidebar-item-toggle text-start" data-bs-toggle="collapse" data-bs-target="#quarto-sidebar-section-1" role="navigation" aria-expanded="true" aria-label="Alternar seção">
+            <i class="bi bi-chevron-right ms-2"></i>
+          </a> 
+      </div>
+      <ul id="quarto-sidebar-section-1" class="collapse list-unstyled sidebar-section depth1 show">  
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/01-fundamentos-transformers.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capítulo 1: Fundamentos dos Transformers</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/02-treinamento-foundation-models.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capítulo 2: Treinamento de Foundation Models</span></a>
+  </div>
+</li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/03-fine-tuning-otimizacao.html" class="sidebar-item-text sidebar-link active">
+ <span class="menu-text">Capítulo 3: Fine-Tuning e Otimização</span></a>
+  </div>
+</li>
+      </ul>
+  </li>
+        <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/99-references.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Referências</span></a>
+  </div>
+</li>
+    </ul>
+    </div>
+</nav>
+<div id="quarto-sidebar-glass" class="quarto-sidebar-collapse-item" data-bs-toggle="collapse" data-bs-target=".quarto-sidebar-collapse-item"></div>
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Índice</h2>
+   
+  <ul>
+  <li><a href="#fine-tuning-adaptando-foundation-models" id="toc-fine-tuning-adaptando-foundation-models" class="nav-link active" data-scroll-target="#fine-tuning-adaptando-foundation-models">Fine-Tuning: Adaptando Foundation Models</a>
+  <ul class="collapse">
+  <li><a href="#supervised-fine-tuning-sft" id="toc-supervised-fine-tuning-sft" class="nav-link" data-scroll-target="#supervised-fine-tuning-sft">Supervised Fine-Tuning (SFT)</a></li>
+  <li><a href="#continual-pre-training-domain-adaptation" id="toc-continual-pre-training-domain-adaptation" class="nav-link" data-scroll-target="#continual-pre-training-domain-adaptation">Continual Pre-Training (Domain Adaptation)</a></li>
+  <li><a href="#parameter-efficient-fine-tuning-peft" id="toc-parameter-efficient-fine-tuning-peft" class="nav-link" data-scroll-target="#parameter-efficient-fine-tuning-peft">Parameter-Efficient Fine-Tuning (PEFT)</a></li>
+  <li><a href="#quantização-reduzindo-requisitos-de-memória" id="toc-quantização-reduzindo-requisitos-de-memória" class="nav-link" data-scroll-target="#quantização-reduzindo-requisitos-de-memória">Quantização: Reduzindo Requisitos de Memória</a></li>
+  <li><a href="#reinforcement-learning-from-human-feedback-rlhf" id="toc-reinforcement-learning-from-human-feedback-rlhf" class="nav-link" data-scroll-target="#reinforcement-learning-from-human-feedback-rlhf">Reinforcement Learning from Human Feedback (RLHF)</a></li>
+  </ul></li>
+  <li><a href="#avaliando-os-modelos" id="toc-avaliando-os-modelos" class="nav-link" data-scroll-target="#avaliando-os-modelos">Avaliando os Modelos</a>
+  <ul class="collapse">
+  <li><a href="#como-sabemos-se-funcionou" id="toc-como-sabemos-se-funcionou" class="nav-link" data-scroll-target="#como-sabemos-se-funcionou">Como Sabemos se Funcionou?</a></li>
+  <li><a href="#benchmarks" id="toc-benchmarks" class="nav-link" data-scroll-target="#benchmarks">Benchmarks</a></li>
+  <li><a href="#avaliação-humana" id="toc-avaliação-humana" class="nav-link" data-scroll-target="#avaliação-humana">Avaliação Humana</a></li>
+  <li><a href="#llm-as-judge" id="toc-llm-as-judge" class="nav-link" data-scroll-target="#llm-as-judge">LLM-as-Judge</a></li>
+  </ul></li>
+  <li><a href="#seleção-do-modelo-certo-para-cada-tarefa" id="toc-seleção-do-modelo-certo-para-cada-tarefa" class="nav-link" data-scroll-target="#seleção-do-modelo-certo-para-cada-tarefa">Seleção do Modelo Certo para Cada Tarefa</a>
+  <ul class="collapse">
+  <li><a href="#considerações-fundamentais" id="toc-considerações-fundamentais" class="nav-link" data-scroll-target="#considerações-fundamentais">Considerações Fundamentais</a></li>
+  <li><a href="#framework-de-decisão" id="toc-framework-de-decisão" class="nav-link" data-scroll-target="#framework-de-decisão">Framework de Decisão</a></li>
+  </ul></li>
+  <li><a href="#exercícios-práticos" id="toc-exercícios-práticos" class="nav-link" data-scroll-target="#exercícios-práticos">Exercícios Práticos</a>
+  <ul class="collapse">
+  <li><a href="#exercício-1-fine-tuning-com-lora-para-tradução-de-termos-técnicos" id="toc-exercício-1-fine-tuning-com-lora-para-tradução-de-termos-técnicos" class="nav-link" data-scroll-target="#exercício-1-fine-tuning-com-lora-para-tradução-de-termos-técnicos">Exercício 1: Fine-Tuning com LoRA para Tradução de Termos Técnicos</a></li>
+  <li><a href="#exercício-2-quantização-e-benchmark-de-performance" id="toc-exercício-2-quantização-e-benchmark-de-performance" class="nav-link" data-scroll-target="#exercício-2-quantização-e-benchmark-de-performance">Exercício 2: Quantização e Benchmark de Performance</a></li>
+  <li><a href="#exercício-3-implementando-llm-as-judge-para-avaliação" id="toc-exercício-3-implementando-llm-as-judge-para-avaliação" class="nav-link" data-scroll-target="#exercício-3-implementando-llm-as-judge-para-avaliação">Exercício 3: Implementando LLM-as-Judge para Avaliação</a></li>
+  </ul></li>
+  <li><a href="#conclusão" id="toc-conclusão" class="nav-link" data-scroll-target="#conclusão">Conclusão</a></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default"><nav class="quarto-page-breadcrumbs quarto-title-breadcrumbs d-none d-lg-block" aria-label="breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="../../chapters/part-01/01-fundamentos-transformers.html">Parte I: Fundamentos e Componentes Base</a></li><li class="breadcrumb-item"><a href="../../chapters/part-01/03-fine-tuning-otimizacao.html">Capítulo 3: Fine-Tuning e Otimização</a></li></ol></nav>
+<div class="quarto-title">
+<h1 class="title">Capítulo 3: Fine-Tuning e Otimização</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>Nos capítulos anteriores, exploramos a arquitetura dos Transformers e entendemos como foundation models são treinados em escala massiva usando trilhões de tokens. Porém, esses modelos pré-treinados possuem capacidades gerais impressionantes, mas frequentemente precisam ser adaptados para domínios específicos ou tarefas particulares onde seu desempenho genérico não é suficiente.</p>
+<p>Imagine que você precisa construir um agente de IA especializado em análise de contratos jurídicos. Um modelo como GPT-4 ou LLaMA possui conhecimento geral sobre linguagem natural e alguns conceitos legais, mas não foi otimizado para entender a terminologia específica, precedentes jurídicos brasileiros ou formatos contratuais particulares da sua aplicação. Ainda mais se tratando de modelos treinados por empresas estrangeiras, que podem não ter acesso a dados locais relevantes ou nem mesmo tem interesse em se especializar nos casos específicos de cada país.</p>
+<p>Para suprir essa necessidade, poderíamos treinar um modelo do zero, claro, mas sabemos que isso é extremamente caro e demorado. Portanto, outra abordagem se torna viável, o <strong>fine-tuning</strong>, o processo de ajustar um modelo pré-treinado usando dados específicos de algum domínio ou tarefa. Mas fine-tuning não é apenas “treinar mais um pouco”. Envolve decisões importantes sobre:</p>
+<ul>
+<li><strong>Quais parâmetros atualizar?</strong> Todos os 70 bilhões de parâmetros de um LLaMA ou apenas uma fração pequena?</li>
+<li><strong>Como balancear custo e performance?</strong> Fine-tuning completo pode custar dezenas de milhares de dólares em GPUs.</li>
+<li><strong>Como evitar <em>catastrophic forgetting</em>?</strong> O modelo pode “esquecer” capacidades gerais aprendidas anteriormente ao especializar-se no que estamos incrementando agora.</li>
+<li><strong>Como avaliar se realmente melhorou?</strong> Métricas tradicionais nem sempre capturam qualidade em tarefas complexas.</li>
+</ul>
+<p>Para endereçar essas dúvidas, neste capítulo, exploraremos as técnicas modernas que tornam fine-tuning prático e econômico, desde abordagens tradicionais até métodos revolucionários como LoRA e QLoRA que democratizaram o acesso a modelos grandes. Também entenderemos quantização, RLHF (o segredo por trás de assistentes como ChatGPT) e frameworks para selecionar o modelo certo para cada situação.</p>
+<section id="fine-tuning-adaptando-foundation-models" class="level2">
+<h2 class="anchored" data-anchor-id="fine-tuning-adaptando-foundation-models">Fine-Tuning: Adaptando Foundation Models</h2>
+<p>Existem várias estratégias de fine-tuning, cada uma adequada para diferentes cenários. Vamos explorar as principais abordagens, começando pelas mais diretas até técnicas avançadas de <em>parameter-efficient fine-tuning</em>.</p>
+<section id="supervised-fine-tuning-sft" class="level3">
+<h3 class="anchored" data-anchor-id="supervised-fine-tuning-sft">Supervised Fine-Tuning (SFT)</h3>
+<p>Supervised Fine-Tuning (SFT) é a forma mais direta de adaptar um modelo pré-treinado para uma tarefa específica. Envolve treinar o modelo em um dataset rotulado onde cada input tem um output desejado. Portanto, continuamos o treinamento com <em>next-token prediction</em>, mas usando um dataset curado de exemplos de alta qualidade para a tarefa alvo.</p>
+<p><strong>Exemplo de Dataset para SFT</strong>:</p>
+<pre><code>Dataset: [
+  {"input": "Qual a capital da França?", "output": "A capital da França é Paris."},
+  {"input": "Resuma este artigo: ...", "output": "Este artigo discute..."},
+  {"input": "Qual é a fórmula da água?", "output": "A fórmula da água é H2O."},
+  {"input": "Quem escreveu 'Dom Casmurro'?", "output": "Machado de Assis escreveu 'Dom Casmurro'."},
+  {"input": "Qual é a capital do Brasil?", "output": "A capital do Brasil é Brasília."},
+  ...
+]</code></pre>
+<p>O modelo aprende a seguir o padrão de <em>input-output</em> dos exemplos. Com dados suficientes e de qualidade (previamente selecionados, limpos e balanceados), isso pode melhorar bastante a performance em tarefas específicas.</p>
+<p>Uma forma particular de SFT é o <strong>Instruction Tuning</strong>, onde os exemplos são formatados como instruções seguidas de respostas. Isso treina o modelo a seguir instruções arbitrárias, não apenas responder perguntas específicas. Datasets como <a href="https://github.com/google-research/FLAN">FLAN</a>, <a href="https://github.com/tatsu-lab/stanford_alpaca">Alpaca</a> e <a href="https://github.com/databrickslabs/dolly">Dolly</a> contêm dezenas ou centenas de milhares de exemplos instruction-response.</p>
+<p>Eu recomendo que você acesse os links desses datasets para entender melhor como eles são estruturados. Isso pode ajudar bastante na hora de criar seus próprios datasets para fine-tuning.</p>
+</section>
+<section id="continual-pre-training-domain-adaptation" class="level3">
+<h3 class="anchored" data-anchor-id="continual-pre-training-domain-adaptation">Continual Pre-Training (Domain Adaptation)</h3>
+<p>Se você tem um domínio específico (ex: legal, médico, financeiro), pode continuar o pré-treinamento não-supervisionado usando corpus desse domínio utilizando a técnica de <strong>Continual Pre-Training</strong> (também chamado de Domain Adaptation).</p>
+<p>Por exemplo, podemos pegar um modelo geral como LLaMA-2 e continuar o pré-treinamento em um grande corpus de textos específicos:</p>
+<p>Existem várias fontes públicas de dados especializados:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Domínio</th>
+<th>Recurso</th>
+<th>Descrição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Legal</strong></td>
+<td><a href="https://free.law/">FreeLaw Project</a></td>
+<td>Milhões de casos jurídicos dos EUA</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><a href="https://www.lexml.gov.br/">LexML Brasil</a></td>
+<td>Legislação e jurisprudência brasileira</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><a href="https://eur-lex.europa.eu/">EUR-Lex</a></td>
+<td>Direito da União Europeia</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><a href="https://huggingface.co/datasets/pile-of-law">Pile of Law</a></td>
+<td>256GB de textos legais (papers, casos, contratos)</td>
+</tr>
+<tr class="odd">
+<td><strong>Médico</strong></td>
+<td><a href="https://www.ncbi.nlm.nih.gov/pmc/">PubMed Central</a></td>
+<td>8+ milhões de artigos médicos open access</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><a href="https://physionet.org/content/mimiciii/">MIMIC-III</a></td>
+<td>Registros clínicos anonimizados (requer credenciamento)</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><a href="https://huggingface.co/datasets/medalpaca/medical_meadow">Medical Meadow</a></td>
+<td>Datasets médicos curados</td>
+</tr>
+<tr class="even">
+<td><strong>Financeiro</strong></td>
+<td><a href="https://www.sec.gov/edgar">SEC EDGAR</a></td>
+<td>Relatórios financeiros de empresas públicas dos EUA</td>
+</tr>
+<tr class="odd">
+<td></td>
+<td><a href="https://huggingface.co/datasets/financial_phrasebank">Financial Phrasebank</a></td>
+<td>Sentenças financeiras anotadas</td>
+</tr>
+<tr class="even">
+<td></td>
+<td><a href="https://sites.google.com/view/fiqa/">FiQA</a></td>
+<td>Question-answering financeiro</td>
+</tr>
+</tbody>
+</table>
+<p>Isso expõe o modelo a terminologia, padrões e conhecimento domain-specific. Mas é crucial usar uma mixture do corpus original (~80%) e corpus de domínio (~20%) para evitar <strong>catastrophic forgetting</strong>, o fenômeno onde o modelo “esquece” capacidades gerais ao se especializar demais.</p>
+<section id="construindo-seu-próprio-corpus" class="level4">
+<h4 class="anchored" data-anchor-id="construindo-seu-próprio-corpus">Construindo Seu Próprio Corpus</h4>
+<p>Para domínios específicos da sua organização, talvez você precise construir seu próprio corpus. Algumas estratégias incluem:</p>
+<ol type="1">
+<li><strong>Web scraping</strong>: Use ferramentas como <a href="https://scrapy.org/">Scrapy</a> ou <a href="https://www.crummy.com/software/BeautifulSoup/">BeautifulSoup</a> para coletar dados públicos</li>
+<li><strong>APIs</strong>: Muitas plataformas oferecem APIs (ex: PubMed API, arXiv API)</li>
+<li><strong>Dados internos</strong>: Documentação, relatórios, emails (com aprovação de privacidade)</li>
+<li><strong>Parcerias</strong>: Colabore com universidades ou instituições do setor</li>
+</ol>
+<p><strong>Importante</strong>: Sempre verifique licenças e conformidade com LGPD/GDPR antes de usar dados.</p>
+</section>
+</section>
+<section id="parameter-efficient-fine-tuning-peft" class="level3">
+<h3 class="anchored" data-anchor-id="parameter-efficient-fine-tuning-peft">Parameter-Efficient Fine-Tuning (PEFT)</h3>
+<p>Até aqui, discutimos fine-tuning como se atualizar todos os parâmetros fosse trivial. Mas na prática, fine-tuning completo de modelos grandes é <strong>proibitivamente caro</strong> para a maioria das organizações, pesquisadores, estudantes, e entusiastas.</p>
+<p>O fine-tuning completo de um modelo de 70B parâmetros requer:</p>
+<ul>
+<li><strong>Modelo</strong>: Carregar todos os 70B parâmetros na memória (280GB em FP32, 140GB em FP16)</li>
+<li><strong>Gradientes</strong>: Armazenar gradientes para cada parâmetro (mais 70B = 140GB em FP16)</li>
+<li><strong>Optimizer States (Adam)</strong>: Momentum + variance para cada parâmetro em FP32 (mais 140B × 2 × 4 bytes = 560GB)</li>
+<li><strong>Total</strong>: <strong>~840GB de memória</strong> sem otimizações, <strong>~560GB</strong> com técnicas como ZeRO e gradient checkpointing</li>
+</ul>
+<p>Para contexto:</p>
+<ul>
+<li>A GPU NVIDIA A100 tem 80GB de memória</li>
+<li>Você precisa de <strong>7-8 GPUs A100</strong> só para carregar tudo</li>
+<li>Custo: ~$25,000/mês em cloud para treinar</li>
+<li>Tempo: entre dias a semanas dependendo do dataset</li>
+</ul>
+<p>Isso acaba sendo viável somente para grandes empresas com orçamentos massivos ou aquelas que estão transferindo dinheiro de investidores umas para as outras sem dar um retorno real. Para o resto de nós, há o PEFT, <em>Parameter-Efficient Fine-Tuning</em>.</p>
+<p>A técnica PEFT mantêm a maioria dos parâmetros <strong>congelados</strong> e atualizam apenas um subset pequeno (0.1-1% dos parâmetros). Isso reduz drasticamente os requisitos de memória e computação. Para modelos de 70B, isso significa treinar apenas ~70M a 700M parâmetros.</p>
+<p>A intuição é que <strong>adaptar</strong> um modelo pré-treinado para uma nova tarefa não requer re-aprender tudo, apenas ajustar um pequeno conjunto de parâmetros.</p>
+<p>Uma das técnicas para realizar essa adaptação é a <strong>LoRA (Low-Rank Adaptation)</strong> <span class="citation" data-cites="hu2021lora">(<a href="../99-references.html#ref-hu2021lora" role="doc-biblioref">Hu et al. 2021</a>)</span>, que consiste em injetar matrizes de baixo rank adaptáveis nas camadas de atenção:</p>
+<pre><code>W' = W + BA
+onde B ∈ R^(d×r), A ∈ R^(r×d), r &lt;&lt; d</code></pre>
+<p>Apenas A e B são treinados. Com r=8 e d=4096, isso adiciona apenas 8×4096×2 = 65K parâmetros por matriz, comparado a 16M para a matriz completa. Redução de ~250×.</p>
+<p>LoRA é muito eficaz, por vezes alcança performance comparável a fine-tuning completo com &lt;&lt;1% dos parâmetros treináveis. A hipótese é que adaptação de task requer apenas modificações low-rank porque os “<em>intrinsic dimensions</em>” das tarefas são baixas.</p>
+<p>Seguindo a evolução natural das técnicas e estudos da área, surge a técnica <strong>QLoRA (Quantized LoRA)</strong> <span class="citation" data-cites="dettmers2023qlora">(<a href="../99-references.html#ref-dettmers2023qlora" role="doc-biblioref">Dettmers et al. 2023</a>)</span> que combina LoRA com quantização de 4-bit do modelo base (veremos sobre quantização logo mais), permitindo fine-tuning de modelos 70B em uma única GPU de 48GB. A inovação está em manter o modelo base <strong>congelado e quantizado</strong> enquanto treina adapters LoRA em precisão total.</p>
+<pre><code>Modelo Base (4-bit, congelado)  →  LoRA Adapters (FP16, treináveis)
+         ↓                                    ↓
+    W_quantized              +           W_lora = BA
+         ↓                                    ↓
+    Dequantize temporariamente para computação
+         ↓
+    W_dequant + BA  →  Saída</code></pre>
+<p><strong>Economia de Memória Prática (Modelo 70B):</strong></p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Componente</th>
+<th>Full Fine-Tuning (FP16)</th>
+<th>LoRA (FP16)</th>
+<th>QLoRA (4-bit)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Modelo Base</td>
+<td>140 GB</td>
+<td>140 GB</td>
+<td><strong>35 GB</strong></td>
+</tr>
+<tr class="even">
+<td>Gradientes</td>
+<td>140 GB</td>
+<td>0.14 GB (apenas LoRA)</td>
+<td>0.14 GB</td>
+</tr>
+<tr class="odd">
+<td>Optimizer States</td>
+<td>560 GB</td>
+<td>0.56 GB</td>
+<td>0.56 GB</td>
+</tr>
+<tr class="even">
+<td><strong>Total</strong></td>
+<td><strong>~840 GB</strong></td>
+<td><strong>~280 GB</strong></td>
+<td><strong>~48 GB</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Com QLoRA, fine-tuning de modelos 70B cabe em uma <strong>NVIDIA A6000 (48GB)</strong> ou <strong>RTX 4090 (24GB)</strong> com <em>gradient checkpointing</em>.</p>
+<p><strong>Performance vs.&nbsp;Full Fine-Tuning:</strong></p>
+<p>Em benchmarks como MMLU e HumanEval, QLoRA alcança <strong>99-99.5%</strong> da performance de full fine-tuning <span class="citation" data-cites="dettmers2023qlora">(<a href="../99-references.html#ref-dettmers2023qlora" role="doc-biblioref">Dettmers et al. 2023</a>)</span>, tornando-se o método de escolha para fine-tuning com recursos limitados.</p>
+</section>
+<section id="quantização-reduzindo-requisitos-de-memória" class="level3">
+<h3 class="anchored" data-anchor-id="quantização-reduzindo-requisitos-de-memória">Quantização: Reduzindo Requisitos de Memória</h3>
+<p>Quantização é uma técnica usada para tornar LLMs mais acessíveis, reduzindo os requisitos de memória e computação ao representar pesos e ativações do modelo com menor precisão numérica. É graças a quantização que conseguimos rodar modelos grandes em hardware modesto, como GPUs consumidoras ou até mesmo CPUs.</p>
+<p>Por padrão, modelos são treinados em <strong>FP32</strong> (float de 32 bits) ou <strong>BF16/FP16</strong> (16 bits), porque a precisão numérica é crítica para o desempenho do modelo. Se não temos precisão numérica suficiente, o modelo pode falhar em aprender ou generalizar. Um modelo de 70B parâmetros em FP16 requer:</p>
+<pre><code>70B parâmetros × 2 bytes = 140GB de memória</code></pre>
+<p>Isso exclui a maioria das GPUs consumidoras (uma RTX 4090 tem 24GB). Quantização resolve isso reduzindo bits por parâmetro. Ou seja representamos os pesos do modelo com menos bits, como 8-bit, 4-bit ou até menos.</p>
+<p>Vamos explorar os principais tipos de quantização e seus <em>trade-offs</em>.</p>
+<section id="tipos-de-quantização" class="level4">
+<h4 class="anchored" data-anchor-id="tipos-de-quantização">Tipos de Quantização</h4>
+<p><strong>1. Post-Training Quantization (PTQ)</strong></p>
+<p>Quantiza um modelo já treinado sem retreinamento. Rápido e simples, mas pode ter perda de qualidade em quantizações agressivas.</p>
+<p><strong>Exemplo com Transformers + bitsandbytes:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># uv pip install transformers bitsandbytes accelerate</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoModelForCausalLM, AutoTokenizer</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar modelo em FP16 (baseline)</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>model_fp16 <span class="op">=</span> AutoModelForCausalLM.from_pretrained(</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"meta-llama/Llama-2-7b-hf"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    torch_dtype<span class="op">=</span>torch.float16,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    device_map<span class="op">=</span><span class="st">"auto"</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Memória: ~14GB</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar modelo quantizado em INT8 via PTQ</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>model_int8 <span class="op">=</span> AutoModelForCausalLM.from_pretrained(</span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    <span class="st">"meta-llama/Llama-2-7b-hf"</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    load_in_8bit<span class="op">=</span><span class="va">True</span>,  <span class="co"># Quantização automática INT8</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    device_map<span class="op">=</span><span class="st">"auto"</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Memória: ~7GB (50% de redução)</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar modelo quantizado em INT4 (4-bit) via PTQ</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>model_int4 <span class="op">=</span> AutoModelForCausalLM.from_pretrained(</span>
+<span id="cb5-23"><a href="#cb5-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">"meta-llama/Llama-2-7b-hf"</span>,</span>
+<span id="cb5-24"><a href="#cb5-24" aria-hidden="true" tabindex="-1"></a>    load_in_4bit<span class="op">=</span><span class="va">True</span>,  <span class="co"># Quantização automática 4-bit</span></span>
+<span id="cb5-25"><a href="#cb5-25" aria-hidden="true" tabindex="-1"></a>    device_map<span class="op">=</span><span class="st">"auto"</span></span>
+<span id="cb5-26"><a href="#cb5-26" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb5-27"><a href="#cb5-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Memória: ~3.5GB (75% de redução)</span></span>
+<span id="cb5-28"><a href="#cb5-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-29"><a href="#cb5-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Depois disso, podemos usar o modelo normalmente</span></span>
+<span id="cb5-30"><a href="#cb5-30" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> AutoTokenizer.from_pretrained(<span class="st">"meta-llama/Llama-2-7b-hf"</span>)</span>
+<span id="cb5-31"><a href="#cb5-31" aria-hidden="true" tabindex="-1"></a>inputs <span class="op">=</span> tokenizer(<span class="st">"Explain quantum computing:"</span>, return_tensors<span class="op">=</span><span class="st">"pt"</span>).to(<span class="st">"cuda"</span>)</span>
+<span id="cb5-32"><a href="#cb5-32" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> model_int4.generate(<span class="op">**</span>inputs, max_new_tokens<span class="op">=</span><span class="dv">50</span>)</span>
+<span id="cb5-33"><a href="#cb5-33" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(tokenizer.decode(outputs[<span class="dv">0</span>]))</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>2. Quantization-Aware Training (QAT)</strong></p>
+<p>Treina o modelo sabendo que será quantizado, incluindo efeitos de quantização no gradiente. Melhor qualidade, mas requer retreinamento completo.</p>
+<p><strong>Exemplo com PyTorch:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># uv pip install torch torchvision</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.nn <span class="im">as</span> nn</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch.quantization <span class="im">as</span> quantization</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torch.utils.data <span class="im">import</span> DataLoader</span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> torchvision <span class="im">import</span> datasets, transforms</span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Definir modelo simples para classificação</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a><span class="kw">class</span> SimpleNet(nn.Module):</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> <span class="fu">__init__</span>(<span class="va">self</span>):</span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="bu">super</span>(SimpleNet, <span class="va">self</span>).<span class="fu">__init__</span>()</span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.quant <span class="op">=</span> quantization.QuantStub()  <span class="co"># Converte input para quantizado</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fc1 <span class="op">=</span> nn.Linear(<span class="dv">784</span>, <span class="dv">128</span>)</span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.relu <span class="op">=</span> nn.ReLU()</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.fc2 <span class="op">=</span> nn.Linear(<span class="dv">128</span>, <span class="dv">10</span>)</span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="va">self</span>.dequant <span class="op">=</span> quantization.DeQuantStub()  <span class="co"># Converte de volta para FP32</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        </span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>    <span class="kw">def</span> forward(<span class="va">self</span>, x):</span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.quant(x)</span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.fc1(x)</span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.relu(x)</span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.fc2(x)</span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>        x <span class="op">=</span> <span class="va">self</span>.dequant(x)</span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> x</span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar dados (MNIST como exemplo)</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a>transform <span class="op">=</span> transforms.Compose([</span>
+<span id="cb6-29"><a href="#cb6-29" aria-hidden="true" tabindex="-1"></a>    transforms.ToTensor(),</span>
+<span id="cb6-30"><a href="#cb6-30" aria-hidden="true" tabindex="-1"></a>    transforms.Normalize((<span class="fl">0.1307</span>,), (<span class="fl">0.3081</span>,))</span>
+<span id="cb6-31"><a href="#cb6-31" aria-hidden="true" tabindex="-1"></a>])</span>
+<span id="cb6-32"><a href="#cb6-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-33"><a href="#cb6-33" aria-hidden="true" tabindex="-1"></a>train_dataset <span class="op">=</span> datasets.MNIST(<span class="st">'./data'</span>, train<span class="op">=</span><span class="va">True</span>, download<span class="op">=</span><span class="va">True</span>, transform<span class="op">=</span>transform)</span>
+<span id="cb6-34"><a href="#cb6-34" aria-hidden="true" tabindex="-1"></a>train_loader <span class="op">=</span> DataLoader(train_dataset, batch_size<span class="op">=</span><span class="dv">64</span>, shuffle<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-35"><a href="#cb6-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-36"><a href="#cb6-36" aria-hidden="true" tabindex="-1"></a><span class="co"># Criar modelo</span></span>
+<span id="cb6-37"><a href="#cb6-37" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> SimpleNet()</span>
+<span id="cb6-38"><a href="#cb6-38" aria-hidden="true" tabindex="-1"></a>model.train()</span>
+<span id="cb6-39"><a href="#cb6-39" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-40"><a href="#cb6-40" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar QAT</span></span>
+<span id="cb6-41"><a href="#cb6-41" aria-hidden="true" tabindex="-1"></a>model.qconfig <span class="op">=</span> quantization.get_default_qat_qconfig(<span class="st">'fbgemm'</span>)</span>
+<span id="cb6-42"><a href="#cb6-42" aria-hidden="true" tabindex="-1"></a>quantization.prepare_qat(model, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-43"><a href="#cb6-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Modelo preparado para QAT"</span>)</span>
+<span id="cb6-44"><a href="#cb6-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-45"><a href="#cb6-45" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar otimizador e loss</span></span>
+<span id="cb6-46"><a href="#cb6-46" aria-hidden="true" tabindex="-1"></a>optimizer <span class="op">=</span> torch.optim.Adam(model.parameters(), lr<span class="op">=</span><span class="fl">0.001</span>)</span>
+<span id="cb6-47"><a href="#cb6-47" aria-hidden="true" tabindex="-1"></a>criterion <span class="op">=</span> nn.CrossEntropyLoss()</span>
+<span id="cb6-48"><a href="#cb6-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-49"><a href="#cb6-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Loop de treinamento com QAT</span></span>
+<span id="cb6-50"><a href="#cb6-50" aria-hidden="true" tabindex="-1"></a>num_epochs <span class="op">=</span> <span class="dv">3</span></span>
+<span id="cb6-51"><a href="#cb6-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">🚀 Iniciando treinamento QAT por </span><span class="sc">{</span>num_epochs<span class="sc">}</span><span class="ss"> épocas...</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb6-52"><a href="#cb6-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-53"><a href="#cb6-53" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> epoch <span class="kw">in</span> <span class="bu">range</span>(num_epochs):</span>
+<span id="cb6-54"><a href="#cb6-54" aria-hidden="true" tabindex="-1"></a>    total_loss <span class="op">=</span> <span class="dv">0</span></span>
+<span id="cb6-55"><a href="#cb6-55" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> batch_idx, (data, target) <span class="kw">in</span> <span class="bu">enumerate</span>(train_loader):</span>
+<span id="cb6-56"><a href="#cb6-56" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Flatten imagens MNIST (28x28 -&gt; 784)</span></span>
+<span id="cb6-57"><a href="#cb6-57" aria-hidden="true" tabindex="-1"></a>        data <span class="op">=</span> data.view(data.size(<span class="dv">0</span>), <span class="op">-</span><span class="dv">1</span>)</span>
+<span id="cb6-58"><a href="#cb6-58" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-59"><a href="#cb6-59" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Forward pass com simulação de quantização</span></span>
+<span id="cb6-60"><a href="#cb6-60" aria-hidden="true" tabindex="-1"></a>        optimizer.zero_grad()</span>
+<span id="cb6-61"><a href="#cb6-61" aria-hidden="true" tabindex="-1"></a>        outputs <span class="op">=</span> model(data)</span>
+<span id="cb6-62"><a href="#cb6-62" aria-hidden="true" tabindex="-1"></a>        loss <span class="op">=</span> criterion(outputs, target)</span>
+<span id="cb6-63"><a href="#cb6-63" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-64"><a href="#cb6-64" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Backward e otimização</span></span>
+<span id="cb6-65"><a href="#cb6-65" aria-hidden="true" tabindex="-1"></a>        loss.backward()</span>
+<span id="cb6-66"><a href="#cb6-66" aria-hidden="true" tabindex="-1"></a>        optimizer.step()</span>
+<span id="cb6-67"><a href="#cb6-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-68"><a href="#cb6-68" aria-hidden="true" tabindex="-1"></a>        total_loss <span class="op">+=</span> loss.item()</span>
+<span id="cb6-69"><a href="#cb6-69" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-70"><a href="#cb6-70" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Log progresso</span></span>
+<span id="cb6-71"><a href="#cb6-71" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> batch_idx <span class="op">%</span> <span class="dv">100</span> <span class="op">==</span> <span class="dv">0</span>:</span>
+<span id="cb6-72"><a href="#cb6-72" aria-hidden="true" tabindex="-1"></a>            <span class="bu">print</span>(<span class="ss">f"Época </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss">/</span><span class="sc">{</span>num_epochs<span class="sc">}</span><span class="ss">, Batch </span><span class="sc">{</span>batch_idx<span class="sc">}</span><span class="ss">/</span><span class="sc">{</span><span class="bu">len</span>(train_loader)<span class="sc">}</span><span class="ss">, "</span></span>
+<span id="cb6-73"><a href="#cb6-73" aria-hidden="true" tabindex="-1"></a>                  <span class="ss">f"Loss: </span><span class="sc">{</span>loss<span class="sc">.</span>item()<span class="sc">:.4f}</span><span class="ss">"</span>)</span>
+<span id="cb6-74"><a href="#cb6-74" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-75"><a href="#cb6-75" aria-hidden="true" tabindex="-1"></a>    avg_loss <span class="op">=</span> total_loss <span class="op">/</span> <span class="bu">len</span>(train_loader)</span>
+<span id="cb6-76"><a href="#cb6-76" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✅ Época </span><span class="sc">{</span>epoch<span class="op">+</span><span class="dv">1</span><span class="sc">}</span><span class="ss"> completa - Loss médio: </span><span class="sc">{</span>avg_loss<span class="sc">:.4f}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb6-77"><a href="#cb6-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-78"><a href="#cb6-78" aria-hidden="true" tabindex="-1"></a><span class="co"># Converter para modelo quantizado final</span></span>
+<span id="cb6-79"><a href="#cb6-79" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🔄 Convertendo para modelo INT8..."</span>)</span>
+<span id="cb6-80"><a href="#cb6-80" aria-hidden="true" tabindex="-1"></a>model.<span class="bu">eval</span>()</span>
+<span id="cb6-81"><a href="#cb6-81" aria-hidden="true" tabindex="-1"></a>quantization.convert(model, inplace<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb6-82"><a href="#cb6-82" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Modelo agora usa INT8 nativamente!"</span>)</span>
+<span id="cb6-83"><a href="#cb6-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-84"><a href="#cb6-84" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparar tamanhos</span></span>
+<span id="cb6-85"><a href="#cb6-85" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> print_model_size(model, label):</span>
+<span id="cb6-86"><a href="#cb6-86" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Calcula e imprime tamanho do modelo em MB"""</span></span>
+<span id="cb6-87"><a href="#cb6-87" aria-hidden="true" tabindex="-1"></a>    torch.save(model.state_dict(), <span class="st">"temp.p"</span>)</span>
+<span id="cb6-88"><a href="#cb6-88" aria-hidden="true" tabindex="-1"></a>    size_mb <span class="op">=</span> os.path.getsize(<span class="st">"temp.p"</span>) <span class="op">/</span> <span class="fl">1e6</span></span>
+<span id="cb6-89"><a href="#cb6-89" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>label<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>size_mb<span class="sc">:.2f}</span><span class="ss"> MB"</span>)</span>
+<span id="cb6-90"><a href="#cb6-90" aria-hidden="true" tabindex="-1"></a>    os.remove(<span class="st">"temp.p"</span>)</span>
+<span id="cb6-91"><a href="#cb6-91" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> size_mb</span>
+<span id="cb6-92"><a href="#cb6-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-93"><a href="#cb6-93" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📊 Comparação de tamanhos:"</span>)</span>
+<span id="cb6-94"><a href="#cb6-94" aria-hidden="true" tabindex="-1"></a><span class="co"># Criar modelo FP32 para comparação</span></span>
+<span id="cb6-95"><a href="#cb6-95" aria-hidden="true" tabindex="-1"></a>fp32_model <span class="op">=</span> SimpleNet()</span>
+<span id="cb6-96"><a href="#cb6-96" aria-hidden="true" tabindex="-1"></a>fp32_size <span class="op">=</span> print_model_size(fp32_model, <span class="st">"Modelo FP32"</span>)</span>
+<span id="cb6-97"><a href="#cb6-97" aria-hidden="true" tabindex="-1"></a>int8_size <span class="op">=</span> print_model_size(model, <span class="st">"Modelo INT8 (QAT)"</span>)</span>
+<span id="cb6-98"><a href="#cb6-98" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Redução: </span><span class="sc">{</span>((fp32_size <span class="op">-</span> int8_size) <span class="op">/</span> fp32_size <span class="op">*</span> <span class="dv">100</span>)<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb6-99"><a href="#cb6-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-100"><a href="#cb6-100" aria-hidden="true" tabindex="-1"></a><span class="co"># Testar inferência</span></span>
+<span id="cb6-101"><a href="#cb6-101" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🧪 Testando inferência quantizada..."</span>)</span>
+<span id="cb6-102"><a href="#cb6-102" aria-hidden="true" tabindex="-1"></a>test_input <span class="op">=</span> torch.randn(<span class="dv">1</span>, <span class="dv">784</span>)</span>
+<span id="cb6-103"><a href="#cb6-103" aria-hidden="true" tabindex="-1"></a><span class="cf">with</span> torch.no_grad():</span>
+<span id="cb6-104"><a href="#cb6-104" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> model(test_input)</span>
+<span id="cb6-105"><a href="#cb6-105" aria-hidden="true" tabindex="-1"></a>    predicted <span class="op">=</span> torch.argmax(output, dim<span class="op">=</span><span class="dv">1</span>)</span>
+<span id="cb6-106"><a href="#cb6-106" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Predição: </span><span class="sc">{</span>predicted<span class="sc">.</span>item()<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb6-107"><a href="#cb6-107" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Inferência funcionando com modelo quantizado!"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-simple callout-tip callout-titled" title="QAT vs PTQ">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>QAT vs PTQ
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Quando usar QAT:</strong></p>
+<ul>
+<li>Precisão crítica (modelos para produção)</li>
+<li>Quantizações agressivas (INT4, INT3)</li>
+<li>Tempo disponível para retreinamento</li>
+</ul>
+<p><strong>Quando usar PTQ:</strong></p>
+<ul>
+<li>Prototipagem rápida</li>
+<li>Quantização moderada (INT8)</li>
+<li>Modelo já treinado e não pode ser retreinado</li>
+</ul>
+</div>
+</div>
+<p><strong>Ganhos Práticos de Quantização</strong></p>
+<p>A tabela abaixo mostra o trade-off memória vs.&nbsp;qualidade para um modelo de 70B parâmetros. <strong>INT8 é o sweet spot para produção</strong> (50% menos memória, perda imperceptível), enquanto <strong>INT4 democratiza acesso</strong> permitindo rodar modelos grandes em GPUs consumidoras com qualidade aceitável.</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Precisão</th>
+<th>Memória (70B)</th>
+<th>Qualidade</th>
+<th>Caso de Uso</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>FP16</td>
+<td>140GB</td>
+<td>100% (baseline)</td>
+<td>Treinamento, inferência premium</td>
+</tr>
+<tr class="even">
+<td>INT8</td>
+<td>70GB</td>
+<td>~99%</td>
+<td>Inferência produção</td>
+</tr>
+<tr class="odd">
+<td>INT4</td>
+<td>35GB</td>
+<td>~95-97%</td>
+<td>Consumer GPUs, edge devices</td>
+</tr>
+<tr class="even">
+<td>INT3</td>
+<td>26GB</td>
+<td>~90-93%</td>
+<td>Experimental, edge extremo</td>
+</tr>
+</tbody>
+</table>
+</section>
+</section>
+<section id="reinforcement-learning-from-human-feedback-rlhf" class="level3">
+<h3 class="anchored" data-anchor-id="reinforcement-learning-from-human-feedback-rlhf">Reinforcement Learning from Human Feedback (RLHF)</h3>
+<p><em>Reinforcement Learning from Human Feedback (RLHF)</em> <span class="citation" data-cites="ouyang2022training">(<a href="../99-references.html#ref-ouyang2022training" role="doc-biblioref">Ouyang et al. 2022</a>)</span>, é uma técnica avançada para alinhar LLMs com preferências humanas, indo além do que o Supervised Fine-Tuning (SFT) pode alcançar. Enquanto o SFT pode criar modelos que seguem instruções, mas não necessariamente produzem outputs que humanos <em>preferem</em>, RLHF utiliza feedback humano direto para treinar modelos que geram respostas mais úteis, seguras e alinhadas com valores humanos.</p>
+<p>Isso significa que em vez de apenas aprender a prever o próximo token com base em dados rotulados, o modelo aprende a maximizar uma <em>função de recompensa</em> que reflete as preferências humanas reais.</p>
+<p>O que acontece por meio de algumas etapas, que podem ser resumidas assim:</p>
+<ol type="1">
+<li><strong>Coletar Comparações</strong>: Humanos classificam pares de respostas para um mesmo prompt</li>
+<li><strong>Treinar Reward Model</strong>: Executamos Supervised Learning para prever qual resposta os humanos preferirão</li>
+<li><strong>Policy Optimization</strong>: Usamos o <em>reward model</em> como função de recompensa para fazer o <em>fine-tune</em> via <em>Reinforcement Learning</em></li>
+</ol>
+<p>Matemáticamente, o objetivo é otimizar a seguinte função:</p>
+<pre><code>Objective: maximize E[R(output)] - β·KL(π || π_ref)</code></pre>
+<p>Onde R é o reward model, π é a política sendo otimizada, π_ref é a política de referência (SFT model), e β controla quanto a política pode divergir.</p>
+<p>Algoritmos populares incluem PPO (Proximal Policy Optimization) e DPO (Direct Preference Optimization). DPO é mais recente e mais simples, evita treinar um reward model separado, enquanto o PPO trabalha diretamente com recompensas.</p>
+<p>RLHF é crucial para modelos comerciais como ChatGPT e Claude. Transforma modelos tecnicamente competentes em assistentes realmente úteis que humanos gostam de usar.</p>
+</section>
+</section>
+<section id="avaliando-os-modelos" class="level2">
+<h2 class="anchored" data-anchor-id="avaliando-os-modelos">Avaliando os Modelos</h2>
+<section id="como-sabemos-se-funcionou" class="level3">
+<h3 class="anchored" data-anchor-id="como-sabemos-se-funcionou">Como Sabemos se Funcionou?</h3>
+<p>Avaliar LLMs é bem difícil. Métricas tradicionais como perplexidade ou BLEU são imperfeitas. Assim como tudo em engenharia, temos pontos bons, pontos medianos e pontos ruins em todas as técnicas que usamos. <strong>Perplexidade</strong> não correlaciona bem com qualidade percebida, <strong>BLEU/ROUGE</strong> funcionam para tradução/sumarização, mas não para geração <em>open-ended</em>. Por isso, abordagens modernas incluem: benchmarks padronizados, avaliação humana e LLMs como juízes.</p>
+<p>Vamos explorar isso a partir de agora.</p>
+</section>
+<section id="benchmarks" class="level3">
+<h3 class="anchored" data-anchor-id="benchmarks">Benchmarks</h3>
+<p>Benchmarks são conjuntos padronizados de tarefas usadas para medir e comparar o desempenho de modelos em várias capacidades. Eles fornecem uma maneira objetiva de avaliar melhorias e comparar diferentes arquiteturas ou técnicas de treinamento.</p>
+<p>Existem algumas suites de tarefas padronizadas validadas pelo mercado que podemos utilizar como benchmarks para avaliar LLMs. Entre elas, podemos destacar:</p>
+<ul>
+<li><strong>MMLU</strong> <span class="citation" data-cites="hendrycks2021measuring">(<a href="../99-references.html#ref-hendrycks2021measuring" role="doc-biblioref">Hendrycks et al. 2021</a>)</span>: 57 tarefas cobrindo conhecimento em STEM (ciências, tecnologia, engenharia e matemática), humanidades, etc.</li>
+<li><strong>Big-Bench</strong>: 200+ tarefas diversas, incluindo raciocínio, compreensão, criatividade</li>
+<li><strong>HumanEval</strong> <span class="citation" data-cites="chen2021evaluating">(<a href="../99-references.html#ref-chen2021evaluating" role="doc-biblioref">Chen et al. 2021</a>)</span>: Codegen correctness (usado para avaliar o GitHub Copilot)</li>
+<li><strong>GSM8K</strong> <span class="citation" data-cites="cobbe2021training">(<a href="../99-references.html#ref-cobbe2021training" role="doc-biblioref">Cobbe et al. 2021</a>)</span>: Problemas matemáticos de nível escolar</li>
+</ul>
+<p>Porém, benchmarks têm suas limitações. Os modelos podem ter visto os dados de teste durante o pré-treinamento (contaminação), e muitos benchmarks já estão saturados por modelos top-tier. Além disso, benchmarks podem não refletir tarefas do mundo real que você quer que o modelo faça.</p>
+</section>
+<section id="avaliação-humana" class="level3">
+<h3 class="anchored" data-anchor-id="avaliação-humana">Avaliação Humana</h3>
+<p>A avaliação humana envolve pedir a pessoas reais para julgarem a qualidade, utilidade, correção e preferência entre outputs de modelos. É considerado o <em>gold standard</em> das avaliações porque captura aspectos subjetivos que métricas automatizadas falham, como fluência e naturalidade da linguagem, relevância prática, segurança e criatividade.</p>
+<p><strong>Exemplo: Chatbot Arena</strong></p>
+<p><a href="https://lmarena.ai">Chatbot Arena</a> <span class="citation" data-cites="zheng2023judging">(<a href="../99-references.html#ref-zheng2023judging" role="doc-biblioref">Zheng et al. 2023</a>)</span> (LMSYS) usa uma abordagem elegante chamada <strong>avaliação cega</strong>. Funciona assim:</p>
+<ol type="1">
+<li><strong>Prompt do usuário</strong>: Uma pessoa faz uma pergunta real ou dá uma instrução</li>
+<li><strong>Dois modelos anônimos</strong>: Sistema mostra respostas de dois modelos diferentes (usuário não sabe quais modelos são)</li>
+<li><strong>Escolha</strong>: Usuário seleciona qual resposta é melhor (ou empate)</li>
+<li><strong>Ranking Elo</strong>: Sistema calcula rankings estilo xadrez com milhares de comparações</li>
+</ol>
+<p><strong>Resultado</strong>: Rankings que refletem preferências humanas reais em tarefas diversas. Você pode ver rankings atualizados regularmente no site: <a href="https://lmarena.ai/leaderboard">lmarena.ai/leaderboard</a>. E, o melhor, é que o leaderboard é dividido por categorias úteis para o nosso cenário de criação de agentes de IA, como geração de texto, código, visão, busca, etc.</p>
+<p>Por exemplo, para geração de texto em Nov 2025, temos o seguinte ranking:</p>
+<ol type="1">
+<li>gemini-2.5-pro, com score de 1451 e 54 mil votos</li>
+<li>claude-opus-4-1-20250805-thinking-16k, com score de 1447 e 21 mil votos</li>
+<li>claude-sonnet-4-5-20250929-thinking-32k, com score de 1445 e 6 mil votos</li>
+</ol>
+<p>Como podemos ver, modelos de diferentes fornecedores competem diretamente, e o ranking reflete preferências humanas reais.</p>
+<p>As vantagens da avaliação humana neste processo, além da captura de preferências reais, incluem detecção de nuances sutis como toxicidade, viés e incoerência e avaliação de capacidades emergentes difíceis de medir automaticamente.</p>
+<p>Como desvantagens, temos o fato de que a avaliação humana é cara, pode demorar semanas para coletar dados suficientes, não é escalável para iteração rápida e pode ter variabilidade entre avaliadores.</p>
+<p><strong>Quando usar</strong>: Avaliações finais de modelos prontos para produção, decisões de release, validação de melhorias críticas.</p>
+</section>
+<section id="llm-as-judge" class="level3">
+<h3 class="anchored" data-anchor-id="llm-as-judge">LLM-as-Judge</h3>
+<p>Uma alternativa moderna à avaliação humana é usar LLMs fortes como juízes automáticos para avaliar outputs de outros modelos. Isso é chamado de <strong>LLM-as-Judge</strong>. A ideia é simples: usamos um modelo grande e capaz (ex: GPT-4, Claude, Gemini) para ler a pergunta do usuário e a resposta gerada por outro modelo, e pedir que o LLM avalie a qualidade da resposta com base em critérios específicos.</p>
+<p>Vamos seguir o exemplo de avaliação de resposta a uma pergunta para entender o processo:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>prompt_judge <span class="op">=</span> <span class="ss">f"""</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="ss">Você é um avaliador imparcial. Avalie a qualidade da resposta abaixo na pergunta dada.</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="ss">Pergunta: </span><span class="sc">{</span>user_question<span class="sc">}</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="ss">Resposta: </span><span class="sc">{</span>model_output<span class="sc">}</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="ss">Critérios:</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="ss">1. Correção factual (0-5)</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a><span class="ss">2. Completude (0-5)</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="ss">3. Clareza (0-5)</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="ss">4. Utilidade prática (0-5)</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a><span class="ss">Forneça scores e justificativa.</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a>evaluation <span class="op">=</span> gpt4.complete(prompt_judge)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O processo de LLM-as-judge correlaciona bem com julgamento humano em muitas tarefas. Aqui estão alguns pontos chave:</p>
+<ul>
+<li>Correlação ~0.7-0.85 com preferências humanas</li>
+<li>Muito mais consistente que humanos individuais</li>
+<li>1000× mais rápido e 100× mais barato</li>
+</ul>
+<p><strong>Casos de uso práticos</strong>:</p>
+<ol type="1">
+<li><strong>Comparação de modelos</strong>: “Modelo A ou B é melhor para esta tarefa?”</li>
+<li><strong>Avaliação de fine-tuning</strong>: “O fine-tuning melhorou a performance?”</li>
+<li><strong>Detecção de regressões</strong>: “Mudança X degradou qualidade?”</li>
+<li><strong>Ranking de respostas</strong>: Ordenar múltiplas respostas por qualidade</li>
+</ol>
+<p><strong>Limitações</strong>:</p>
+<ol type="1">
+<li><p><strong>Viés de comprimento</strong>: LLMs judges tendem a preferir respostas mais longas, mesmo quando concisão é melhor</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Resposta A: "Paris." (correto e conciso)</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Resposta B: "A capital da França é Paris, localizada no norte do país..." (verboso)</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Judge escolhe B mesmo sendo desnecessariamente longo</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div></li>
+<li><p><strong>Viés de estilo</strong>: Preferem outputs que parecem com seu próprio estilo de geração</p>
+<ul>
+<li>GPT-4 judge prefere outputs que “soam como GPT-4”</li>
+<li>Claude judge prefere outputs estruturados como Claude estrutura</li>
+</ul></li>
+<li><p><strong>Auto-preferência</strong>: Modelos tendem a dar scores mais altos para seus próprios outputs (~10-15% bias)</p></li>
+<li><p><strong>Limitação de capacidade</strong>: Judge precisa ser <strong>significativamente mais capaz</strong> que os modelos avaliados</p>
+<ul>
+<li>GPT-4 avaliando Llama-3-8B: funciona bem</li>
+<li>Llama-3-8B avaliando GPT-4: não confiável</li>
+</ul></li>
+<li><p><strong>Falta de conhecimento especializado</strong>: Judge pode não detectar erros factuais sutis em domínios técnicos</p></li>
+</ol>
+<p><strong>Melhores Práticas</strong></p>
+<p>Para mitigar limitações e melhorar a confiabilidade do LLM-as-Judge, considere as seguintes práticas:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Use múltiplos judges para reduzir viés</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>scores <span class="op">=</span> [</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    gpt4_judge(output),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    claude_judge(output),</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    gemini_judge(output)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>final_score <span class="op">=</span> median(scores)</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Blind evaluation - não revele qual modelo gerou output</span></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>judge_prompt <span class="op">=</span> <span class="ss">f"Avalie esta resposta: </span><span class="sc">{</span>output<span class="sc">}</span><span class="ss">"</span>  <span class="co"># sem mencionar modelo</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="co"># 3. Calibre com avaliação humana</span></span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare subset (100-500 exemplos) com avaliação humana</span></span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Ajuste prompt do judge até correlação &gt; 0.8</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Com base no que sabemos até aqui sobre LLM-as-Judge, aqui estão algumas recomendações práticas:</p>
+<p><strong>Quando usar LLM como juiz</strong>:</p>
+<ul>
+<li>Iteração rápida durante desenvolvimento</li>
+<li>Monitoramento contínuo de qualidade em produção</li>
+<li>A/B testing automatizado de mudanças</li>
+<li>Pre-screening antes de avaliação humana custosa</li>
+</ul>
+<p><strong>Quando NÃO usar</strong>:</p>
+<ul>
+<li>Decisões críticas de release (sempre validar com humanos)</li>
+<li>Avaliação de modelos state-of-the-art (judge pode não ser superior)</li>
+<li>Domínios altamente especializados sem judges treinados</li>
+<li>Não substitui completamente human eval</li>
+<li>“Judge” precisa ser significativamente mais capaz que os modelos sendo avaliados</li>
+</ul>
+</section>
+</section>
+<section id="seleção-do-modelo-certo-para-cada-tarefa" class="level2">
+<h2 class="anchored" data-anchor-id="seleção-do-modelo-certo-para-cada-tarefa">Seleção do Modelo Certo para Cada Tarefa</h2>
+<p>A paisagem de LLMs disponíveis é vasta e vem crescendo. Pra mim é impossível acompanhar tudo. Neste cenário, como escolher o modelo certo para sua aplicação de agente de IA?</p>
+<p>Vamos explorar os principais trade-offs e considerações para selecionar o modelo certo. Com este racional, você pode tomar decisões informadas baseadas em requisitos específicos.</p>
+<section id="considerações-fundamentais" class="level3">
+<h3 class="anchored" data-anchor-id="considerações-fundamentais">Considerações Fundamentais</h3>
+<section id="tamanho-do-modelo-e-capacidade" class="level4">
+<h4 class="anchored" data-anchor-id="tamanho-do-modelo-e-capacidade">1. Tamanho do Modelo e Capacidade</h4>
+<p>Modelos maiores são mais capazes, porém mais custosos:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 17%">
+<col style="width: 21%">
+<col style="width: 25%">
+<col style="width: 21%">
+<col style="width: 13%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tamanho</th>
+<th>Parâmetros</th>
+<th>Capacidades</th>
+<th>Latência</th>
+<th>Custo</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Nano</td>
+<td>&lt;1B</td>
+<td>Tarefas simples, seguir comandos básicos</td>
+<td>&lt;50ms</td>
+<td>$0.001/1K tokens</td>
+</tr>
+<tr class="even">
+<td>Small</td>
+<td>1-10B</td>
+<td>Raciocínio moderado, tasks bem-definidas</td>
+<td>50-200ms</td>
+<td>$0.01/1K tokens</td>
+</tr>
+<tr class="odd">
+<td>Medium</td>
+<td>10-70B</td>
+<td>Raciocínio complexo, multitask</td>
+<td>200-1000ms</td>
+<td>$0.10/1K tokens</td>
+</tr>
+<tr class="even">
+<td>Large</td>
+<td>70-500B+</td>
+<td>Raciocínio avançado, few-shot generalization</td>
+<td>1-5s</td>
+<td>$1-10/1K tokens</td>
+</tr>
+</tbody>
+</table>
+<div class="callout callout-style-simple callout-note callout-titled" title="Sobre os Valores de Latência e Custo">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Sobre os Valores de Latência e Custo
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Os valores de latência são aproximações típicas para inferência em GPUs modernas (A100/H100) com batching otimizado. Latência real varia significativamente com: comprimento de contexto, otimizações de servidor, quantização, e infraestrutura.</p>
+<p>Os custos são estimativas baseadas em preços de APIs comerciais (OpenAI, Anthropic, Google). Custos de self-hosting podem ser 5-10× menores para alto volume, mas requerem investimento em infraestrutura. Preços variam por provedor e tendem a cair ao longo do tempo (~50% por ano historicamente).</p>
+<p>Para custos atualizados: <a href="https://openai.com/pricing">OpenAI Pricing</a>, <a href="https://www.anthropic.com/pricing">Anthropic Pricing</a>, <a href="https://cloud.google.com/vertex-ai/pricing">Google AI Pricing</a></p>
+</div>
+</div>
+<p>Para agentes, você raramente precisa do modelo mais poderoso para todas as tarefas. Uma arquitetura comum é:</p>
+<ul>
+<li><strong>Modelo pequeno</strong> para tasks frequentes e simples (routing, formatting)</li>
+<li><strong>Modelo médio</strong> para tasks core (analysis, generation)</li>
+<li><strong>Modelo grande</strong> para tasks críticas e complexas (strategic planning, edge cases)</li>
+</ul>
+</section>
+<section id="encoder-vs.-decoder" class="level4">
+<h4 class="anchored" data-anchor-id="encoder-vs.-decoder">2. Encoder vs.&nbsp;Decoder</h4>
+<ul>
+<li><strong>Encoder-only (BERT-style)</strong>: Melhor para tarefas de compreensão com inputs fixos: classificação, NER, semantic search. Não geram texto.</li>
+<li><strong>Decoder-only (GPT-style)</strong>: Versáteis, podem fazer compreensão E geração. Dominante para agentes.</li>
+<li><strong>Encoder-decoder (T5-style)</strong>: Úteis para tasks sequence-to-sequence explícitas como tradução e sumarização.</li>
+</ul>
+<p>Para agentes autônomos, decoder-only é quase sempre a escolha certa.</p>
+</section>
+<section id="context-window" class="level4">
+<h4 class="anchored" data-anchor-id="context-window">3. Context Window</h4>
+<p>O tamanho do context window determina quanto input/output o modelo pode processar de uma vez. O que impacta diretamente a capacidade de lidar com tarefas longas ou mais complexas.</p>
+<p>Exemplo:</p>
+<ul>
+<li><strong>4K tokens (~3K palavras)</strong>: GPT-3.5 legacy models</li>
+<li><strong>8K tokens</strong>: Muitos modelos small-medium</li>
+<li><strong>32K-128K tokens</strong>: GPT-4, Claude 2, modelos modernos</li>
+<li><strong>200K+ tokens</strong>: Claude 3, Gemini 1.5 Pro</li>
+</ul>
+<p>Context window maior é crucial para:</p>
+<ul>
+<li><strong>RAG</strong>: Incluir múltiplos documentos <em>retrieved</em></li>
+<li><strong>Long conversations</strong>: Manter histórico de conversação longa</li>
+<li><strong>Code analysis</strong>: Processar codebases inteiras</li>
+<li><strong>Complex reasoning</strong>: Incluir chain-of-thought extenso</li>
+</ul>
+<p>Modelos com context windows muito grandes são mais lentos e mais caros. Procure usar o mínimo necessário.</p>
+</section>
+<section id="velocidade-e-latência" class="level4">
+<h4 class="anchored" data-anchor-id="velocidade-e-latência">4. Velocidade e Latência</h4>
+<p>Para sistemas interativos, latência importa:</p>
+<ul>
+<li><strong>Modelos locais</strong>: &lt;100ms, mas capability limitado</li>
+<li><strong>API models (small)</strong>: 200-500ms</li>
+<li><strong>API models (large)</strong>: 1-5s+</li>
+</ul>
+<p>Técnicas para reduzir latência:</p>
+<ul>
+<li><strong>Speculative Decoding</strong>: Usa modelo pequeno para gerar drafts, modelo grande para verificar</li>
+<li><strong>Streaming</strong>: Retorna tokens incrementalmente em vez de esperar resposta completa</li>
+<li><strong>Caching</strong>: Cacheia prompts comuns e prefixos</li>
+<li><strong>Batching</strong>: Processa múltiplas requests em paralelo</li>
+</ul>
+</section>
+<section id="custo" class="level4">
+<h4 class="anchored" data-anchor-id="custo">5. Custo</h4>
+<p>Custo de inferência varia em ordens de magnitude:</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>Modelo</th>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>GPT-3.5 Turbo</td>
+<td>$0.0005/1K</td>
+<td>$0.0015/1K</td>
+</tr>
+<tr class="even">
+<td>GPT-4 Turbo</td>
+<td>$0.01/1K</td>
+<td>$0.03/1K</td>
+</tr>
+<tr class="odd">
+<td>Claude 3 Opus</td>
+<td>$0.015/1K</td>
+<td>$0.075/1K</td>
+</tr>
+<tr class="even">
+<td>Claude 3 Haiku</td>
+<td>$0.00025/1K</td>
+<td>$0.00125/1K</td>
+</tr>
+<tr class="odd">
+<td>Llama 3 70B (self-hosted)</td>
+<td>~$0.001/1K</td>
+<td>~$0.002/1K</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nota</strong>: Valores podem mudar frequentemente. Consulte fontes oficiais.</p>
+<p>Para aplicações de alto volume, custos se acumulam rapidamente. Estratégias:</p>
+<ol type="1">
+<li><strong>Cascade</strong>: Use modelo mais barato primeiro, escale para modelo mais caro <strong>apenas se necessário</strong></li>
+<li><strong>Caching</strong>: Cachear agressivamente resultados de queries similares</li>
+<li><strong>Quantização</strong>: Self-host modelos quantizados (4-bit) para reduzir computação</li>
+<li><strong>Prompt Compression</strong>: Comprimir prompts longos sem perder informação</li>
+</ol>
+</section>
+<section id="privacidade-e-segurança" class="level4">
+<h4 class="anchored" data-anchor-id="privacidade-e-segurança">6. Privacidade e Segurança</h4>
+<p>Para aplicações empresariais, considerações de privacidade e segurança são determinantes:</p>
+<ul>
+<li><strong>API models (OpenAI, Anthropic)</strong>: Dados são enviados para servidores third-party. Existem opções de não treinar nos dados do usuário, mas dados ainda atravessam fronteiras e você não tem controle total sobre eles, depende da confiança no provedor</li>
+<li><strong>Self-hosted models</strong>: Controle completo sobre dados, mas requer infraestrutura massiva e expertise na gestão de modelos</li>
+</ul>
+<p>Para setores regulados (healthcare, finance), self-hosting muitas vezes é até mesmo obrigatório.</p>
+</section>
+</section>
+<section id="framework-de-decisão" class="level3">
+<h3 class="anchored" data-anchor-id="framework-de-decisão">Framework de Decisão</h3>
+<p>Para ajudar na seleção do modelo certo, aqui está um framework de decisão simplificado baseado em requisitos comuns que você pode adaptar para seus casos específicos:</p>
+<pre><code>INÍCIO
+  |
+  ├─ Complexidade da tarefa?
+  |    ├─ Simples (classificação, extração)
+  |    |    └─&gt; Modelo encoder (BERT) ou decoder pequeno (7B)
+  |    ├─ Moderada (análise, Q&amp;A)
+  |    |    └─&gt; Decoder médio (70B), GPT-3.5, Claude 2, Gemini 1
+  |    └─ Complexa (raciocínio, criatividade)
+  |         └─&gt; Decoder grande (GPT-4, Claude Opus)
+  |
+  ├─ Requisitos de latência?
+  |    ├─ Tempo real (&lt;100ms)
+  |    |    └─&gt; Modelo pequeno local
+  |    ├─ Interativo (&lt;1s)
+  |    |    └─&gt; API rápida ou modelo médio self-hosted
+  |    └─ Batch
+  |         └─&gt; Qualquer modelo
+  |
+  ├─ Volume/Orçamento?
+  |    ├─ Baixo volume
+  |    |    └─&gt; API proprietária (OpenAI GPT, Claude, Gemini)
+  |    ├─ Médio volume
+  |    |    └─&gt; Mix de modelos (cascade) ou proprietário médio
+  |    └─ Alto volume
+  |         └─&gt; Self-hosted open-source
+  |
+  └─ Requisitos de privacidade?
+       ├─ Rigoroso (HIPAA, LGPD/GDPR estrito)
+       |    └─&gt; Apenas self-hosted
+       └─ Moderado
+            └─&gt; API com acordo de não-treinamento</code></pre>
+<p>As empresas possuem APIs com conformidade regulatória e acordos de privacidade que podem ser suficientes para muitos casos. Mas para dados sensíveis, self-hosting é a única opção segura.</p>
+</section>
+</section>
+<section id="exercícios-práticos" class="level2">
+<h2 class="anchored" data-anchor-id="exercícios-práticos">Exercícios Práticos</h2>
+<p>Agora que você compreende técnicas de fine-tuning e otimização, vamos aplicar esse conhecimento adaptando um modelo real para uma tarefa específica.</p>
+<section id="exercício-1-fine-tuning-com-lora-para-tradução-de-termos-técnicos" class="level3">
+<h3 class="anchored" data-anchor-id="exercício-1-fine-tuning-com-lora-para-tradução-de-termos-técnicos">Exercício 1: Fine-Tuning com LoRA para Tradução de Termos Técnicos</h3>
+<p><strong>Objetivo:</strong> Fazer fine-tuning de um modelo pequeno usando LoRA para traduzir termos técnicos PT→EN.</p>
+<p><strong>Por que esse exercício?</strong> Tradução de termos técnicos é uma tarefa perfeita para demonstrar fine-tuning porque:</p>
+<ul>
+<li>Modelos gerais frequentemente erram termos especializados</li>
+<li>Dataset pequeno é suficiente (50-100 exemplos)</li>
+<li>Resultados são facilmente mensuráveis</li>
+<li>Aplicação prática para agentes que processam documentação técnica</li>
+</ul>
+<p><strong>Passo a Passo:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação necessária:</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co"># uv pip install transformers peft datasets accelerate bitsandbytes torch</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> torch</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> peft <span class="im">import</span> LoraConfig, get_peft_model</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Configuração</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>MODEL_NAME <span class="op">=</span> <span class="st">"gpt2"</span>  <span class="co"># Modelo pequeno para teste rápido (use Llama-2-7b-hf se tiver acesso)</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>OUTPUT_DIR <span class="op">=</span> <span class="st">"./gpt2-tech-translator-lora"</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🔄 Carregando modelo base..."</span>)</span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar modelo e tokenizer</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a>tokenizer <span class="op">=</span> AutoTokenizer.from_pretrained(MODEL_NAME)</span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>tokenizer.pad_token <span class="op">=</span> tokenizer.eos_token  <span class="co"># Necessário para Llama</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(</span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a>    MODEL_NAME,</span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a>    device_map<span class="op">=</span><span class="st">"auto"</span>,</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a>    torch_dtype<span class="op">=</span>torch.float16,  <span class="co"># Usar FP16 para economizar memória</span></span>
+<span id="cb12-24"><a href="#cb12-24" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-25"><a href="#cb12-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-26"><a href="#cb12-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✅ Modelo carregado: </span><span class="sc">{</span>MODEL_NAME<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-27"><a href="#cb12-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"📊 Parâmetros totais: </span><span class="sc">{</span>model<span class="sc">.</span>num_parameters()<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb12-28"><a href="#cb12-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar LoRA</span></span>
+<span id="cb12-30"><a href="#cb12-30" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🔧 Configurando LoRA..."</span>)</span>
+<span id="cb12-31"><a href="#cb12-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-32"><a href="#cb12-32" aria-hidden="true" tabindex="-1"></a>lora_config <span class="op">=</span> LoraConfig(</span>
+<span id="cb12-33"><a href="#cb12-33" aria-hidden="true" tabindex="-1"></a>    r<span class="op">=</span><span class="dv">16</span>,                        <span class="co"># Rank dos adapters (maior = mais expressivo, mas mais memória)</span></span>
+<span id="cb12-34"><a href="#cb12-34" aria-hidden="true" tabindex="-1"></a>    lora_alpha<span class="op">=</span><span class="dv">32</span>,               <span class="co"># Scaling factor</span></span>
+<span id="cb12-35"><a href="#cb12-35" aria-hidden="true" tabindex="-1"></a>    target_modules<span class="op">=</span>[<span class="st">"q_proj"</span>, <span class="st">"v_proj"</span>],  <span class="co"># Aplicar LoRA apenas em attention</span></span>
+<span id="cb12-36"><a href="#cb12-36" aria-hidden="true" tabindex="-1"></a>    lora_dropout<span class="op">=</span><span class="fl">0.05</span>,</span>
+<span id="cb12-37"><a href="#cb12-37" aria-hidden="true" tabindex="-1"></a>    bias<span class="op">=</span><span class="st">"none"</span>,</span>
+<span id="cb12-38"><a href="#cb12-38" aria-hidden="true" tabindex="-1"></a>    task_type<span class="op">=</span><span class="st">"CAUSAL_LM"</span></span>
+<span id="cb12-39"><a href="#cb12-39" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-40"><a href="#cb12-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-41"><a href="#cb12-41" aria-hidden="true" tabindex="-1"></a><span class="co"># Aplicar LoRA ao modelo</span></span>
+<span id="cb12-42"><a href="#cb12-42" aria-hidden="true" tabindex="-1"></a>model <span class="op">=</span> get_peft_model(model, lora_config)</span>
+<span id="cb12-43"><a href="#cb12-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-44"><a href="#cb12-44" aria-hidden="true" tabindex="-1"></a><span class="co"># Mostrar quantos parâmetros serão treinados</span></span>
+<span id="cb12-45"><a href="#cb12-45" aria-hidden="true" tabindex="-1"></a>trainable_params <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters() <span class="cf">if</span> p.requires_grad)</span>
+<span id="cb12-46"><a href="#cb12-46" aria-hidden="true" tabindex="-1"></a>total_params <span class="op">=</span> <span class="bu">sum</span>(p.numel() <span class="cf">for</span> p <span class="kw">in</span> model.parameters())</span>
+<span id="cb12-47"><a href="#cb12-47" aria-hidden="true" tabindex="-1"></a>trainable_percentage <span class="op">=</span> (trainable_params <span class="op">/</span> total_params) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb12-48"><a href="#cb12-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-49"><a href="#cb12-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"📊 Parâmetros treináveis: </span><span class="sc">{</span>trainable_params<span class="sc">:,}</span><span class="ss"> (</span><span class="sc">{</span>trainable_percentage<span class="sc">:.2f}</span><span class="ss">% do total)"</span>)</span>
+<span id="cb12-50"><a href="#cb12-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"💾 Redução de memória: ~</span><span class="sc">{</span><span class="dv">100</span> <span class="op">-</span> trainable_percentage<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb12-51"><a href="#cb12-51" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-52"><a href="#cb12-52" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar dataset de treinamento</span></span>
+<span id="cb12-53"><a href="#cb12-53" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📦 Carregando dataset..."</span>)</span>
+<span id="cb12-54"><a href="#cb12-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-55"><a href="#cb12-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar nosso dataset criado anteriormente</span></span>
+<span id="cb12-56"><a href="#cb12-56" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> load_tech_terms_dataset(file_path):</span>
+<span id="cb12-57"><a href="#cb12-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""</span></span>
+<span id="cb12-58"><a href="#cb12-58" aria-hidden="true" tabindex="-1"></a><span class="co">    Carrega dataset JSONL de termos técnicos.</span></span>
+<span id="cb12-59"><a href="#cb12-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-60"><a href="#cb12-60" aria-hidden="true" tabindex="-1"></a><span class="co">    Args:</span></span>
+<span id="cb12-61"><a href="#cb12-61" aria-hidden="true" tabindex="-1"></a><span class="co">        file_path: Caminho para arquivo JSONL</span></span>
+<span id="cb12-62"><a href="#cb12-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-63"><a href="#cb12-63" aria-hidden="true" tabindex="-1"></a><span class="co">    Returns:</span></span>
+<span id="cb12-64"><a href="#cb12-64" aria-hidden="true" tabindex="-1"></a><span class="co">        Lista de dicionários com 'input' e 'output'</span></span>
+<span id="cb12-65"><a href="#cb12-65" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-66"><a href="#cb12-66" aria-hidden="true" tabindex="-1"></a><span class="co">    Raises:</span></span>
+<span id="cb12-67"><a href="#cb12-67" aria-hidden="true" tabindex="-1"></a><span class="co">        FileNotFoundError: Se arquivo não existir</span></span>
+<span id="cb12-68"><a href="#cb12-68" aria-hidden="true" tabindex="-1"></a><span class="co">        json.JSONDecodeError: Se JSON for inválido</span></span>
+<span id="cb12-69"><a href="#cb12-69" aria-hidden="true" tabindex="-1"></a><span class="co">    """</span></span>
+<span id="cb12-70"><a href="#cb12-70" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(file_path):</span>
+<span id="cb12-71"><a href="#cb12-71" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">FileNotFoundError</span>(</span>
+<span id="cb12-72"><a href="#cb12-72" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"Dataset não encontrado: </span><span class="sc">{</span>file_path<span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb12-73"><a href="#cb12-73" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f"Crie o arquivo com exemplos no formato:</span><span class="ch">\n</span><span class="ss">"</span></span>
+<span id="cb12-74"><a href="#cb12-74" aria-hidden="true" tabindex="-1"></a>            <span class="ss">f'</span><span class="ch">{{</span><span class="ss">"input": "Traduza...", "output": "machine learning"</span><span class="ch">}}</span><span class="ss">'</span></span>
+<span id="cb12-75"><a href="#cb12-75" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb12-76"><a href="#cb12-76" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-77"><a href="#cb12-77" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> []</span>
+<span id="cb12-78"><a href="#cb12-78" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(file_path, <span class="st">'r'</span>, encoding<span class="op">=</span><span class="st">'utf-8'</span>) <span class="im">as</span> f:</span>
+<span id="cb12-79"><a href="#cb12-79" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> line_num, line <span class="kw">in</span> <span class="bu">enumerate</span>(f, <span class="dv">1</span>):</span>
+<span id="cb12-80"><a href="#cb12-80" aria-hidden="true" tabindex="-1"></a>            <span class="cf">try</span>:</span>
+<span id="cb12-81"><a href="#cb12-81" aria-hidden="true" tabindex="-1"></a>                data.append(json.loads(line))</span>
+<span id="cb12-82"><a href="#cb12-82" aria-hidden="true" tabindex="-1"></a>            <span class="cf">except</span> json.JSONDecodeError <span class="im">as</span> e:</span>
+<span id="cb12-83"><a href="#cb12-83" aria-hidden="true" tabindex="-1"></a>                <span class="bu">print</span>(<span class="ss">f"⚠️  Erro na linha </span><span class="sc">{</span>line_num<span class="sc">}</span><span class="ss">: </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-84"><a href="#cb12-84" aria-hidden="true" tabindex="-1"></a>                <span class="cf">continue</span></span>
+<span id="cb12-85"><a href="#cb12-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-86"><a href="#cb12-86" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> data:</span>
+<span id="cb12-87"><a href="#cb12-87" aria-hidden="true" tabindex="-1"></a>        <span class="cf">raise</span> <span class="pp">ValueError</span>(<span class="ss">f"Dataset vazio: </span><span class="sc">{</span>file_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-88"><a href="#cb12-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-89"><a href="#cb12-89" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> data</span>
+<span id="cb12-90"><a href="#cb12-90" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-91"><a href="#cb12-91" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar dados - ajuste o path conforme sua estrutura</span></span>
+<span id="cb12-92"><a href="#cb12-92" aria-hidden="true" tabindex="-1"></a>dataset_path <span class="op">=</span> <span class="st">"../../datasets/tech_terms_pt_en.jsonl"</span></span>
+<span id="cb12-93"><a href="#cb12-93" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-94"><a href="#cb12-94" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb12-95"><a href="#cb12-95" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> load_tech_terms_dataset(dataset_path)</span>
+<span id="cb12-96"><a href="#cb12-96" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">FileNotFoundError</span> <span class="im">as</span> e:</span>
+<span id="cb12-97"><a href="#cb12-97" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"⚠️  </span><span class="sc">{</span>e<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-98"><a href="#cb12-98" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"📝 Criando dataset de exemplo..."</span>)</span>
+<span id="cb12-99"><a href="#cb12-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-100"><a href="#cb12-100" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Criar dataset de exemplo se não existir</span></span>
+<span id="cb12-101"><a href="#cb12-101" aria-hidden="true" tabindex="-1"></a>    os.makedirs(<span class="st">"../../datasets"</span>, exist_ok<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-102"><a href="#cb12-102" aria-hidden="true" tabindex="-1"></a>    example_data <span class="op">=</span> [</span>
+<span id="cb12-103"><a href="#cb12-103" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"input"</span>: <span class="st">"Traduza o termo técnico de português para inglês: aprendizado de máquina"</span>,</span>
+<span id="cb12-104"><a href="#cb12-104" aria-hidden="true" tabindex="-1"></a>         <span class="st">"output"</span>: <span class="st">"machine learning"</span>},</span>
+<span id="cb12-105"><a href="#cb12-105" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"input"</span>: <span class="st">"Traduza o termo técnico de português para inglês: rede neural"</span>,</span>
+<span id="cb12-106"><a href="#cb12-106" aria-hidden="true" tabindex="-1"></a>         <span class="st">"output"</span>: <span class="st">"neural network"</span>},</span>
+<span id="cb12-107"><a href="#cb12-107" aria-hidden="true" tabindex="-1"></a>        {<span class="st">"input"</span>: <span class="st">"Traduza o termo técnico de português para inglês: inteligência artificial"</span>,</span>
+<span id="cb12-108"><a href="#cb12-108" aria-hidden="true" tabindex="-1"></a>         <span class="st">"output"</span>: <span class="st">"artificial intelligence"</span>},</span>
+<span id="cb12-109"><a href="#cb12-109" aria-hidden="true" tabindex="-1"></a>        <span class="co"># Adicione mais exemplos aqui...</span></span>
+<span id="cb12-110"><a href="#cb12-110" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb12-111"><a href="#cb12-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-112"><a href="#cb12-112" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(dataset_path, <span class="st">'w'</span>, encoding<span class="op">=</span><span class="st">'utf-8'</span>) <span class="im">as</span> f:</span>
+<span id="cb12-113"><a href="#cb12-113" aria-hidden="true" tabindex="-1"></a>        <span class="cf">for</span> item <span class="kw">in</span> example_data:</span>
+<span id="cb12-114"><a href="#cb12-114" aria-hidden="true" tabindex="-1"></a>            f.write(json.dumps(item, ensure_ascii<span class="op">=</span><span class="va">False</span>) <span class="op">+</span> <span class="st">'</span><span class="ch">\n</span><span class="st">'</span>)</span>
+<span id="cb12-115"><a href="#cb12-115" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-116"><a href="#cb12-116" aria-hidden="true" tabindex="-1"></a>    data <span class="op">=</span> example_data</span>
+<span id="cb12-117"><a href="#cb12-117" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✅ Dataset de exemplo criado em </span><span class="sc">{</span>dataset_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-118"><a href="#cb12-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-119"><a href="#cb12-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Dividir em treino/validação (80/20)</span></span>
+<span id="cb12-120"><a href="#cb12-120" aria-hidden="true" tabindex="-1"></a>split_idx <span class="op">=</span> <span class="bu">int</span>(<span class="bu">len</span>(data) <span class="op">*</span> <span class="fl">0.8</span>)</span>
+<span id="cb12-121"><a href="#cb12-121" aria-hidden="true" tabindex="-1"></a>train_data <span class="op">=</span> data[:split_idx]</span>
+<span id="cb12-122"><a href="#cb12-122" aria-hidden="true" tabindex="-1"></a>val_data <span class="op">=</span> data[split_idx:]</span>
+<span id="cb12-123"><a href="#cb12-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-124"><a href="#cb12-124" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"📚 Exemplos de treino: </span><span class="sc">{</span><span class="bu">len</span>(train_data)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-125"><a href="#cb12-125" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"✅ Exemplos de validação: </span><span class="sc">{</span><span class="bu">len</span>(val_data)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-126"><a href="#cb12-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-127"><a href="#cb12-127" aria-hidden="true" tabindex="-1"></a><span class="co"># Função para formatar exemplos no formato de prompt</span></span>
+<span id="cb12-128"><a href="#cb12-128" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> format_prompt(example):</span>
+<span id="cb12-129"><a href="#cb12-129" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Formata exemplo como prompt de instrução"""</span></span>
+<span id="cb12-130"><a href="#cb12-130" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ss">f"</span><span class="sc">{</span>example[<span class="st">'input'</span>]<span class="sc">}</span><span class="ch">\n</span><span class="ss">Resposta: </span><span class="sc">{</span>example[<span class="st">'output'</span>]<span class="sc">}</span><span class="ss">"</span></span>
+<span id="cb12-131"><a href="#cb12-131" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-132"><a href="#cb12-132" aria-hidden="true" tabindex="-1"></a><span class="co"># Tokenizar dataset</span></span>
+<span id="cb12-133"><a href="#cb12-133" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> tokenize_function(examples):</span>
+<span id="cb12-134"><a href="#cb12-134" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Tokeniza exemplos para treinamento"""</span></span>
+<span id="cb12-135"><a href="#cb12-135" aria-hidden="true" tabindex="-1"></a>    prompts <span class="op">=</span> [format_prompt(ex) <span class="cf">for</span> ex <span class="kw">in</span> examples]</span>
+<span id="cb12-136"><a href="#cb12-136" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-137"><a href="#cb12-137" aria-hidden="true" tabindex="-1"></a>    tokenized <span class="op">=</span> tokenizer(</span>
+<span id="cb12-138"><a href="#cb12-138" aria-hidden="true" tabindex="-1"></a>        prompts,</span>
+<span id="cb12-139"><a href="#cb12-139" aria-hidden="true" tabindex="-1"></a>        truncation<span class="op">=</span><span class="va">True</span>,</span>
+<span id="cb12-140"><a href="#cb12-140" aria-hidden="true" tabindex="-1"></a>        padding<span class="op">=</span><span class="st">"max_length"</span>,</span>
+<span id="cb12-141"><a href="#cb12-141" aria-hidden="true" tabindex="-1"></a>        max_length<span class="op">=</span><span class="dv">128</span>,</span>
+<span id="cb12-142"><a href="#cb12-142" aria-hidden="true" tabindex="-1"></a>        return_tensors<span class="op">=</span><span class="st">"pt"</span></span>
+<span id="cb12-143"><a href="#cb12-143" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb12-144"><a href="#cb12-144" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-145"><a href="#cb12-145" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Labels são os mesmos que input_ids para causal LM</span></span>
+<span id="cb12-146"><a href="#cb12-146" aria-hidden="true" tabindex="-1"></a>    tokenized[<span class="st">"labels"</span>] <span class="op">=</span> tokenized[<span class="st">"input_ids"</span>].clone()</span>
+<span id="cb12-147"><a href="#cb12-147" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-148"><a href="#cb12-148" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> tokenized</span>
+<span id="cb12-149"><a href="#cb12-149" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-150"><a href="#cb12-150" aria-hidden="true" tabindex="-1"></a><span class="co"># Preparar datasets tokenizados</span></span>
+<span id="cb12-151"><a href="#cb12-151" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🔄 Tokenizando dataset..."</span>)</span>
+<span id="cb12-152"><a href="#cb12-152" aria-hidden="true" tabindex="-1"></a>train_tokenized <span class="op">=</span> tokenize_function(train_data)</span>
+<span id="cb12-153"><a href="#cb12-153" aria-hidden="true" tabindex="-1"></a>val_tokenized <span class="op">=</span> tokenize_function(val_data)</span>
+<span id="cb12-154"><a href="#cb12-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-155"><a href="#cb12-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar treinamento</span></span>
+<span id="cb12-156"><a href="#cb12-156" aria-hidden="true" tabindex="-1"></a>training_args <span class="op">=</span> TrainingArguments(</span>
+<span id="cb12-157"><a href="#cb12-157" aria-hidden="true" tabindex="-1"></a>    output_dir<span class="op">=</span>OUTPUT_DIR,</span>
+<span id="cb12-158"><a href="#cb12-158" aria-hidden="true" tabindex="-1"></a>    num_train_epochs<span class="op">=</span><span class="dv">3</span>,</span>
+<span id="cb12-159"><a href="#cb12-159" aria-hidden="true" tabindex="-1"></a>    per_device_train_batch_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb12-160"><a href="#cb12-160" aria-hidden="true" tabindex="-1"></a>    per_device_eval_batch_size<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb12-161"><a href="#cb12-161" aria-hidden="true" tabindex="-1"></a>    gradient_accumulation_steps<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb12-162"><a href="#cb12-162" aria-hidden="true" tabindex="-1"></a>    learning_rate<span class="op">=</span><span class="fl">2e-4</span>,</span>
+<span id="cb12-163"><a href="#cb12-163" aria-hidden="true" tabindex="-1"></a>    fp16<span class="op">=</span><span class="va">True</span>,                    <span class="co"># Mixed precision</span></span>
+<span id="cb12-164"><a href="#cb12-164" aria-hidden="true" tabindex="-1"></a>    logging_steps<span class="op">=</span><span class="dv">10</span>,</span>
+<span id="cb12-165"><a href="#cb12-165" aria-hidden="true" tabindex="-1"></a>    evaluation_strategy<span class="op">=</span><span class="st">"steps"</span>,</span>
+<span id="cb12-166"><a href="#cb12-166" aria-hidden="true" tabindex="-1"></a>    eval_steps<span class="op">=</span><span class="dv">50</span>,</span>
+<span id="cb12-167"><a href="#cb12-167" aria-hidden="true" tabindex="-1"></a>    save_steps<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb12-168"><a href="#cb12-168" aria-hidden="true" tabindex="-1"></a>    warmup_steps<span class="op">=</span><span class="dv">50</span>,</span>
+<span id="cb12-169"><a href="#cb12-169" aria-hidden="true" tabindex="-1"></a>    save_total_limit<span class="op">=</span><span class="dv">2</span>,</span>
+<span id="cb12-170"><a href="#cb12-170" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-171"><a href="#cb12-171" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-172"><a href="#cb12-172" aria-hidden="true" tabindex="-1"></a><span class="co"># Criar trainer</span></span>
+<span id="cb12-173"><a href="#cb12-173" aria-hidden="true" tabindex="-1"></a>trainer <span class="op">=</span> Trainer(</span>
+<span id="cb12-174"><a href="#cb12-174" aria-hidden="true" tabindex="-1"></a>    model<span class="op">=</span>model,</span>
+<span id="cb12-175"><a href="#cb12-175" aria-hidden="true" tabindex="-1"></a>    args<span class="op">=</span>training_args,</span>
+<span id="cb12-176"><a href="#cb12-176" aria-hidden="true" tabindex="-1"></a>    train_dataset<span class="op">=</span>train_tokenized,</span>
+<span id="cb12-177"><a href="#cb12-177" aria-hidden="true" tabindex="-1"></a>    eval_dataset<span class="op">=</span>val_tokenized,</span>
+<span id="cb12-178"><a href="#cb12-178" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb12-179"><a href="#cb12-179" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-180"><a href="#cb12-180" aria-hidden="true" tabindex="-1"></a><span class="co"># Treinar!</span></span>
+<span id="cb12-181"><a href="#cb12-181" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🚀 Iniciando fine-tuning...</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb12-182"><a href="#cb12-182" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb12-183"><a href="#cb12-183" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-184"><a href="#cb12-184" aria-hidden="true" tabindex="-1"></a>trainer.train()</span>
+<span id="cb12-185"><a href="#cb12-185" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-186"><a href="#cb12-186" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">✅ Fine-tuning completo!"</span>)</span>
+<span id="cb12-187"><a href="#cb12-187" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-188"><a href="#cb12-188" aria-hidden="true" tabindex="-1"></a><span class="co"># Salvar modelo</span></span>
+<span id="cb12-189"><a href="#cb12-189" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">💾 Salvando modelo em </span><span class="sc">{</span>OUTPUT_DIR<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb12-190"><a href="#cb12-190" aria-hidden="true" tabindex="-1"></a>model.save_pretrained(OUTPUT_DIR)</span>
+<span id="cb12-191"><a href="#cb12-191" aria-hidden="true" tabindex="-1"></a>tokenizer.save_pretrained(OUTPUT_DIR)</span>
+<span id="cb12-192"><a href="#cb12-192" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-193"><a href="#cb12-193" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Modelo salvo com sucesso!"</span>)</span>
+<span id="cb12-194"><a href="#cb12-194" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-195"><a href="#cb12-195" aria-hidden="true" tabindex="-1"></a><span class="co"># Testar modelo antes e depois</span></span>
+<span id="cb12-196"><a href="#cb12-196" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb12-197"><a href="#cb12-197" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🧪 TESTE: Comparando Modelo Base vs Fine-Tuned"</span>)</span>
+<span id="cb12-198"><a href="#cb12-198" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span> <span class="op">+</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb12-199"><a href="#cb12-199" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-200"><a href="#cb12-200" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar modelo base para comparação</span></span>
+<span id="cb12-201"><a href="#cb12-201" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Carregando modelo base original..."</span>)</span>
+<span id="cb12-202"><a href="#cb12-202" aria-hidden="true" tabindex="-1"></a>base_model <span class="op">=</span> AutoModelForCausalLM.from_pretrained(MODEL_NAME, device_map<span class="op">=</span><span class="st">"auto"</span>, torch_dtype<span class="op">=</span>torch.float16)</span>
+<span id="cb12-203"><a href="#cb12-203" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-204"><a href="#cb12-204" aria-hidden="true" tabindex="-1"></a>test_prompts <span class="op">=</span> [</span>
+<span id="cb12-205"><a href="#cb12-205" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Traduza o termo técnico de português para inglês: aprendizado de máquina"</span>,</span>
+<span id="cb12-206"><a href="#cb12-206" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Traduza o termo técnico de português para inglês: rede neural"</span>,</span>
+<span id="cb12-207"><a href="#cb12-207" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Traduza o termo técnico de português para inglês: computação em nuvem"</span></span>
+<span id="cb12-208"><a href="#cb12-208" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb12-209"><a href="#cb12-209" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-210"><a href="#cb12-210" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> prompt <span class="kw">in</span> test_prompts:</span>
+<span id="cb12-211"><a href="#cb12-211" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Prompt: </span><span class="sc">{</span>prompt<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-212"><a href="#cb12-212" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-213"><a href="#cb12-213" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Modelo base</span></span>
+<span id="cb12-214"><a href="#cb12-214" aria-hidden="true" tabindex="-1"></a>    inputs <span class="op">=</span> tokenizer(prompt, return_tensors<span class="op">=</span><span class="st">"pt"</span>).to(base_model.device)</span>
+<span id="cb12-215"><a href="#cb12-215" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb12-216"><a href="#cb12-216" aria-hidden="true" tabindex="-1"></a>        base_output <span class="op">=</span> base_model.generate(<span class="op">**</span>inputs, max_new_tokens<span class="op">=</span><span class="dv">10</span>, do_sample<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb12-217"><a href="#cb12-217" aria-hidden="true" tabindex="-1"></a>    base_response <span class="op">=</span> tokenizer.decode(base_output[<span class="dv">0</span>], skip_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-218"><a href="#cb12-218" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-219"><a href="#cb12-219" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Modelo fine-tuned</span></span>
+<span id="cb12-220"><a href="#cb12-220" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> torch.no_grad():</span>
+<span id="cb12-221"><a href="#cb12-221" aria-hidden="true" tabindex="-1"></a>        ft_output <span class="op">=</span> model.generate(<span class="op">**</span>inputs, max_new_tokens<span class="op">=</span><span class="dv">10</span>, do_sample<span class="op">=</span><span class="va">False</span>)</span>
+<span id="cb12-222"><a href="#cb12-222" aria-hidden="true" tabindex="-1"></a>    ft_response <span class="op">=</span> tokenizer.decode(ft_output[<span class="dv">0</span>], skip_special_tokens<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb12-223"><a href="#cb12-223" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-224"><a href="#cb12-224" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Base:       </span><span class="sc">{</span>base_response<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-225"><a href="#cb12-225" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Fine-tuned: </span><span class="sc">{</span>ft_response<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb12-226"><a href="#cb12-226" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-227"><a href="#cb12-227" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb12-228"><a href="#cb12-228" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"💡 INSIGHTS"</span>)</span>
+<span id="cb12-229"><a href="#cb12-229" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb12-230"><a href="#cb12-230" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"""</span></span>
+<span id="cb12-231"><a href="#cb12-231" aria-hidden="true" tabindex="-1"></a><span class="st">1. LoRA reduziu parâmetros treináveis em &gt;99%</span></span>
+<span id="cb12-232"><a href="#cb12-232" aria-hidden="true" tabindex="-1"></a><span class="st">2. Fine-tuning melhorou precisão em termos técnicos</span></span>
+<span id="cb12-233"><a href="#cb12-233" aria-hidden="true" tabindex="-1"></a><span class="st">3. Modelo aprendeu padrão de tradução específico</span></span>
+<span id="cb12-234"><a href="#cb12-234" aria-hidden="true" tabindex="-1"></a><span class="st">4. Tempo de treinamento: minutos vs. dias (full fine-tuning)</span></span>
+<span id="cb12-235"><a href="#cb12-235" aria-hidden="true" tabindex="-1"></a><span class="st">5. Memória necessária: ~12GB vs. ~80GB (full fine-tuning)</span></span>
+<span id="cb12-236"><a href="#cb12-236" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Desafios adicionais:</strong></p>
+<ol type="1">
+<li><strong>Experimente com diferentes valores de <code>r</code></strong>: Teste r=8, r=16, r=32 e compare qualidade vs.&nbsp;custo</li>
+<li><strong>Target modules diferentes</strong>: Adicione <code>k_proj</code>, <code>o_proj</code> ao <code>target_modules</code> e veja impacto</li>
+<li><strong>QLoRA</strong>: Adicione quantização 4-bit ao modelo base antes de aplicar LoRA</li>
+<li><strong>Avalie quantitativamente</strong>: Calcule BLEU score ou accuracy em dataset de teste</li>
+</ol>
+</section>
+<section id="exercício-2-quantização-e-benchmark-de-performance" class="level3">
+<h3 class="anchored" data-anchor-id="exercício-2-quantização-e-benchmark-de-performance">Exercício 2: Quantização e Benchmark de Performance</h3>
+<p><strong>Objetivo:</strong> Quantizar um modelo e medir impacto em latência, memória e qualidade.</p>
+<p><strong>Por que esse exercício?</strong> Quantização é importante para rodar LLMs em hardware limitado. Este exercício demonstra como diferentes níveis de quantização afetam performance e qualidade, ajudando a entender trade-offs práticos.</p>
+<p><strong>Passo a Passo:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação: uv pip install llama-cpp-python psutil</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> time</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> psutil</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>    <span class="im">from</span> llama_cpp <span class="im">import</span> Llama</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">ImportError</span>:</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"❌ llama-cpp-python não instalado."</span>)</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   Instale com: uv pip install llama-cpp-python"</span>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a><span class="co"># Função para medir uso de memória</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> get_memory_usage():</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Retorna uso de memória em MB"""</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    process <span class="op">=</span> psutil.Process(os.getpid())</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> process.memory_info().rss <span class="op">/</span> <span class="dv">1024</span> <span class="op">/</span> <span class="dv">1024</span>  <span class="co"># Converter para MB</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🔬 BENCHMARK: Quantização de Modelos"</span>)</span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Você precisará baixar modelos GGUF previamente</span></span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a><span class="co"># Exemplo: https://huggingface.co/TheBloke/Llama-2-7B-GGUF</span></span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a><span class="co">#</span></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Download com: huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q4_K_M.gguf --local-dir ./models</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>model_paths <span class="op">=</span> {</span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Q8_0"</span>: <span class="st">"./models/llama-2-7b.Q8_0.gguf"</span>,</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Q5_K_M"</span>: <span class="st">"./models/llama-2-7b.Q5_K_M.gguf"</span>,</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Q4_K_M"</span>: <span class="st">"./models/llama-2-7b.Q4_K_M.gguf"</span>,</span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>test_prompt <span class="op">=</span> <span class="st">"Explain quantum computing in simple terms:"</span></span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> {}</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a><span class="co"># Verificar se pelo menos um modelo existe</span></span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>models_found <span class="op">=</span> [p <span class="cf">for</span> p <span class="kw">in</span> model_paths.values() <span class="cf">if</span> os.path.exists(p)]</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> models_found:</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"⚠️  NENHUM modelo encontrado!"</span>)</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">📥 Para executar este exercício, baixe modelos GGUF:"</span>)</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   1. Instale: uv pip install huggingface-hub"</span>)</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   2. Baixe modelos:"</span>)</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q4_K_M.gguf --local-dir ./models"</span>)</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q5_K_M.gguf --local-dir ./models"</span>)</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"      huggingface-cli download TheBloke/Llama-2-7B-GGUF llama-2-7b.Q8_0.gguf --local-dir ./models"</span>)</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">   Ou use qualquer modelo GGUF de sua escolha."</span>)</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">💡 Para este exercício, você pode:"</span>)</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   - Baixar apenas Q4_K_M (mais leve, ~4GB)"</span>)</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   - Comparar com Q8_0 para ver diferença de qualidade"</span>)</span>
+<span id="cb13-52"><a href="#cb13-52" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb13-53"><a href="#cb13-53" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✅ </span><span class="sc">{</span><span class="bu">len</span>(models_found)<span class="sc">}</span><span class="ss"> modelo(s) encontrado(s): </span><span class="sc">{</span>models_found<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-54"><a href="#cb13-54" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-55"><a href="#cb13-55" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> quant_level, model_path <span class="kw">in</span> model_paths.items():</span>
+<span id="cb13-56"><a href="#cb13-56" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-57"><a href="#cb13-57" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Testando: </span><span class="sc">{</span>quant_level<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-58"><a href="#cb13-58" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-59"><a href="#cb13-59" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-60"><a href="#cb13-60" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="kw">not</span> os.path.exists(model_path):</span>
+<span id="cb13-61"><a href="#cb13-61" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"⚠️  Modelo não encontrado: </span><span class="sc">{</span>model_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-62"><a href="#cb13-62" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"   Baixe de: https://huggingface.co/TheBloke/Llama-2-7B-GGUF"</span>)</span>
+<span id="cb13-63"><a href="#cb13-63" aria-hidden="true" tabindex="-1"></a>        <span class="cf">continue</span></span>
+<span id="cb13-64"><a href="#cb13-64" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-65"><a href="#cb13-65" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Medir memória antes</span></span>
+<span id="cb13-66"><a href="#cb13-66" aria-hidden="true" tabindex="-1"></a>    mem_before <span class="op">=</span> get_memory_usage()</span>
+<span id="cb13-67"><a href="#cb13-67" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-68"><a href="#cb13-68" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Carregar modelo</span></span>
+<span id="cb13-69"><a href="#cb13-69" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"📦 Carregando modelo </span><span class="sc">{</span>quant_level<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb13-70"><a href="#cb13-70" aria-hidden="true" tabindex="-1"></a>    start_load <span class="op">=</span> time.time()</span>
+<span id="cb13-71"><a href="#cb13-71" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-72"><a href="#cb13-72" aria-hidden="true" tabindex="-1"></a>    llm <span class="op">=</span> Llama(</span>
+<span id="cb13-73"><a href="#cb13-73" aria-hidden="true" tabindex="-1"></a>        model_path<span class="op">=</span>model_path,</span>
+<span id="cb13-74"><a href="#cb13-74" aria-hidden="true" tabindex="-1"></a>        n_ctx<span class="op">=</span><span class="dv">512</span>,</span>
+<span id="cb13-75"><a href="#cb13-75" aria-hidden="true" tabindex="-1"></a>        n_threads<span class="op">=</span><span class="dv">4</span>,</span>
+<span id="cb13-76"><a href="#cb13-76" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-77"><a href="#cb13-77" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-78"><a href="#cb13-78" aria-hidden="true" tabindex="-1"></a>    load_time <span class="op">=</span> time.time() <span class="op">-</span> start_load</span>
+<span id="cb13-79"><a href="#cb13-79" aria-hidden="true" tabindex="-1"></a>    mem_after <span class="op">=</span> get_memory_usage()</span>
+<span id="cb13-80"><a href="#cb13-80" aria-hidden="true" tabindex="-1"></a>    mem_used <span class="op">=</span> mem_after <span class="op">-</span> mem_before</span>
+<span id="cb13-81"><a href="#cb13-81" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-82"><a href="#cb13-82" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✅ Carregado em </span><span class="sc">{</span>load_time<span class="sc">:.2f}</span><span class="ss">s"</span>)</span>
+<span id="cb13-83"><a href="#cb13-83" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"💾 Memória utilizada: </span><span class="sc">{</span>mem_used<span class="sc">:.0f}</span><span class="ss"> MB"</span>)</span>
+<span id="cb13-84"><a href="#cb13-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-85"><a href="#cb13-85" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Medir latência de inferência</span></span>
+<span id="cb13-86"><a href="#cb13-86" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"🔄 Gerando resposta..."</span>)</span>
+<span id="cb13-87"><a href="#cb13-87" aria-hidden="true" tabindex="-1"></a>    start_gen <span class="op">=</span> time.time()</span>
+<span id="cb13-88"><a href="#cb13-88" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-89"><a href="#cb13-89" aria-hidden="true" tabindex="-1"></a>    output <span class="op">=</span> llm(</span>
+<span id="cb13-90"><a href="#cb13-90" aria-hidden="true" tabindex="-1"></a>        test_prompt,</span>
+<span id="cb13-91"><a href="#cb13-91" aria-hidden="true" tabindex="-1"></a>        max_tokens<span class="op">=</span><span class="dv">100</span>,</span>
+<span id="cb13-92"><a href="#cb13-92" aria-hidden="true" tabindex="-1"></a>        temperature<span class="op">=</span><span class="fl">0.7</span>,</span>
+<span id="cb13-93"><a href="#cb13-93" aria-hidden="true" tabindex="-1"></a>        top_p<span class="op">=</span><span class="fl">0.9</span>,</span>
+<span id="cb13-94"><a href="#cb13-94" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb13-95"><a href="#cb13-95" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-96"><a href="#cb13-96" aria-hidden="true" tabindex="-1"></a>    gen_time <span class="op">=</span> time.time() <span class="op">-</span> start_gen</span>
+<span id="cb13-97"><a href="#cb13-97" aria-hidden="true" tabindex="-1"></a>    generated_text <span class="op">=</span> output[<span class="st">'choices'</span>][<span class="dv">0</span>][<span class="st">'text'</span>]</span>
+<span id="cb13-98"><a href="#cb13-98" aria-hidden="true" tabindex="-1"></a>    tokens_generated <span class="op">=</span> output[<span class="st">'usage'</span>][<span class="st">'completion_tokens'</span>]</span>
+<span id="cb13-99"><a href="#cb13-99" aria-hidden="true" tabindex="-1"></a>    tokens_per_sec <span class="op">=</span> tokens_generated <span class="op">/</span> gen_time</span>
+<span id="cb13-100"><a href="#cb13-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-101"><a href="#cb13-101" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"✅ Geração completa em </span><span class="sc">{</span>gen_time<span class="sc">:.2f}</span><span class="ss">s"</span>)</span>
+<span id="cb13-102"><a href="#cb13-102" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"📊 Throughput: </span><span class="sc">{</span>tokens_per_sec<span class="sc">:.1f}</span><span class="ss"> tokens/s"</span>)</span>
+<span id="cb13-103"><a href="#cb13-103" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"📝 Output: </span><span class="sc">{</span>generated_text[:<span class="dv">100</span>]<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb13-104"><a href="#cb13-104" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-105"><a href="#cb13-105" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Salvar resultados</span></span>
+<span id="cb13-106"><a href="#cb13-106" aria-hidden="true" tabindex="-1"></a>    results[quant_level] <span class="op">=</span> {</span>
+<span id="cb13-107"><a href="#cb13-107" aria-hidden="true" tabindex="-1"></a>        <span class="st">"load_time"</span>: load_time,</span>
+<span id="cb13-108"><a href="#cb13-108" aria-hidden="true" tabindex="-1"></a>        <span class="st">"memory_mb"</span>: mem_used,</span>
+<span id="cb13-109"><a href="#cb13-109" aria-hidden="true" tabindex="-1"></a>        <span class="st">"gen_time"</span>: gen_time,</span>
+<span id="cb13-110"><a href="#cb13-110" aria-hidden="true" tabindex="-1"></a>        <span class="st">"tokens_per_sec"</span>: tokens_per_sec,</span>
+<span id="cb13-111"><a href="#cb13-111" aria-hidden="true" tabindex="-1"></a>        <span class="st">"output"</span>: generated_text</span>
+<span id="cb13-112"><a href="#cb13-112" aria-hidden="true" tabindex="-1"></a>    }</span>
+<span id="cb13-113"><a href="#cb13-113" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-114"><a href="#cb13-114" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Liberar memória</span></span>
+<span id="cb13-115"><a href="#cb13-115" aria-hidden="true" tabindex="-1"></a>    <span class="kw">del</span> llm</span>
+<span id="cb13-116"><a href="#cb13-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-117"><a href="#cb13-117" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação final</span></span>
+<span id="cb13-118"><a href="#cb13-118" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-119"><a href="#cb13-119" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 COMPARAÇÃO DE PERFORMANCE"</span>)</span>
+<span id="cb13-120"><a href="#cb13-120" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb13-121"><a href="#cb13-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-122"><a href="#cb13-122" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'Quantização'</span><span class="sc">:&lt;12}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Memória (MB)'</span><span class="sc">:&lt;15}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Load (s)'</span><span class="sc">:&lt;12}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Gen (s)'</span><span class="sc">:&lt;12}</span><span class="ss"> </span><span class="sc">{</span><span class="st">'Tokens/s'</span><span class="sc">:&lt;12}</span><span class="ss">"</span>)</span>
+<span id="cb13-123"><a href="#cb13-123" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-124"><a href="#cb13-124" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-125"><a href="#cb13-125" aria-hidden="true" tabindex="-1"></a>baseline <span class="op">=</span> results.get(<span class="st">"FP16"</span>) <span class="kw">or</span> results.get(<span class="st">"Q8_0"</span>)</span>
+<span id="cb13-126"><a href="#cb13-126" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> quant, metrics <span class="kw">in</span> results.items():</span>
+<span id="cb13-127"><a href="#cb13-127" aria-hidden="true" tabindex="-1"></a>    mem_pct <span class="op">=</span> (metrics[<span class="st">'memory_mb'</span>] <span class="op">/</span> baseline[<span class="st">'memory_mb'</span>] <span class="op">*</span> <span class="dv">100</span>) <span class="cf">if</span> baseline <span class="cf">else</span> <span class="dv">100</span></span>
+<span id="cb13-128"><a href="#cb13-128" aria-hidden="true" tabindex="-1"></a>    speed_pct <span class="op">=</span> (metrics[<span class="st">'tokens_per_sec'</span>] <span class="op">/</span> baseline[<span class="st">'tokens_per_sec'</span>] <span class="op">*</span> <span class="dv">100</span>) <span class="cf">if</span> baseline <span class="cf">else</span> <span class="dv">100</span></span>
+<span id="cb13-129"><a href="#cb13-129" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-130"><a href="#cb13-130" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>quant<span class="sc">:&lt;12}</span><span class="ss"> </span><span class="sc">{</span>metrics[<span class="st">'memory_mb'</span>]<span class="sc">:&lt;15.0f}</span><span class="ss"> </span><span class="sc">{</span>metrics[<span class="st">'load_time'</span>]<span class="sc">:&lt;12.2f}</span><span class="ss"> "</span></span>
+<span id="cb13-131"><a href="#cb13-131" aria-hidden="true" tabindex="-1"></a>          <span class="ss">f"</span><span class="sc">{</span>metrics[<span class="st">'gen_time'</span>]<span class="sc">:&lt;12.2f}</span><span class="ss"> </span><span class="sc">{</span>metrics[<span class="st">'tokens_per_sec'</span>]<span class="sc">:&lt;12.1f}</span><span class="ss">"</span>)</span>
+<span id="cb13-132"><a href="#cb13-132" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"             (</span><span class="sc">{</span>mem_pct<span class="sc">:&gt;5.1f}</span><span class="ss">% mem)         (</span><span class="sc">{</span>speed_pct<span class="sc">:&gt;5.1f}</span><span class="ss">% speed)"</span>)</span>
+<span id="cb13-133"><a href="#cb13-133" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-134"><a href="#cb13-134" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação de qualidade (subjetiva)</span></span>
+<span id="cb13-135"><a href="#cb13-135" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-136"><a href="#cb13-136" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🎯 COMPARAÇÃO DE QUALIDADE"</span>)</span>
+<span id="cb13-137"><a href="#cb13-137" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb13-138"><a href="#cb13-138" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-139"><a href="#cb13-139" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> quant, metrics <span class="kw">in</span> results.items():</span>
+<span id="cb13-140"><a href="#cb13-140" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>quant<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb13-141"><a href="#cb13-141" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  </span><span class="sc">{</span>metrics[<span class="st">'output'</span>][:<span class="dv">150</span>]<span class="sc">}</span><span class="ss">..."</span>)</span>
+<span id="cb13-142"><a href="#cb13-142" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>()</span>
+<span id="cb13-143"><a href="#cb13-143" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-144"><a href="#cb13-144" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-145"><a href="#cb13-145" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"💡 INSIGHTS"</span>)</span>
+<span id="cb13-146"><a href="#cb13-146" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-147"><a href="#cb13-147" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"""</span></span>
+<span id="cb13-148"><a href="#cb13-148" aria-hidden="true" tabindex="-1"></a><span class="st">1. Q4_K_M: ~75</span><span class="sc">% d</span><span class="st">e redução de memória, qualidade excelente</span></span>
+<span id="cb13-149"><a href="#cb13-149" aria-hidden="true" tabindex="-1"></a><span class="st">2. Q5_K_M: ~65</span><span class="sc">% d</span><span class="st">e redução, qualidade indistinguível de FP16</span></span>
+<span id="cb13-150"><a href="#cb13-150" aria-hidden="true" tabindex="-1"></a><span class="st">3. Q8_0: ~50</span><span class="sc">% d</span><span class="st">e redução, sem perda perceptível de qualidade</span></span>
+<span id="cb13-151"><a href="#cb13-151" aria-hidden="true" tabindex="-1"></a><span class="st">4. Trade-off ideal: Q4_K_M ou Q5_K_M para produção</span></span>
+<span id="cb13-152"><a href="#cb13-152" aria-hidden="true" tabindex="-1"></a><span class="st">5. Q4 permite rodar modelos 70B em GPUs consumidor (24GB)</span></span>
+<span id="cb13-153"><a href="#cb13-153" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span>
+<span id="cb13-154"><a href="#cb13-154" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-155"><a href="#cb13-155" aria-hidden="true" tabindex="-1"></a><span class="co"># Recomendações</span></span>
+<span id="cb13-156"><a href="#cb13-156" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb13-157"><a href="#cb13-157" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🎯 RECOMENDAÇÕES PARA PRODUÇÃO"</span>)</span>
+<span id="cb13-158"><a href="#cb13-158" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb13-159"><a href="#cb13-159" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-160"><a href="#cb13-160" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Caso de Uso                      | Quantização Recomendada"</span>)</span>
+<span id="cb13-161"><a href="#cb13-161" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"-"</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb13-162"><a href="#cb13-162" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"API de produção (qualidade)      | Q8_0 ou Q5_K_M"</span>)</span>
+<span id="cb13-163"><a href="#cb13-163" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"API de produção (custo)          | Q4_K_M"</span>)</span>
+<span id="cb13-164"><a href="#cb13-164" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Dispositivos edge/mobile         | Q4_0 ou Q3_K_M"</span>)</span>
+<span id="cb13-165"><a href="#cb13-165" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Pesquisa/desenvolvimento         | FP16 (baseline)"</span>)</span>
+<span id="cb13-166"><a href="#cb13-166" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Agentes com raciocínio complexo  | Q5_K_M ou superior"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Desafios adicionais:</strong></p>
+<ol type="1">
+<li><strong>Avaliação objetiva</strong>: Use benchmark (MMLU, HellaSwag) para medir degradação de qualidade</li>
+<li><strong>Profiling detalhado</strong>: Use ferramentas de profiling para identificar gargalos</li>
+<li><strong>Otimizações adicionais</strong>: Combine quantização com Flash Attention e KV-cache</li>
+</ol>
+</section>
+<section id="exercício-3-implementando-llm-as-judge-para-avaliação" class="level3">
+<h3 class="anchored" data-anchor-id="exercício-3-implementando-llm-as-judge-para-avaliação">Exercício 3: Implementando LLM-as-Judge para Avaliação</h3>
+<p><strong>Objetivo:</strong> Criar sistema de avaliação automática usando LLM como juiz.</p>
+<p><strong>Por que esse exercício?</strong> LLM-as-judge é uma técnica poderosa para avaliação rápida e consistente de modelos. Este exercício demonstra como implementar um sistema simples de avaliação automática usando Claude como juiz para comparar respostas de diferentes modelos.</p>
+<p><strong>OBS:</strong> Este exercício requer uma chave de API da Anthropic. Cadastre-se em https://console.anthropic.com/ para obter uma.</p>
+<p><strong>Passo a Passo:</strong></p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação: uv pip install anthropic</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> anthropic</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> json</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> os</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> typing <span class="im">import</span> List, Dict</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar dataset de avaliação</span></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>dataset_path <span class="op">=</span> <span class="st">"../../datasets/evaluation_examples.jsonl"</span></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> os.path.exists(dataset_path):</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"⚠️  Dataset não encontrado: </span><span class="sc">{</span>dataset_path<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   Este dataset foi criado no Capítulo 2."</span>)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"   Você pode criá-lo ou usar exemplos inline."</span>)</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    eval_data <span class="op">=</span> []</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="cf">else</span>:</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">with</span> <span class="bu">open</span>(dataset_path, <span class="st">"r"</span>, encoding<span class="op">=</span><span class="st">"utf-8"</span>) <span class="im">as</span> f:</span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>        eval_data <span class="op">=</span> [json.loads(line) <span class="cf">for</span> line <span class="kw">in</span> f]</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="co"># Configurar cliente</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="co"># IMPORTANTE: Defina ANTHROPIC_API_KEY como variável de ambiente</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="co"># export ANTHROPIC_API_KEY="sua-chave-aqui"</span></span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>api_key <span class="op">=</span> os.environ.get(<span class="st">"ANTHROPIC_API_KEY"</span>)</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> <span class="kw">not</span> api_key:</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">raise</span> <span class="pp">ValueError</span>(</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>        <span class="st">"❌ ANTHROPIC_API_KEY não definida!</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>        <span class="st">"   Defina a variável de ambiente:</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>        <span class="st">"   export ANTHROPIC_API_KEY='sua-chave-aqui'</span><span class="ch">\n</span><span class="st">"</span></span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>        <span class="st">"</span><span class="ch">\n</span><span class="st">   Obtenha sua chave em: https://console.anthropic.com/"</span></span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>client <span class="op">=</span> anthropic.Anthropic(api_key<span class="op">=</span>api_key)</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ Cliente Anthropic configurado"</span>)</span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-36"><a href="#cb14-36" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> evaluate_with_judge(question: <span class="bu">str</span>, model_answer: <span class="bu">str</span>, correct_answer: <span class="bu">str</span>, task: <span class="bu">str</span>) <span class="op">-&gt;</span> Dict:</span>
+<span id="cb14-37"><a href="#cb14-37" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Usa Claude como judge para avaliar resposta"""</span></span>
+<span id="cb14-38"><a href="#cb14-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-39"><a href="#cb14-39" aria-hidden="true" tabindex="-1"></a>    judge_prompt <span class="op">=</span> <span class="ss">f"""Você é um avaliador imparcial de respostas de modelos de linguagem.</span></span>
+<span id="cb14-40"><a href="#cb14-40" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-41"><a href="#cb14-41" aria-hidden="true" tabindex="-1"></a><span class="ss">Tarefa: </span><span class="sc">{</span>task<span class="sc">}</span></span>
+<span id="cb14-42"><a href="#cb14-42" aria-hidden="true" tabindex="-1"></a><span class="ss">Pergunta: </span><span class="sc">{</span>question<span class="sc">}</span></span>
+<span id="cb14-43"><a href="#cb14-43" aria-hidden="true" tabindex="-1"></a><span class="ss">Resposta esperada: </span><span class="sc">{</span>correct_answer<span class="sc">}</span></span>
+<span id="cb14-44"><a href="#cb14-44" aria-hidden="true" tabindex="-1"></a><span class="ss">Resposta do modelo: </span><span class="sc">{</span>model_answer<span class="sc">}</span></span>
+<span id="cb14-45"><a href="#cb14-45" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-46"><a href="#cb14-46" aria-hidden="true" tabindex="-1"></a><span class="ss">Avalie a resposta do modelo nos seguintes critérios (0-5):</span></span>
+<span id="cb14-47"><a href="#cb14-47" aria-hidden="true" tabindex="-1"></a><span class="ss">1. Correção factual: A resposta está factualmente correta?</span></span>
+<span id="cb14-48"><a href="#cb14-48" aria-hidden="true" tabindex="-1"></a><span class="ss">2. Completude: A resposta é completa e aborda toda a pergunta?</span></span>
+<span id="cb14-49"><a href="#cb14-49" aria-hidden="true" tabindex="-1"></a><span class="ss">3. Clareza: A resposta é clara e bem articulada?</span></span>
+<span id="cb14-50"><a href="#cb14-50" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-51"><a href="#cb14-51" aria-hidden="true" tabindex="-1"></a><span class="ss">Forneça sua avaliação em formato JSON:</span></span>
+<span id="cb14-52"><a href="#cb14-52" aria-hidden="true" tabindex="-1"></a><span class="ch">{{</span></span>
+<span id="cb14-53"><a href="#cb14-53" aria-hidden="true" tabindex="-1"></a><span class="ss">    "factual_correctness": &lt;score 0-5&gt;,</span></span>
+<span id="cb14-54"><a href="#cb14-54" aria-hidden="true" tabindex="-1"></a><span class="ss">    "completeness": &lt;score 0-5&gt;,</span></span>
+<span id="cb14-55"><a href="#cb14-55" aria-hidden="true" tabindex="-1"></a><span class="ss">    "clarity": &lt;score 0-5&gt;,</span></span>
+<span id="cb14-56"><a href="#cb14-56" aria-hidden="true" tabindex="-1"></a><span class="ss">    "overall": &lt;score 0-5&gt;,</span></span>
+<span id="cb14-57"><a href="#cb14-57" aria-hidden="true" tabindex="-1"></a><span class="ss">    "justification": "&lt;breve explicação&gt;"</span></span>
+<span id="cb14-58"><a href="#cb14-58" aria-hidden="true" tabindex="-1"></a><span class="ch">}}</span></span>
+<span id="cb14-59"><a href="#cb14-59" aria-hidden="true" tabindex="-1"></a><span class="ss">"""</span></span>
+<span id="cb14-60"><a href="#cb14-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-61"><a href="#cb14-61" aria-hidden="true" tabindex="-1"></a>    response <span class="op">=</span> client.messages.create(</span>
+<span id="cb14-62"><a href="#cb14-62" aria-hidden="true" tabindex="-1"></a>        model<span class="op">=</span><span class="st">"claude-3-haiku-20240307"</span>,</span>
+<span id="cb14-63"><a href="#cb14-63" aria-hidden="true" tabindex="-1"></a>        max_tokens<span class="op">=</span><span class="dv">500</span>,</span>
+<span id="cb14-64"><a href="#cb14-64" aria-hidden="true" tabindex="-1"></a>        messages<span class="op">=</span>[{<span class="st">"role"</span>: <span class="st">"user"</span>, <span class="st">"content"</span>: judge_prompt}]</span>
+<span id="cb14-65"><a href="#cb14-65" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb14-66"><a href="#cb14-66" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-67"><a href="#cb14-67" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Parsear resposta JSON</span></span>
+<span id="cb14-68"><a href="#cb14-68" aria-hidden="true" tabindex="-1"></a>    <span class="cf">try</span>:</span>
+<span id="cb14-69"><a href="#cb14-69" aria-hidden="true" tabindex="-1"></a>        result <span class="op">=</span> json.loads(response.content[<span class="dv">0</span>].text)</span>
+<span id="cb14-70"><a href="#cb14-70" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> result</span>
+<span id="cb14-71"><a href="#cb14-71" aria-hidden="true" tabindex="-1"></a>    <span class="cf">except</span> json.JSONDecodeError:</span>
+<span id="cb14-72"><a href="#cb14-72" aria-hidden="true" tabindex="-1"></a>        <span class="cf">return</span> {<span class="st">"error"</span>: <span class="st">"Failed to parse judge response"</span>}</span>
+<span id="cb14-73"><a href="#cb14-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-74"><a href="#cb14-74" aria-hidden="true" tabindex="-1"></a><span class="co"># Avaliar alguns exemplos</span></span>
+<span id="cb14-75"><a href="#cb14-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb14-76"><a href="#cb14-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🧪 AVALIAÇÃO COM LLM-AS-JUDGE"</span>)</span>
+<span id="cb14-77"><a href="#cb14-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span> <span class="op">+</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb14-78"><a href="#cb14-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-79"><a href="#cb14-79" aria-hidden="true" tabindex="-1"></a><span class="co"># Simular respostas de dois modelos</span></span>
+<span id="cb14-80"><a href="#cb14-80" aria-hidden="true" tabindex="-1"></a>model_a_responses <span class="op">=</span> {</span>
+<span id="cb14-81"><a href="#cb14-81" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Qual é a capital da França?"</span>: <span class="st">"Paris"</span>,</span>
+<span id="cb14-82"><a href="#cb14-82" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Quem escreveu Dom Casmurro?"</span>: <span class="st">"Machado de Assis"</span>,</span>
+<span id="cb14-83"><a href="#cb14-83" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Explique o que é uma função em Python"</span>: <span class="st">"Uma função é um bloco de código reutilizável definido com 'def'."</span></span>
+<span id="cb14-84"><a href="#cb14-84" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-85"><a href="#cb14-85" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-86"><a href="#cb14-86" aria-hidden="true" tabindex="-1"></a>model_b_responses <span class="op">=</span> {</span>
+<span id="cb14-87"><a href="#cb14-87" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Qual é a capital da França?"</span>: <span class="st">"A capital francesa é Paris, localizada no norte do país."</span>,</span>
+<span id="cb14-88"><a href="#cb14-88" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Quem escreveu Dom Casmurro?"</span>: <span class="st">"Machado de Assis, um dos maiores escritores brasileiros."</span>,</span>
+<span id="cb14-89"><a href="#cb14-89" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Explique o que é uma função em Python"</span>: <span class="st">"Em Python, uma função é um bloco de código que pode ser reutilizado. Você a define usando a palavra-chave 'def' seguida pelo nome da função."</span></span>
+<span id="cb14-90"><a href="#cb14-90" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb14-91"><a href="#cb14-91" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-92"><a href="#cb14-92" aria-hidden="true" tabindex="-1"></a>results_a <span class="op">=</span> []</span>
+<span id="cb14-93"><a href="#cb14-93" aria-hidden="true" tabindex="-1"></a>results_b <span class="op">=</span> []</span>
+<span id="cb14-94"><a href="#cb14-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-95"><a href="#cb14-95" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> example <span class="kw">in</span> eval_data[:<span class="dv">3</span>]:  <span class="co"># Avaliar apenas primeiros 3 para demonstração</span></span>
+<span id="cb14-96"><a href="#cb14-96" aria-hidden="true" tabindex="-1"></a>    question <span class="op">=</span> example[<span class="st">'question'</span>]</span>
+<span id="cb14-97"><a href="#cb14-97" aria-hidden="true" tabindex="-1"></a>    correct <span class="op">=</span> example[<span class="st">'correct_answer'</span>]</span>
+<span id="cb14-98"><a href="#cb14-98" aria-hidden="true" tabindex="-1"></a>    task <span class="op">=</span> example[<span class="st">'task'</span>]</span>
+<span id="cb14-99"><a href="#cb14-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-100"><a href="#cb14-100" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Avaliar Modelo A</span></span>
+<span id="cb14-101"><a href="#cb14-101" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Avaliando: </span><span class="sc">{</span>question<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-102"><a href="#cb14-102" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Task: </span><span class="sc">{</span>task<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-103"><a href="#cb14-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-104"><a href="#cb14-104" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> question <span class="kw">in</span> model_a_responses:</span>
+<span id="cb14-105"><a href="#cb14-105" aria-hidden="true" tabindex="-1"></a>        eval_a <span class="op">=</span> evaluate_with_judge(question, model_a_responses[question], correct, task)</span>
+<span id="cb14-106"><a href="#cb14-106" aria-hidden="true" tabindex="-1"></a>        eval_b <span class="op">=</span> evaluate_with_judge(question, model_b_responses[question], correct, task)</span>
+<span id="cb14-107"><a href="#cb14-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-108"><a href="#cb14-108" aria-hidden="true" tabindex="-1"></a>        results_a.append(eval_a)</span>
+<span id="cb14-109"><a href="#cb14-109" aria-hidden="true" tabindex="-1"></a>        results_b.append(eval_b)</span>
+<span id="cb14-110"><a href="#cb14-110" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-111"><a href="#cb14-111" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Modelo A: </span><span class="sc">{</span>model_a_responses[question]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-112"><a href="#cb14-112" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Score: </span><span class="sc">{</span>eval_a<span class="sc">.</span>get(<span class="st">'overall'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">/5"</span>)</span>
+<span id="cb14-113"><a href="#cb14-113" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Razão: </span><span class="sc">{</span>eval_a<span class="sc">.</span>get(<span class="st">'justification'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-114"><a href="#cb14-114" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-115"><a href="#cb14-115" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Modelo B: </span><span class="sc">{</span>model_b_responses[question]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-116"><a href="#cb14-116" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Score: </span><span class="sc">{</span>eval_b<span class="sc">.</span>get(<span class="st">'overall'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">/5"</span>)</span>
+<span id="cb14-117"><a href="#cb14-117" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Razão: </span><span class="sc">{</span>eval_b<span class="sc">.</span>get(<span class="st">'justification'</span>, <span class="st">'N/A'</span>)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb14-118"><a href="#cb14-118" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-119"><a href="#cb14-119" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação final</span></span>
+<span id="cb14-120"><a href="#cb14-120" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">"</span> <span class="op">+</span> <span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb14-121"><a href="#cb14-121" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 RESUMO COMPARATIVO"</span>)</span>
+<span id="cb14-122"><a href="#cb14-122" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span> <span class="op">+</span> <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb14-123"><a href="#cb14-123" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-124"><a href="#cb14-124" aria-hidden="true" tabindex="-1"></a>avg_a <span class="op">=</span> <span class="bu">sum</span>(r.get(<span class="st">'overall'</span>, <span class="dv">0</span>) <span class="cf">for</span> r <span class="kw">in</span> results_a) <span class="op">/</span> <span class="bu">len</span>(results_a)</span>
+<span id="cb14-125"><a href="#cb14-125" aria-hidden="true" tabindex="-1"></a>avg_b <span class="op">=</span> <span class="bu">sum</span>(r.get(<span class="st">'overall'</span>, <span class="dv">0</span>) <span class="cf">for</span> r <span class="kw">in</span> results_b) <span class="op">/</span> <span class="bu">len</span>(results_b)</span>
+<span id="cb14-126"><a href="#cb14-126" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-127"><a href="#cb14-127" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Modelo A - Score médio: </span><span class="sc">{</span>avg_a<span class="sc">:.2f}</span><span class="ss">/5"</span>)</span>
+<span id="cb14-128"><a href="#cb14-128" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Modelo B - Score médio: </span><span class="sc">{</span>avg_b<span class="sc">:.2f}</span><span class="ss">/5"</span>)</span>
+<span id="cb14-129"><a href="#cb14-129" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Vencedor: </span><span class="sc">{</span><span class="st">'Modelo B'</span> <span class="cf">if</span> avg_b <span class="op">&gt;</span> avg_a <span class="cf">else</span> <span class="st">'Modelo A'</span> <span class="cf">if</span> avg_a <span class="op">&gt;</span> avg_b <span class="cf">else</span> <span class="st">'Empate'</span><span class="sc">}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+</section>
+<section id="conclusão" class="level2">
+<h2 class="anchored" data-anchor-id="conclusão">Conclusão</h2>
+<p>Neste capítulo, exploramos as técnicas essenciais para adaptar e otimizar foundation models para casos de uso específicos. Compreendemos diferentes abordagens de fine-tuning, desde supervised fine-tuning completo até técnicas parameter-efficient como LoRA e QLoRA que democratizam o acesso ao fine-tuning de modelos grandes.</p>
+<p>Mergulhamos profundamente em quantização, entendendo como reduzir drasticamente os requisitos de memória com perdas mínimas de qualidade, tornando possível rodar modelos de 70B parâmetros em hardware consumer. Vimos exemplos práticos com llama.cpp e discutimos os trade-offs entre diferentes níveis de quantização.</p>
+<p>Exploramos RLHF, a técnica crucial que transforma modelos tecnicamente competentes em assistentes verdadeiramente úteis e alinhados com preferências humanas. Entendemos também as diferentes abordagens de avaliação, desde benchmarks padronizados até avaliação humana e o uso de LLMs como juízes.</p>
+<p>Por fim, desenvolvemos um framework prático para selecionar o modelo certo para cada tarefa, considerando fatores como tamanho, velocidade, custo, context window e requisitos de privacidade.</p>
+<p>Este conhecimento sobre fine-tuning e otimização é essencial para construir agentes de IA eficientes e econômicos em produção. Com essas técnicas, você pode adaptar modelos para suas necessidades específicas, balanceando custo, performance e requisitos de infraestrutura.</p>
+<p>Nos próximos capítulos, aplicaremos essas técnicas para construir agentes autônomos capazes de realizar tarefas complexas de forma independente. Prepare-se para colocar em prática tudo o que aprendeu até aqui!</p>
+
+
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-chen2021evaluating" class="csl-entry" role="listitem">
+Chen, Mark, Jerry Tworek, Heewoo Jun, et al. 2021. <span>«Evaluating Large Language Models Trained on Code»</span>. <em>arXiv preprint arXiv:2107.03374</em>. <a href="https://arxiv.org/abs/2107.03374">https://arxiv.org/abs/2107.03374</a>.
+</div>
+<div id="ref-cobbe2021training" class="csl-entry" role="listitem">
+Cobbe, Karl, Vineet Kosaraju, Mohammad Bavarian, et al. 2021. <span>«Training Verifiers to Solve Math Word Problems»</span>. <em>arXiv preprint arXiv:2110.14168</em>. <a href="https://arxiv.org/abs/2110.14168">https://arxiv.org/abs/2110.14168</a>.
+</div>
+<div id="ref-dettmers2023qlora" class="csl-entry" role="listitem">
+Dettmers, Tim, Artidoro Pagnoni, Ari Holtzman, e Luke Zettlemoyer. 2023. <span>«QLoRA: Efficient Finetuning of Quantized LLMs»</span>. <em>arXiv preprint arXiv:2305.14314</em>. <a href="https://arxiv.org/abs/2305.14314">https://arxiv.org/abs/2305.14314</a>.
+</div>
+<div id="ref-hendrycks2021measuring" class="csl-entry" role="listitem">
+Hendrycks, Dan, Collin Burns, Steven Basart, Andy Zou, Mantas Mazeika, Dawn Song, e Jacob Steinhardt. 2021. <span>«Measuring Massive Multitask Language Understanding»</span>. Em <em>International Conference on Learning Representations</em>. <a href="https://arxiv.org/abs/2009.03300">https://arxiv.org/abs/2009.03300</a>.
+</div>
+<div id="ref-hu2021lora" class="csl-entry" role="listitem">
+Hu, Edward J., Yelong Shen, Phillip Wallis, Zeyuan Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, e Weizhu Chen. 2021. <span>«LoRA: Low-Rank Adaptation of Large Language Models»</span>. <em>arXiv preprint arXiv:2106.09685</em>. <a href="https://arxiv.org/abs/2106.09685">https://arxiv.org/abs/2106.09685</a>.
+</div>
+<div id="ref-ouyang2022training" class="csl-entry" role="listitem">
+Ouyang, Long, Jeff Wu, Xu Jiang, et al. 2022. <span>«Training language models to follow instructions with human feedback»</span>. <em>arXiv preprint arXiv:2203.02155</em>. <a href="https://arxiv.org/abs/2203.02155">https://arxiv.org/abs/2203.02155</a>.
+</div>
+<div id="ref-zheng2023judging" class="csl-entry" role="listitem">
+Zheng, Lianmin, Wei-Lin Chiang, Ying Sheng, et al. 2023. <span>«Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena»</span>. <em>arXiv preprint arXiv:2306.05685</em>. <a href="https://arxiv.org/abs/2306.05685">https://arxiv.org/abs/2306.05685</a>.
+</div>
+</div>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copiada");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copiada");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+<nav class="page-navigation">
+  <div class="nav-page nav-page-previous">
+      <a href="../../chapters/part-01/02-treinamento-foundation-models.html" class="pagination-link" aria-label="Capítulo 2: Treinamento de Foundation Models">
+        <i class="bi bi-arrow-left-short"></i> <span class="nav-page-text">Capítulo 2: Treinamento de Foundation Models</span>
+      </a>          
+  </div>
+  <div class="nav-page nav-page-next">
+      <a href="../../chapters/99-references.html" class="pagination-link" aria-label="Referências">
+        <span class="nav-page-text">Referências</span> <i class="bi bi-arrow-right-short"></i>
+      </a>
+  </div>
+</nav>
+</div> <!-- /content -->
+
+
+
+
+</body></html>
