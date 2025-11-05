@@ -32,7 +32,15 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc calibre chromium-browser
+          sudo apt-get install -y \
+            pandoc \
+            calibre \
+            chromium-browser \
+            fonts-liberation \
+            libnss3 \
+            libxss1 \
+            libappindicator3-1 \
+            xdg-utils
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -64,11 +72,28 @@ jobs:
             pgf \
             booktabs
 
+      - name: Configure Quarto for CI
+        run: |
+          # Backup do arquivo original
+          cp book/_quarto.yml book/_quarto.yml.bak
+          # Remove a linha mermaid-format para usar o padrão do Quarto
+          sed -i '/mermaid-format: png/d' book/_quarto.yml
+          echo "=== Configuração modificada ==="
+          grep -A5 "pdf:" book/_quarto.yml
+
       - name: Render book to PDF
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+          export CHROME_BIN=/usr/bin/chromium-browser
+          # Flags para evitar timeout do Chromium no CI
+          export PUPPETEER_LAUNCH_OPTIONS='{"args": ["--no-sandbox", "--disable-setuid-sandbox", "--disable-dev-shm-usage", "--disable-gpu"]}'
           quarto render book/ --to pdf --verbose
+
+      - name: Restore Quarto config
+        if: always()
+        run: |
+          mv book/_quarto.yml.bak book/_quarto.yml
 
       - name: Get current date
         id: date
