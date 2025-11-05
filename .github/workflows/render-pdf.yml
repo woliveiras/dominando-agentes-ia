@@ -1,0 +1,93 @@
+name: Release Book
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-book-pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tinytex: true
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc calibre
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+
+      - name: Install Python dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Install TinyTeX
+        run: |
+          quarto install tinytex
+
+      - name: Install LaTeX packages for Portuguese
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
+
+      - name: Render book to PDF
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          quarto render book/ --to pdf --verbose
+
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: release-${{ steps.date.outputs.date }}-${{ github.run_number }}
+          name: Dominando Agentes de IA - ${{ steps.date.outputs.date }}
+          draft: false
+          prerelease: false
+          files: |
+            book/_book/Dominando-Agentes-de-IA.pdf
+          body: |
+            📚 **Livro: Dominando Agentes de IA**
+
+            Versão gerada automaticamente do livro em PDF.
+
+            **Commit:** ${{ github.sha }}
+            **Data:** ${{ steps.date.outputs.date }}
+
+            ---
+            🤖 Gerado automaticamente com GitHub Actions
+
+      - name: Upload PDF as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-pdf-${{ steps.date.outputs.date }}
+          path: book/_book/Dominando-Agentes-de-IA.pdf
+          retention-days: 90
