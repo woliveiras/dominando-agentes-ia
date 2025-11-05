@@ -32,7 +32,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y pandoc calibre
+          sudo apt-get install -y pandoc calibre chromium-browser
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -48,15 +48,29 @@ jobs:
         run: |
           quarto install tinytex
 
-      - name: Install LaTeX packages for Portuguese
+      - name: Install LaTeX packages for Portuguese and KOMA-Script
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
+          tlmgr install \
+            babel-portuges \
+            hyphen-portuguese \
+            collection-langportuguese \
+            koma-script \
+            fancyvrb \
+            framed \
+            tcolorbox \
+            environ \
+            trimspaces \
+            pgf \
+            booktabs
 
       - name: Render book to PDF
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          export PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
           quarto render book/ --to pdf --verbose
+        env:
+          QUARTO_DENO_EXTRA_OPTIONS: "--no-check"
 
       - name: Get current date
         id: date
