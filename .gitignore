@@ -16,6 +16,7 @@ __pycache__/
 venv/
 env/
 
+
 # macOS
 .DS_Store
 .AppleDouble
@@ -34,3 +35,5 @@ env/
 *.pdf
 *.html
 !index.html
+
+.env
