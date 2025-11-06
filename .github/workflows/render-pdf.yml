@@ -55,9 +55,31 @@ jobs:
       - name: Configure TinyTeX repository
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          # Usa mirror CTAN confiável e atualiza tlmgr
+          
+          # Atualiza GPG e wget para evitar problemas de assinatura
+          sudo apt-get update
+          sudo apt-get install -y gnupg wget
+          
+          # Usa mirror CTAN confiável
           tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
-          tlmgr update --self --all || echo "tlmgr update failed, continuing..."
+          
+          # Retry logic com backoff exponencial para tlmgr update
+          n=0
+          until [ "$n" -ge 3 ]; do
+            echo "Tentativa $((n+1)) de atualizar tlmgr..."
+            if tlmgr update --self --all; then
+              echo "✓ tlmgr atualizado com sucesso"
+              break
+            fi
+            echo "✗ tlmgr update falhou, aguardando $((n+1))0s..."
+            sleep $((n+1))0
+            n=$((n+1))
+          done
+          
+          # Se falhou todas as tentativas, continua mesmo assim
+          if [ "$n" -ge 3 ]; then
+            echo "⚠ tlmgr update falhou após 3 tentativas, continuando com versão atual..."
+          fi
 
       - name: Install LaTeX packages for Portuguese and KOMA-Script
         run: |
@@ -107,7 +129,7 @@ jobs:
           fi
 
       - name: Render book to PDF
-        timeout-minutes: 20
+        timeout-minutes: 30
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           
@@ -118,15 +140,24 @@ jobs:
           # Flags otimizadas para evitar timeout e uso excessivo de recursos
           export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-extensions --disable-dbus"
           
+          # Debug: mostra configuração
+          echo "=== Configuração de ambiente ==="
+          echo "Chrome: $CHROME_BIN"
+          echo "TinyTeX: $(which pdflatex)"
+          echo "Quarto: $(quarto --version)"
+          
           # Renderiza e filtra erros conhecidos do dbus (são esperados em CI)
+          echo "=== Iniciando renderização do PDF ==="
           quarto render book/ --to pdf --verbose 2>&1 | tee /tmp/quarto-render.log | grep -v "ERROR:dbus" | grep -v "ERROR:object_proxy" || true
           
           # Verifica se o comando terminou com sucesso
           if [ ${PIPESTATUS[0]} -ne 0 ]; then
-            echo "Erro no render, veja o log completo:"
+            echo "✗ Erro no render, veja o log completo:"
             cat /tmp/quarto-render.log
             exit 1
           fi
+          
+          echo "✓ Renderização concluída"
 
       - name: Restore Quarto config
         if: always()
