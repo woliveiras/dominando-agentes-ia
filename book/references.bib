@@ -1369,3 +1369,144 @@
   doi={10.1162/tacl_a_00461},
   note={Byte-level encoder-decoder model demonstrating character-level tokenization at scale}
 }
+
+@article{holtzman2019nucleus,
+  title={The Curious Case of Neural Text Degeneration},
+  author={Holtzman, Ari and Buys, Jan and Du, Li and Forbes, Maxwell and Choi, Yejin},
+  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+  year={2020},
+  url={https://arxiv.org/abs/1904.09751},
+  note={Original Nucleus Sampling (top-p) paper demonstrating issues with pure sampling and beam search}
+}
+
+@article{fan2018hierarchical,
+  title={Hierarchical Neural Story Generation},
+  author={Fan, Angela and Lewis, Mike and Dauphin, Yann},
+  journal={Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (ACL)},
+  pages={889--898},
+  year={2018},
+  url={https://arxiv.org/abs/1805.04833},
+  note={Analysis of sampling strategies including temperature and top-k in story generation}
+}
+
+@online{openai-api-reference,
+  title={OpenAI API Reference: Chat Completions},
+  author={{OpenAI}},
+  url={https://platform.openai.com/docs/api-reference/chat},
+  urldate={2025-11-06},
+  note={Official OpenAI API documentation for GPT models and generation parameters}
+}
+
+@online{anthropic-api-reference,
+  title={Anthropic Claude API Reference},
+  author={{Anthropic}},
+  url={https://docs.anthropic.com/en/api/messages},
+  urldate={2025-11-06},
+  note={Official Anthropic Claude API documentation including parameter specifications}
+}
+
+@online{openai-tokenizer,
+  title={OpenAI Tokenizer},
+  author={{OpenAI}},
+  url={https://platform.openai.com/tokenizer},
+  urldate={2025-11-06},
+  note={Official OpenAI tokenizer tool and documentation}
+}
+
+@article{press2021train,
+  title={Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation},
+  author={Press, Ofir and Smith, Noah A. and Lewis, Mike},
+  journal={Proceedings of the International Conference on Learning Representations (ICLR)},
+  year={2022},
+  url={https://arxiv.org/abs/2108.12409},
+  note={ALiBi positional embeddings enabling longer context windows than training length}
+}
+
+@article{dao2022flashattention,
+  title={FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness},
+  author={Dao, Tri and Fu, Daniel Y. and Ermon, Stefano and Rudra, Atri and Ré, Christopher},
+  journal={Advances in Neural Information Processing Systems (NeurIPS)},
+  volume={35},
+  pages={16344--16359},
+  year={2022},
+  url={https://arxiv.org/abs/2205.14135},
+  note={FlashAttention algorithm enabling efficient long-context processing}
+}
+
+@article{beltagy2020longformer,
+  title={Longformer: The Long-Document Transformer},
+  author={Beltagy, Iz and Peters, Matthew E. and Cohan, Arman},
+  journal={arXiv preprint arXiv:2004.05150},
+  year={2020},
+  url={https://arxiv.org/abs/2004.05150},
+  note={Sparse attention patterns for efficient long-document processing (4096 tokens)}
+}
+
+@online{prometheus-docs,
+  title={Prometheus Documentation: Overview},
+  author={{Prometheus}},
+  url={https://prometheus.io/docs/introduction/overview/},
+  urldate={2025-11-06},
+  note={Official Prometheus monitoring system documentation}
+}
+
+@online{opentelemetry-docs,
+  title={OpenTelemetry Documentation},
+  author={{OpenTelemetry}},
+  url={https://opentelemetry.io/docs/},
+  urldate={2025-11-06},
+  note={Official OpenTelemetry distributed tracing and observability documentation}
+}
+
+@online{grafana-docs,
+  title={Grafana Documentation: Dashboards},
+  author={{Grafana Labs}},
+  url={https://grafana.com/docs/grafana/latest/dashboards/},
+  urldate={2025-11-06},
+  note={Official Grafana visualization and dashboarding documentation}
+}
+
+@article{sigelman2010dapper,
+  title={Dapper, a Large-Scale Distributed Systems Tracing Infrastructure},
+  author={Sigelman, Benjamin H. and Barroso, Luiz André and Burrows, Mike and others},
+  journal={Google Technical Report},
+  year={2010},
+  url={https://research.google/pubs/pub36356/},
+  note={Foundational paper on distributed tracing from Google, basis for OpenTelemetry}
+}
+
+@online{artificialanalysis2024,
+  title={Artificial Analysis: LLM Performance Leaderboard},
+  author={{Artificial Analysis}},
+  year={2024},
+  url={https://artificialanalysis.ai/},
+  urldate={2025-11-06},
+  note={Independent LLM performance benchmarks including latency, quality, and pricing}
+}
+
+@article{kwon2023efficient,
+  title={Efficient Memory Management for Large Language Model Serving with PagedAttention},
+  author={Kwon, Woosuk and Li, Zhuohan and Zhuang, Siyuan and others},
+  journal={Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)},
+  year={2023},
+  url={https://arxiv.org/abs/2309.06180},
+  note={vLLM paper introducing PagedAttention for efficient KV-cache management}
+}
+
+@article{ainslie2023gqa,
+  title={GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints},
+  author={Ainslie, Joshua and Lee-Thorp, James and de Jong, Michiel and others},
+  journal={Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)},
+  year={2023},
+  url={https://arxiv.org/abs/2305.13245},
+  note={Grouped-Query Attention for reduced KV-cache memory footprint}
+}
+
+@online{redis-docs,
+  title={Redis Documentation: Introduction to Redis},
+  author={{Redis}},
+  year={2024},
+  url={https://redis.io/docs/about/},
+  urldate={2025-11-06},
+  note={Official Redis in-memory database documentation}
+}

@@ -10,7 +10,7 @@ Quando você chama um LLM para gerar texto, não está simplesmente pressionando
 
 ### Temperature: Controlando Aleatoriedade
 
-O parâmetro **Temperature** controla quão "previsível" ou "criativo" o modelo será ao gerar texto. Pense nisso como um controle de volume entre "jogar sempre pelo seguro" e "se arriscar mais".
+O parâmetro **Temperature** controla quão "previsível" ou "criativo" o modelo será ao gerar texto [@fan2018hierarchical]. Pense nisso como um controle de volume entre "jogar sempre pelo seguro" e "se arriscar mais".
 
 Imagine que o modelo está escolhendo a próxima palavra numa frase. Ele tem uma lista de candidatos com diferentes níveis de confiança:
 
@@ -148,7 +148,7 @@ Ou seja:
 
 ### Top-p (Nucleus Sampling): Controle Dinâmico de Vocabulário
 
-**O que é**: Em vez de usar um número fixo de tokens (top-k), nucleus sampling considera os tokens cuja **probabilidade acumulada** atinge `p`.
+**O que é**: Em vez de usar um número fixo de tokens (top-k), nucleus sampling [@holtzman2019nucleus] considera os tokens cuja **probabilidade acumulada** atinge `p`.
 
 **Como funciona**:
 
@@ -403,7 +403,7 @@ config_factual = {
 
 O *context window* (ou *context length*) é o número máximo de tokens que o modelo consegue processar de uma vez, incluindo tanto o prompt de entrada quanto a resposta gerada.
 
-Exemplos de context windows em modelos populares:
+Exemplos de context windows em modelos populares [@openai-api-reference; @anthropic-api-reference]:
 
 | Modelo | Context Window | Notas |
 |--------|----------------|-------|
@@ -414,6 +414,18 @@ Exemplos de context windows em modelos populares:
 | LLaMA 2 | 4K tokens | Limitado |
 | LLaMA 3 | 8K tokens | Melhorado |
 | Gemini 1.5 Pro | 1M tokens | ~700K palavras |
+
+::: {.callout-note title="Técnicas Avançadas de Extensão de Context Window"}
+Pesquisas recentes introduziram técnicas que permitem modelos processarem contextos mais longos do que o treinamento original:
+
+- **ALiBi (Attention with Linear Biases)** [@press2021train]: Permite extrapolação de comprimento em tempo de inferência
+- **FlashAttention** [@dao2022flashattention]: Otimização de memória que torna atenção em contextos longos viável
+- **Sparse Attention** [@beltagy2020longformer]: Padrões de atenção esparsos para documentos longos
+- **Grouped-Query Attention** [@ainslie2023gqa]: Reduz footprint de memória do KV-cache
+- **PagedAttention** [@kwon2023efficient]: Gerenciamento eficiente de memória para serving de LLMs (vLLM)
+
+Essas técnicas são especialmente relevantes em sistemas de produção com requisitos de contexto extenso.
+:::
 
 ### O Problema do Context Window
 
@@ -616,7 +628,7 @@ Nesta seção, vamos explorar como entender, medir e otimizar ambos os aspectos.
 
 ### Entendendo o Custo por Token
 
-A maioria dos provedores de LLM cobra por tokens processados, separando **input tokens** (o que você envia) e **output tokens** (o que o modelo gera). Output tokens geralmente custam mais, pois exigem mais processamento.
+A maioria dos provedores de LLM cobra por tokens processados [@openai-tokenizer], separando **input tokens** (o que você envia) e **output tokens** (o que o modelo gera). Output tokens geralmente custam mais, pois exigem mais processamento.
 
 **Exemplo real de precificação** (valores aproximados):
 
@@ -1103,13 +1115,13 @@ A latência em chamadas LLM tem componentes distintos:
    - Modelos pequenos (GPT-3.5, Claude Haiku): 200-500ms
    - Modelos grandes (GPT-4, Claude Opus): 500-1500ms
    - *Fatores*: Tamanho do modelo, carga do servidor, comprimento do prompt
-   - *Fonte*: Artificial Analysis (artificialanalysis.ai)
+   - *Fonte*: [@artificialanalysis2024]
 
 3. **Generation latency**: Tempo para gerar cada token após o primeiro
    - APIs otimizadas (GPT-4 Turbo, Claude 3.5): 40-80ms/token
    - Modelos standard (GPT-4, Claude 3): 80-120ms/token
    - Self-hosted (depende do hardware): 50-500ms/token
-   - *Fonte*: Observações em produção e métricas públicas dos providers
+   - *Fonte*: Observações em produção e [@artificialanalysis2024]
 
 Para respostas longas, a latência pode facilmente ultrapassar **40 segundos**, tempo inaceitável para qualquer aplicação. Vamos explorar estratégias para otimizar cada componente.
 
@@ -1652,13 +1664,13 @@ async def main():
 
 ### Observabilidade e Monitoramento em Produção
 
-Sistemas de LLM em produção exigem observabilidade robusta para garantir performance, controlar custos e diagnosticar problemas rapidamente. Diferente de aplicações tradicionais, LLMs introduzem métricas específicas (tokens, custos variáveis, qualidade de resposta) que precisam de instrumentação dedicada.
+Sistemas de LLM em produção exigem observabilidade robusta [@prometheus-docs; @opentelemetry-docs] para garantir performance, controlar custos e diagnosticar problemas rapidamente. Diferente de aplicações tradicionais, LLMs introduzem métricas específicas (tokens, custos variáveis, qualidade de resposta) que precisam de instrumentação dedicada.
 
 Nesta seção, exploraremos como implementar observabilidade completa usando padrões da indústria: **métricas** (Prometheus), **traces** (OpenTelemetry), **logs estruturados**, e **alertas inteligentes**.
 
 #### Arquitetura de Observabilidade
 
-Uma stack completa de observabilidade para sistemas de LLM consiste em três pilares:
+Uma stack completa de observabilidade para sistemas de LLM [@sigelman2010dapper; @opentelemetry-docs] consiste em três pilares:
 
 ```{mermaid}
 %%| label: fig-llm-observability
@@ -1687,8 +1699,8 @@ graph TD
 
 **Componentes essenciais**:
 
-1. **Métricas**: Agregações numéricas (latência P95, custo/hora, tokens/segundo)
-2. **Traces**: Rastreamento distribuído de chamadas LLM e dependências
+1. **Métricas** [@prometheus-docs]: Agregações numéricas (latência P95, custo/hora, tokens/segundo)
+2. **Traces** [@opentelemetry-docs]: Rastreamento distribuído de chamadas LLM e dependências
 3. **Logs**: Eventos estruturados para debugging e auditoria
 
 #### Métricas Críticas para LLMs
@@ -2375,7 +2387,7 @@ groups:
           description: "Cache hit rate: {{ $value | humanizePercentage }}"
 ```
 
-**Dashboard Grafana Recomendado**:
+**Dashboard Grafana Recomendado** [@grafana-docs]:
 
 ```json
 {
@@ -2433,10 +2445,20 @@ Este capítulo apresentou os fundamentos práticos para operacionalizar LLMs em 
    - Load balancing entre providers
 
 4. **Observabilidade em Produção**: Instrumentação completa usando padrões da indústria:
-   - Métricas com Prometheus (latência P95/P99, throughput, custos)
-   - Traces distribuídos com OpenTelemetry
+   - Métricas com Prometheus [@prometheus-docs] (latência P95/P99, throughput, custos)
+   - Traces distribuídos com OpenTelemetry [@opentelemetry-docs]
    - Logs estruturados com structlog
    - Alertas inteligentes (SLOs, budgets)
+
+::: {.callout-tip title="Leituras Complementares Recomendadas"}
+Para aprofundamento nos tópicos deste capítulo:
+
+- **Sampling Strategies**: [@holtzman2019nucleus] para entender nucleus sampling e problemas de degeneração
+- **Context Window Extensions**: [@press2021train; @dao2022flashattention] sobre técnicas modernas de extensão
+- **Observability**: [@sigelman2010dapper] paper fundacional do Google sobre tracing distribuído
+- **Performance Benchmarks**: [@artificialanalysis2024] para comparações atualizadas de modelos
+- **API Documentation**: [@openai-api-reference; @anthropic-api-reference] documentação oficial atualizada
+:::
 
 **Ponte para produção**:
 
