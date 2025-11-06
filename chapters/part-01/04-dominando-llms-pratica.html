@@ -55,7 +55,27 @@ div.sourceCode
 @media screen {
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script>
@@ -274,7 +294,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Quando você chama um LLM para gerar texto, não está simplesmente pressionando “play” em um modelo determinístico. Existe uma série de parâmetros que controlam <strong>como</strong> o modelo gera texto, cada um com trade-offs específicos entre criatividade, consistência, qualidade e performance.</p>
 <section id="temperature-controlando-aleatoriedade" class="level3">
 <h3 class="anchored" data-anchor-id="temperature-controlando-aleatoriedade">Temperature: Controlando Aleatoriedade</h3>
-<p>O parâmetro <strong>Temperature</strong> controla quão “previsível” ou “criativo” o modelo será ao gerar texto. Pense nisso como um controle de volume entre “jogar sempre pelo seguro” e “se arriscar mais”.</p>
+<p>O parâmetro <strong>Temperature</strong> controla quão “previsível” ou “criativo” o modelo será ao gerar texto <span class="citation" data-cites="fan2018hierarchical">(<a href="../99-references.html#ref-fan2018hierarchical" role="doc-biblioref">Fan, Lewis, e Dauphin 2018</a>)</span>. Pense nisso como um controle de volume entre “jogar sempre pelo seguro” e “se arriscar mais”.</p>
 <p>Imagine que o modelo está escolhendo a próxima palavra numa frase. Ele tem uma lista de candidatos com diferentes níveis de confiança:</p>
 <ul>
 <li><strong>Candidato A</strong>: “são” (65% de confiança)</li>
@@ -393,7 +413,7 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 </section>
 <section id="top-p-nucleus-sampling-controle-dinâmico-de-vocabulário" class="level3">
 <h3 class="anchored" data-anchor-id="top-p-nucleus-sampling-controle-dinâmico-de-vocabulário">Top-p (Nucleus Sampling): Controle Dinâmico de Vocabulário</h3>
-<p><strong>O que é</strong>: Em vez de usar um número fixo de tokens (top-k), nucleus sampling considera os tokens cuja <strong>probabilidade acumulada</strong> atinge <code>p</code>.</p>
+<p><strong>O que é</strong>: Em vez de usar um número fixo de tokens (top-k), nucleus sampling <span class="citation" data-cites="holtzman2019nucleus">(<a href="../99-references.html#ref-holtzman2019nucleus" role="doc-biblioref">Holtzman et al. 2020</a>)</span> considera os tokens cuja <strong>probabilidade acumulada</strong> atinge <code>p</code>.</p>
 <p><strong>Como funciona</strong>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Probabilidades dos tokens após softmax</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>probs <span class="op">=</span> {</span>
@@ -643,7 +663,7 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 <section id="context-window-gerenciamento-de-memória" class="level2">
 <h2 class="anchored" data-anchor-id="context-window-gerenciamento-de-memória">Context Window: Gerenciamento de Memória</h2>
 <p>O <em>context window</em> (ou <em>context length</em>) é o número máximo de tokens que o modelo consegue processar de uma vez, incluindo tanto o prompt de entrada quanto a resposta gerada.</p>
-<p>Exemplos de context windows em modelos populares:</p>
+<p>Exemplos de context windows em modelos populares <span class="citation" data-cites="openai-api-reference anthropic-api-reference">(<a href="../99-references.html#ref-openai-api-reference" role="doc-biblioref">OpenAI s.d.a</a>; <a href="../99-references.html#ref-anthropic-api-reference" role="doc-biblioref">Anthropic s.d.</a>)</span>:</p>
 <table class="caption-top table">
 <thead>
 <tr class="header">
@@ -690,6 +710,27 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 </tr>
 </tbody>
 </table>
+<div class="callout callout-style-default callout-note callout-titled" title="Técnicas Avançadas de Extensão de Context Window">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Nota</span>Técnicas Avançadas de Extensão de Context Window
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Pesquisas recentes introduziram técnicas que permitem modelos processarem contextos mais longos do que o treinamento original:</p>
+<ul>
+<li><strong>ALiBi (Attention with Linear Biases)</strong> <span class="citation" data-cites="press2021train">(<a href="../99-references.html#ref-press2021train" role="doc-biblioref">Press, Smith, e Lewis 2022</a>)</span>: Permite extrapolação de comprimento em tempo de inferência</li>
+<li><strong>FlashAttention</strong> <span class="citation" data-cites="dao2022flashattention">(<a href="../99-references.html#ref-dao2022flashattention" role="doc-biblioref">Dao et al. 2022</a>)</span>: Otimização de memória que torna atenção em contextos longos viável</li>
+<li><strong>Sparse Attention</strong> <span class="citation" data-cites="beltagy2020longformer">(<a href="../99-references.html#ref-beltagy2020longformer" role="doc-biblioref">Beltagy, Peters, e Cohan 2020</a>)</span>: Padrões de atenção esparsos para documentos longos</li>
+<li><strong>Grouped-Query Attention</strong> <span class="citation" data-cites="ainslie2023gqa">(<a href="../99-references.html#ref-ainslie2023gqa" role="doc-biblioref">Ainslie et al. 2023</a>)</span>: Reduz footprint de memória do KV-cache</li>
+<li><strong>PagedAttention</strong> <span class="citation" data-cites="kwon2023efficient">(<a href="../99-references.html#ref-kwon2023efficient" role="doc-biblioref">Kwon et al. 2023</a>)</span>: Gerenciamento eficiente de memória para serving de LLMs (vLLM)</li>
+</ul>
+<p>Essas técnicas são especialmente relevantes em sistemas de produção com requisitos de contexto extenso.</p>
+</div>
+</div>
 <section id="o-problema-do-context-window" class="level3">
 <h3 class="anchored" data-anchor-id="o-problema-do-context-window">O Problema do Context Window</h3>
 <p>O maior desafio com context windows é que, em conversações longas ou tarefas complexas, o histórico pode crescer rapidamente e exceder o limite do modelo. Afinal, cada mensagem adiciona tokens ao contexto.</p>
@@ -860,7 +901,7 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 <p>Nesta seção, vamos explorar como entender, medir e otimizar ambos os aspectos.</p>
 <section id="entendendo-o-custo-por-token" class="level3">
 <h3 class="anchored" data-anchor-id="entendendo-o-custo-por-token">Entendendo o Custo por Token</h3>
-<p>A maioria dos provedores de LLM cobra por tokens processados, separando <strong>input tokens</strong> (o que você envia) e <strong>output tokens</strong> (o que o modelo gera). Output tokens geralmente custam mais, pois exigem mais processamento.</p>
+<p>A maioria dos provedores de LLM cobra por tokens processados <span class="citation" data-cites="openai-tokenizer">(<a href="../99-references.html#ref-openai-tokenizer" role="doc-biblioref">OpenAI s.d.b</a>)</span>, separando <strong>input tokens</strong> (o que você envia) e <strong>output tokens</strong> (o que o modelo gera). Output tokens geralmente custam mais, pois exigem mais processamento.</p>
 <p><strong>Exemplo real de precificação</strong> (valores aproximados):</p>
 <table class="caption-top table">
 <colgroup>
@@ -1403,14 +1444,14 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 <li>Modelos pequenos (GPT-3.5, Claude Haiku): 200-500ms</li>
 <li>Modelos grandes (GPT-4, Claude Opus): 500-1500ms</li>
 <li><em>Fatores</em>: Tamanho do modelo, carga do servidor, comprimento do prompt</li>
-<li><em>Fonte</em>: Artificial Analysis (artificialanalysis.ai)</li>
+<li><em>Fonte</em>: <span class="citation" data-cites="artificialanalysis2024">(<a href="../99-references.html#ref-artificialanalysis2024" role="doc-biblioref">Artificial Analysis 2024</a>)</span></li>
 </ul></li>
 <li><strong>Generation latency</strong>: Tempo para gerar cada token após o primeiro
 <ul>
 <li>APIs otimizadas (GPT-4 Turbo, Claude 3.5): 40-80ms/token</li>
 <li>Modelos standard (GPT-4, Claude 3): 80-120ms/token</li>
 <li>Self-hosted (depende do hardware): 50-500ms/token</li>
-<li><em>Fonte</em>: Observações em produção e métricas públicas dos providers</li>
+<li><em>Fonte</em>: Observações em produção e <span class="citation" data-cites="artificialanalysis2024">(<a href="../99-references.html#ref-artificialanalysis2024" role="doc-biblioref">Artificial Analysis 2024</a>)</span></li>
 </ul></li>
 </ol>
 <p>Para respostas longas, a latência pode facilmente ultrapassar <strong>40 segundos</strong>, tempo inaceitável para qualquer aplicação. Vamos explorar estratégias para otimizar cada componente.</p>
@@ -1919,11 +1960,11 @@ Temperature = 1.5:  ██████░░░░░░████░░░░
 </section>
 <section id="observabilidade-e-monitoramento-em-produção" class="level3">
 <h3 class="anchored" data-anchor-id="observabilidade-e-monitoramento-em-produção">Observabilidade e Monitoramento em Produção</h3>
-<p>Sistemas de LLM em produção exigem observabilidade robusta para garantir performance, controlar custos e diagnosticar problemas rapidamente. Diferente de aplicações tradicionais, LLMs introduzem métricas específicas (tokens, custos variáveis, qualidade de resposta) que precisam de instrumentação dedicada.</p>
+<p>Sistemas de LLM em produção exigem observabilidade robusta <span class="citation" data-cites="prometheus-docs opentelemetry-docs">(<a href="../99-references.html#ref-prometheus-docs" role="doc-biblioref">Prometheus s.d.</a>; <a href="../99-references.html#ref-opentelemetry-docs" role="doc-biblioref">OpenTelemetry s.d.</a>)</span> para garantir performance, controlar custos e diagnosticar problemas rapidamente. Diferente de aplicações tradicionais, LLMs introduzem métricas específicas (tokens, custos variáveis, qualidade de resposta) que precisam de instrumentação dedicada.</p>
 <p>Nesta seção, exploraremos como implementar observabilidade completa usando padrões da indústria: <strong>métricas</strong> (Prometheus), <strong>traces</strong> (OpenTelemetry), <strong>logs estruturados</strong>, e <strong>alertas inteligentes</strong>.</p>
 <section id="arquitetura-de-observabilidade" class="level4">
 <h4 class="anchored" data-anchor-id="arquitetura-de-observabilidade">Arquitetura de Observabilidade</h4>
-<p>Uma stack completa de observabilidade para sistemas de LLM consiste em três pilares:</p>
+<p>Uma stack completa de observabilidade para sistemas de LLM <span class="citation" data-cites="sigelman2010dapper opentelemetry-docs">(<a href="../99-references.html#ref-sigelman2010dapper" role="doc-biblioref">Sigelman et al. 2010</a>; <a href="../99-references.html#ref-opentelemetry-docs" role="doc-biblioref">OpenTelemetry s.d.</a>)</span> consiste em três pilares:</p>
 <div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-llm-observability" class="quarto-float quarto-figure quarto-figure-center anchored">
@@ -1961,8 +2002,8 @@ Figura&nbsp;1: Arquitetura de Observabilidade para Sistemas LLM
 </div>
 <p><strong>Componentes essenciais</strong>:</p>
 <ol type="1">
-<li><strong>Métricas</strong>: Agregações numéricas (latência P95, custo/hora, tokens/segundo)</li>
-<li><strong>Traces</strong>: Rastreamento distribuído de chamadas LLM e dependências</li>
+<li><strong>Métricas</strong> <span class="citation" data-cites="prometheus-docs">(<a href="../99-references.html#ref-prometheus-docs" role="doc-biblioref">Prometheus s.d.</a>)</span>: Agregações numéricas (latência P95, custo/hora, tokens/segundo)</li>
+<li><strong>Traces</strong> <span class="citation" data-cites="opentelemetry-docs">(<a href="../99-references.html#ref-opentelemetry-docs" role="doc-biblioref">OpenTelemetry s.d.</a>)</span>: Rastreamento distribuído de chamadas LLM e dependências</li>
 <li><strong>Logs</strong>: Eventos estruturados para debugging e auditoria</li>
 </ol>
 </section>
@@ -2710,7 +2751,7 @@ rate(llm_tokens_total{token_type="output"}[5m])</code></pre>
 <span id="cb43-53"><a href="#cb43-53" aria-hidden="true" tabindex="-1"></a><span class="at">        </span><span class="fu">annotations</span><span class="kw">:</span></span>
 <span id="cb43-54"><a href="#cb43-54" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">summary</span><span class="kw">:</span><span class="at"> </span><span class="st">"Taxa de cache hit abaixo de 30%"</span></span>
 <span id="cb43-55"><a href="#cb43-55" aria-hidden="true" tabindex="-1"></a><span class="at">          </span><span class="fu">description</span><span class="kw">:</span><span class="at"> </span><span class="st">"Cache hit rate: {{ $value | humanizePercentage }}"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
-<p><strong>Dashboard Grafana Recomendado</strong>:</p>
+<p><strong>Dashboard Grafana Recomendado</strong> <span class="citation" data-cites="grafana-docs">(<a href="../99-references.html#ref-grafana-docs" role="doc-biblioref">Grafana Labs s.d.</a>)</span>:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="sourceCode json code-with-copy"><code class="sourceCode json"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span></span>
 <span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a>  <span class="dt">"dashboard"</span><span class="fu">:</span> <span class="fu">{</span></span>
 <span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>    <span class="dt">"title"</span><span class="fu">:</span> <span class="st">"LLM Service - Production Monitoring"</span><span class="fu">,</span></span>
@@ -2766,12 +2807,32 @@ rate(llm_tokens_total{token_type="output"}[5m])</code></pre>
 </ul></li>
 <li><p><strong>Observabilidade em Produção</strong>: Instrumentação completa usando padrões da indústria:</p>
 <ul>
-<li>Métricas com Prometheus (latência P95/P99, throughput, custos)</li>
-<li>Traces distribuídos com OpenTelemetry</li>
+<li>Métricas com Prometheus <span class="citation" data-cites="prometheus-docs">(<a href="../99-references.html#ref-prometheus-docs" role="doc-biblioref">Prometheus s.d.</a>)</span> (latência P95/P99, throughput, custos)</li>
+<li>Traces distribuídos com OpenTelemetry <span class="citation" data-cites="opentelemetry-docs">(<a href="../99-references.html#ref-opentelemetry-docs" role="doc-biblioref">OpenTelemetry s.d.</a>)</span></li>
 <li>Logs estruturados com structlog</li>
 <li>Alertas inteligentes (SLOs, budgets)</li>
 </ul></li>
 </ol>
+<div class="callout callout-style-default callout-tip callout-titled" title="Leituras Complementares Recomendadas">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Dica</span>Leituras Complementares Recomendadas
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Para aprofundamento nos tópicos deste capítulo:</p>
+<ul>
+<li><strong>Sampling Strategies</strong>: <span class="citation" data-cites="holtzman2019nucleus">(<a href="../99-references.html#ref-holtzman2019nucleus" role="doc-biblioref">Holtzman et al. 2020</a>)</span> para entender nucleus sampling e problemas de degeneração</li>
+<li><strong>Context Window Extensions</strong>: <span class="citation" data-cites="press2021train dao2022flashattention">(<a href="../99-references.html#ref-press2021train" role="doc-biblioref">Press, Smith, e Lewis 2022</a>; <a href="../99-references.html#ref-dao2022flashattention" role="doc-biblioref">Dao et al. 2022</a>)</span> sobre técnicas modernas de extensão</li>
+<li><strong>Observability</strong>: <span class="citation" data-cites="sigelman2010dapper">(<a href="../99-references.html#ref-sigelman2010dapper" role="doc-biblioref">Sigelman et al. 2010</a>)</span> paper fundacional do Google sobre tracing distribuído</li>
+<li><strong>Performance Benchmarks</strong>: <span class="citation" data-cites="artificialanalysis2024">(<a href="../99-references.html#ref-artificialanalysis2024" role="doc-biblioref">Artificial Analysis 2024</a>)</span> para comparações atualizadas de modelos</li>
+<li><strong>API Documentation</strong>: <span class="citation" data-cites="openai-api-reference anthropic-api-reference">(<a href="../99-references.html#ref-openai-api-reference" role="doc-biblioref">OpenAI s.d.a</a>; <a href="../99-references.html#ref-anthropic-api-reference" role="doc-biblioref">Anthropic s.d.</a>)</span> documentação oficial atualizada</li>
+</ul>
+</div>
+</div>
 <p><strong>Ponte para produção</strong>:</p>
 <p>Os exemplos apresentados não são protótipos acadêmicos. São implementações battle-tested que você pode adaptar para seus sistemas:</p>
 <ul>
@@ -2783,6 +2844,53 @@ rate(llm_tokens_total{token_type="output"}[5m])</code></pre>
 <p>No próximo capítulo, aplicaremos esse conhecimento em <strong>prompt engineering avançado</strong>: construção de prompts estruturados, few-shot learning, chain-of-thought reasoning e técnicas de elicitação que maximizam a qualidade de resposta dos modelos que você agora sabe operar eficientemente.</p>
 
 
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list" style="display: none">
+<div id="ref-ainslie2023gqa" class="csl-entry" role="listitem">
+Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, et al. 2023. <span>«GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints»</span>. <em>Proceedings of the 2023 Conference on Empirical Methods in Natural Language Processing (EMNLP)</em>. <a href="https://arxiv.org/abs/2305.13245">https://arxiv.org/abs/2305.13245</a>.
+</div>
+<div id="ref-anthropic-api-reference" class="csl-entry" role="listitem">
+Anthropic. s.d. <span>«Anthropic Claude API Reference»</span>. Acedido a 6 de novembro de 2025. <a href="https://docs.anthropic.com/en/api/messages">https://docs.anthropic.com/en/api/messages</a>.
+</div>
+<div id="ref-artificialanalysis2024" class="csl-entry" role="listitem">
+Artificial Analysis. 2024. <span>«Artificial Analysis: LLM Performance Leaderboard»</span>. 2024. <a href="https://artificialanalysis.ai/">https://artificialanalysis.ai/</a>.
+</div>
+<div id="ref-beltagy2020longformer" class="csl-entry" role="listitem">
+Beltagy, Iz, Matthew E. Peters, e Arman Cohan. 2020. <span>«Longformer: The Long-Document Transformer»</span>. <em>arXiv preprint arXiv:2004.05150</em>. <a href="https://arxiv.org/abs/2004.05150">https://arxiv.org/abs/2004.05150</a>.
+</div>
+<div id="ref-dao2022flashattention" class="csl-entry" role="listitem">
+Dao, Tri, Daniel Y. Fu, Stefano Ermon, Atri Rudra, e Christopher Ré. 2022. <span>«FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness»</span>. <em>Advances in Neural Information Processing Systems (NeurIPS)</em> 35: 16344–59. <a href="https://arxiv.org/abs/2205.14135">https://arxiv.org/abs/2205.14135</a>.
+</div>
+<div id="ref-fan2018hierarchical" class="csl-entry" role="listitem">
+Fan, Angela, Mike Lewis, e Yann Dauphin. 2018. <span>«Hierarchical Neural Story Generation»</span>. <em>Proceedings of the 56th Annual Meeting of the Association for Computational Linguistics (ACL)</em>, 889–98. <a href="https://arxiv.org/abs/1805.04833">https://arxiv.org/abs/1805.04833</a>.
+</div>
+<div id="ref-grafana-docs" class="csl-entry" role="listitem">
+Grafana Labs. s.d. <span>«Grafana Documentation: Dashboards»</span>. Acedido a 6 de novembro de 2025. <a href="https://grafana.com/docs/grafana/latest/dashboards/">https://grafana.com/docs/grafana/latest/dashboards/</a>.
+</div>
+<div id="ref-holtzman2019nucleus" class="csl-entry" role="listitem">
+Holtzman, Ari, Jan Buys, Li Du, Maxwell Forbes, e Yejin Choi. 2020. <span>«The Curious Case of Neural Text Degeneration»</span>. <em>Proceedings of the International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/1904.09751">https://arxiv.org/abs/1904.09751</a>.
+</div>
+<div id="ref-kwon2023efficient" class="csl-entry" role="listitem">
+Kwon, Woosuk, Zhuohan Li, Siyuan Zhuang, et al. 2023. <span>«Efficient Memory Management for Large Language Model Serving with PagedAttention»</span>. <em>Proceedings of the 29th Symposium on Operating Systems Principles (SOSP)</em>. <a href="https://arxiv.org/abs/2309.06180">https://arxiv.org/abs/2309.06180</a>.
+</div>
+<div id="ref-openai-api-reference" class="csl-entry" role="listitem">
+OpenAI. s.d.a. <span>«OpenAI API Reference: Chat Completions»</span>. Acedido a 6 de novembro de 2025. <a href="https://platform.openai.com/docs/api-reference/chat">https://platform.openai.com/docs/api-reference/chat</a>.
+</div>
+<div id="ref-openai-tokenizer" class="csl-entry" role="listitem">
+———. s.d.b. <span>«OpenAI Tokenizer»</span>. Acedido a 6 de novembro de 2025. <a href="https://platform.openai.com/tokenizer">https://platform.openai.com/tokenizer</a>.
+</div>
+<div id="ref-opentelemetry-docs" class="csl-entry" role="listitem">
+OpenTelemetry. s.d. <span>«OpenTelemetry Documentation»</span>. Acedido a 6 de novembro de 2025. <a href="https://opentelemetry.io/docs/">https://opentelemetry.io/docs/</a>.
+</div>
+<div id="ref-press2021train" class="csl-entry" role="listitem">
+Press, Ofir, Noah A. Smith, e Mike Lewis. 2022. <span>«Train Short, Test Long: Attention with Linear Biases Enables Input Length Extrapolation»</span>. <em>Proceedings of the International Conference on Learning Representations (ICLR)</em>. <a href="https://arxiv.org/abs/2108.12409">https://arxiv.org/abs/2108.12409</a>.
+</div>
+<div id="ref-prometheus-docs" class="csl-entry" role="listitem">
+Prometheus. s.d. <span>«Prometheus Documentation: Overview»</span>. Acedido a 6 de novembro de 2025. <a href="https://prometheus.io/docs/introduction/overview/">https://prometheus.io/docs/introduction/overview/</a>.
+</div>
+<div id="ref-sigelman2010dapper" class="csl-entry" role="listitem">
+Sigelman, Benjamin H., Luiz André Barroso, Mike Burrows, et al. 2010. <span>«Dapper, a Large-Scale Distributed Systems Tracing Infrastructure»</span>. <em>Google Technical Report</em>. <a href="https://research.google/pubs/pub36356/">https://research.google/pubs/pub36356/</a>.
+</div>
+</div>
 </section>
 
 </main> <!-- /main -->
