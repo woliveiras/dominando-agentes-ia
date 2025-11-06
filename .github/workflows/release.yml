@@ -33,6 +33,11 @@ jobs:
         with:
           chrome-version: stable
 
+      - name: Verify Chrome installation
+        run: |
+          echo "Chrome path: ${{ steps.setup-chrome.outputs.chrome-path }}"
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
+
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
