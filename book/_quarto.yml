@@ -36,7 +36,6 @@ book:
 bibliography: references.bib
 lang: pt
 
-
 css: styles.css
 
 format:
@@ -45,7 +44,6 @@ format:
       - cosmo
       - brand
   pdf:
-    mermaid-format: png
     documentclass: scrreprt
     keep-tex: false
     include-in-header:

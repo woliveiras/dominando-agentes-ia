@@ -113,32 +113,6 @@ jobs:
               }
           done
 
-      - name: Configure Quarto for CI
-        run: |
-          # Backup do arquivo original
-          cp book/_quarto.yml book/_quarto.yml.bak
-          
-          # Remove a linha mermaid-format para usar o padrão do Quarto
-          sed -i '/mermaid-format: png/d' book/_quarto.yml
-          
-          # Adiciona timeout para Mermaid (evita travamentos)
-          cat >> book/_quarto.yml << 'EOF'
-          
-          # CI-specific settings
-          execute:
-            freeze: false
-            daemon: false
-          
-          format:
-            pdf:
-              mermaid:
-                theme: default
-                timeout: 30000  # 30 segundos por diagrama
-          EOF
-          
-          echo "=== Configuração modificada ==="
-          cat book/_quarto.yml
-
       - name: Test Chrome for Mermaid rendering
         run: |
           echo "=== Testando Chrome ==="
@@ -194,18 +168,8 @@ jobs:
             ls -la book/_book/ 2>/dev/null || echo "Diretório _book não foi criado"
             exit 1
           fi
-          
-          echo "✓ Renderização concluída com sucesso"
 
-      - name: Restore Quarto config
-        if: always()
-        run: |
-          if [ -f book/_quarto.yml.bak ]; then
-            mv book/_quarto.yml.bak book/_quarto.yml
-            echo "✓ Configuração original restaurada"
-          else
-            echo "⚠ Backup da configuração não encontrado, pulando restore"
-          fi
+          echo "✓ Renderização concluída com sucesso"
 
       - name: Verify PDF generation
         run: |
