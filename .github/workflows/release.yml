@@ -110,7 +110,23 @@ jobs:
               }
           done
 
+      - name: Test Chrome for Mermaid rendering
+        run: |
+          echo "=== Testando Chrome ==="
+          CHROME_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
+          $CHROME_PATH --headless --disable-gpu --print-to-pdf=/tmp/test.pdf --no-sandbox about:blank 2>&1 | grep -v "ERROR:dbus" | grep -v "ERROR:object_proxy" || true
+          sleep 2
+          if [ -f "/tmp/test.pdf" ] && [ -s "/tmp/test.pdf" ]; then
+            echo "✓ Chrome funcionando corretamente ($(stat -c%s /tmp/test.pdf) bytes)"
+            rm /tmp/test.pdf
+          else
+            echo "✗ Chrome não conseguiu gerar PDF"
+            ls -la /tmp/test.pdf 2>/dev/null || echo "Arquivo não existe"
+            exit 1
+          fi
+
       - name: Render book to all formats
+        timeout-minutes: 30
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
 
