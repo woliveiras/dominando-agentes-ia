@@ -214,6 +214,12 @@ div.csl-indent {
  <span class="menu-text">Capítulo 3: Fine-Tuning e Otimização</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/04-dominando-llms-pratica.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capítulo 4: Dominando LLMs na Prática</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -343,6 +349,7 @@ config:
 ---
 %%| label: fig-pre-training-flow
 %%| fig-cap: "Fluxo de conhecimento em foundation models: do pré-treinamento para tarefas downstream."
+%%| fig-width: 100%
 graph TD
     Fonte["Fonte"] --&gt; PreTreinamento["Pré-treinamento (upstream)"]
     PreTreinamento --&gt; FineTuning["Fine-tuning"]
@@ -663,7 +670,7 @@ graph TD
 <p>A arquitetura Transformer representa uma grande evolução sobre as arquiteturas sequenciais que a precederam. <em>Recurrent neural networks (RNNs)</em> e suas variantes como <em>Long short-term memory (LSTMs)</em> processam sequências token por token, mantendo um estado oculto que carrega informação contextual. Esta abordagem tem duas limitações críticas: (1) o processamento sequencial impede a paralelização durante o treinamento, tornando o processo extremamente lento para sequências longas, e (2) o estado oculto fixo cria um gargalo de informação, dificultando o aprendizado de dependências de longo alcance.</p>
 <p>O Transformer elimina completamente a recorrência, substituindo-a por um mecanismo de atenção que permite que cada posição na sequência “olhe” para todas as outras posições simultaneamente. Esta mudança não é apenas uma otimização, ela acaba mudando <strong>o que</strong> o modelo pode aprender. Enquanto RNNs têm um viés indutivo sequencial (processam informação left-to-right), Transformers têm um viés indutivo relacional (modelam relações entre quaisquer dois elementos da sequência).</p>
 <p>Para visualizar como os dados fluem através de um Transformer, considere este diagrama simplificado:</p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-transformer-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -697,7 +704,7 @@ Figura&nbsp;1: Dados fluindo através de um modelo Transformer típico.
 </div>
 </div>
 <p>Cada <strong>Transformer Block</strong> é uma unidade completa de processamento que aplica self-attention seguido de transformações feedforward. Internamente, um bloco Transformer individual tem a seguinte estrutura:</p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-transformer-block" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -914,7 +921,7 @@ onde head_i = Attention(QW^Q_i, KW^K_i, VW^V_i)</code></pre>
 <p>Em Multi-Head Attention tradicional, cada head mantém suas próprias matrizes K (Keys) e V (Values) completas. Para um modelo com 32 heads onde cada matriz K e V ocupa 1GB de memória, isso significa <strong>64GB total</strong> apenas para armazenar essas matrizes em uma única camada! Multiplique isso por dezenas de camadas e o consumo de memória se torna proibitivo, especialmente durante inferência quando você precisa manter tudo carregado em memória.</p>
 <p><strong>O Problema Visualizado</strong></p>
 <p>Imagine uma empresa com 32 departamentos (heads). No Multi-Head Attention padrão, cada departamento mantém sua própria cópia completa de um catálogo de produtos (Keys) e um inventário (Values). Mesmo que os catálogos sejam praticamente idênticos, cada departamento armazena sua própria cópia, desperdiçando memória massivamente.</p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-shared-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -940,7 +947,7 @@ Figura&nbsp;3: Metáfora da empresa com departamentos e catálogos compartilhado
 <p><strong>Multi-Query Attention (MQA) - “Um Catálogo Central para Todos”</strong></p>
 <p>Em Multi-Query Attention, a abordagem vai para o extremo oposto: todos os 32 heads compartilham <strong>uma única</strong> matriz K e V. Apenas as Queries (Q) são separadas para cada head. Voltando à metáfora: todos os departamentos consultam o <strong>mesmo catálogo central</strong>.</p>
 <p>O benefício desta abordagem é a redução drástica do uso de memória, em vez de 32GB, você precisa apenas de 1GB para K e V.</p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-central-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -973,7 +980,7 @@ Figura&nbsp;4: Metáfora da empresa com catálogo central compartilhado
 <li>… e assim por diante</li>
 </ul>
 <p>Voltando à metáfora da empresa, em vez de 32 catálogos idênticos (MHA) ou 1 único catálogo para todos (MQA), temos 8 catálogos especializados, cada um compartilhado por 4 departamentos relacionados.</p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-shared-group-kv-metaphor" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">
@@ -1380,7 +1387,7 @@ onde Swish(x) = x·sigmoid(βx)</code></pre>
 <p>Mixture of Experts (MoE) é uma técnica arquitetural que revolucionou a forma como construímos modelos de larga escala eficientes. Em vez de ter uma única FFN grande que processa todos os tokens da mesma forma, MoE usa múltiplas FFNs especializadas (“experts”) e um mecanismo de roteamento que decide quais experts ativar para cada token.</p>
 <p>MoE não é uma ideia nova relacionada aos LLMs. Ela foi introduzida em 1991 por Jacobs et al. <span class="citation" data-cites="jacobs1991adaptive">(<a href="../99-references.html#ref-jacobs1991adaptive" role="doc-biblioref">Jacobs et al. 1991</a>)</span> e popularizada em deep learning por Shazeer et al. <span class="citation" data-cites="shazeer2017outrageously">(<a href="../99-references.html#ref-shazeer2017outrageously" role="doc-biblioref">Shazeer et al. 2017</a>)</span> em 2017 com o paper “Outrageously Large Neural Networks”. Recentemente, MoE tem sido adotada em modelos de linguagem como GLaM <span class="citation" data-cites="du2022glam">(<a href="../99-references.html#ref-du2022glam" role="doc-biblioref">Du et al. 2022</a>)</span> (Google, 1.2T parâmetros), Switch Transformer <span class="citation" data-cites="fedus2022switch">(<a href="../99-references.html#ref-fedus2022switch" role="doc-biblioref">Fedus, Zoph, e Shazeer 2022</a>)</span>, e Mixtral <span class="citation" data-cites="jiang2024mixtral">(<a href="../99-references.html#ref-jiang2024mixtral" role="doc-biblioref">Jiang et al. 2024</a>)</span> (Mistral AI).</p>
 <p><strong>Arquitetura Básica de MoE:</strong></p>
-<div class="cell" data-layout-align="default">
+<div class="cell" data-fig-width="100%" data-layout-align="default">
 <div class="cell-output-display">
 <div id="fig-moe-flow" class="quarto-float quarto-figure quarto-figure-center anchored">
 <figure class="quarto-float quarto-float-fig figure">

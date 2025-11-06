@@ -211,6 +211,12 @@ div.csl-indent {
  <span class="menu-text">Capítulo 3: Fine-Tuning e Otimização</span></a>
   </div>
 </li>
+          <li class="sidebar-item">
+  <div class="sidebar-item-container"> 
+  <a href="../../chapters/part-01/04-dominando-llms-pratica.html" class="sidebar-item-text sidebar-link">
+ <span class="menu-text">Capítulo 4: Dominando LLMs na Prática</span></a>
+  </div>
+</li>
       </ul>
   </li>
         <li class="sidebar-item">
@@ -234,6 +240,13 @@ div.csl-indent {
   <li><a href="#o-paradigma-de-pré-treinamento" id="toc-o-paradigma-de-pré-treinamento" class="nav-link" data-scroll-target="#o-paradigma-de-pré-treinamento">O Paradigma de Pré-Treinamento</a></li>
   <li><a href="#dados-de-pré-treinamento-a-matéria-prima-da-inteligência" id="toc-dados-de-pré-treinamento-a-matéria-prima-da-inteligência" class="nav-link" data-scroll-target="#dados-de-pré-treinamento-a-matéria-prima-da-inteligência">Dados de Pré-Treinamento: A Matéria-Prima da Inteligência</a></li>
   <li><a href="#tokenização-a-camada-crítica-entre-texto-e-modelo" id="toc-tokenização-a-camada-crítica-entre-texto-e-modelo" class="nav-link" data-scroll-target="#tokenização-a-camada-crítica-entre-texto-e-modelo">Tokenização: A Camada Crítica Entre Texto e Modelo</a></li>
+  </ul></li>
+  <li><a href="#representações-contextualizadas-o-que-está-dentro-dos-vetores" id="toc-representações-contextualizadas-o-que-está-dentro-dos-vetores" class="nav-link" data-scroll-target="#representações-contextualizadas-o-que-está-dentro-dos-vetores">Representações Contextualizadas: O que Está Dentro dos Vetores</a></li>
+  <li><a href="#capacidades-emergentes-além-do-treinamento" id="toc-capacidades-emergentes-além-do-treinamento" class="nav-link" data-scroll-target="#capacidades-emergentes-além-do-treinamento">Capacidades Emergentes: Além do Treinamento</a>
+  <ul class="collapse">
+  <li><a href="#in-context-learning-icl" id="toc-in-context-learning-icl" class="nav-link" data-scroll-target="#in-context-learning-icl">In-Context Learning (ICL)</a></li>
+  <li><a href="#chain-of-thought-reasoning-cot" id="toc-chain-of-thought-reasoning-cot" class="nav-link" data-scroll-target="#chain-of-thought-reasoning-cot">Chain-of-Thought Reasoning (CoT)</a></li>
+  <li><a href="#instruction-following" id="toc-instruction-following" class="nav-link" data-scroll-target="#instruction-following">Instruction Following</a></li>
   </ul></li>
   <li><a href="#exercícios-práticos" id="toc-exercícios-práticos" class="nav-link" data-scroll-target="#exercícios-práticos">Exercícios Práticos</a>
   <ul class="collapse">
@@ -1611,6 +1624,245 @@ Iteração 5: ('n', 'e') → 'ne'
 </section>
 </section>
 </section>
+<section id="representações-contextualizadas-o-que-está-dentro-dos-vetores" class="level2">
+<h2 class="anchored" data-anchor-id="representações-contextualizadas-o-que-está-dentro-dos-vetores">Representações Contextualizadas: O que Está Dentro dos Vetores</h2>
+<p><strong>Da Ambiguidade à Precisão Semântica</strong></p>
+<p>Um dos avanços dos Transformers em relação a word embeddings estáticos (como word2vec e GloVe) é que eles produzem <strong>representações contextualizadas</strong>. <em>Embeddings</em> estáticos atribuem um único vetor fixo para cada palavra, independente do contexto, “bank” sempre tem a mesma representação, seja “bank of the river” (margem) ou “bank is closed” (banco financeiro).</p>
+<p>Transformers resolvem isso computando representações dinamicamente para cada ocorrência:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Word2Vec (estático)</span></span>
+<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a><span class="co">"The bank of the river"</span> <span class="op">-&gt;</span> bank <span class="op">=</span> [<span class="fl">0.2</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.8</span>, ...]  <span class="co"># sempre igual</span></span>
+<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="co">"The bank is closed"</span>    <span class="op">-&gt;</span> bank <span class="op">=</span> [<span class="fl">0.2</span>, <span class="op">-</span><span class="fl">0.5</span>, <span class="fl">0.8</span>, ...]  <span class="co"># sempre igual</span></span>
+<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Transformer (contextualizado)</span></span>
+<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="co">"The bank of the river"</span> <span class="op">-&gt;</span> bank₁ <span class="op">=</span> [<span class="fl">0.1</span>, <span class="op">-</span><span class="fl">0.3</span>, <span class="fl">0.9</span>, ...]  <span class="co"># "margem"</span></span>
+<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a><span class="co">"The bank is closed"</span>    <span class="op">-&gt;</span> bank₂ <span class="op">=</span> [<span class="fl">0.8</span>,  <span class="fl">0.5</span>, <span class="op">-</span><span class="fl">0.2</span>, ...] <span class="co"># "banco financeiro"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>A distância vetorial entre <code>bank₁</code> e <code>bank₂</code> pode ser maior que a distância entre <code>bank₁</code> e <code>river</code>, refletindo que “bank (margem)” está semanticamente mais próximo de “river” que de “bank (banco)”.</p>
+<p>Estas representações contextualizadas capturam múltiplos níveis de informação linguística simultaneamente:</p>
+<ol type="1">
+<li><strong>Informação Sintática</strong>: Parte do discurso (substantivo, verbo), estrutura gramatical, relações de dependência</li>
+<li><strong>Informação Semântica</strong>: Significado da palavra, relações semânticas (sinonímia, antonímia, hiperonímia)</li>
+<li><strong>Informação Contextual</strong>: Significado específico derivado do contexto imediato (desambiguação)</li>
+<li><strong>Conhecimento Factual</strong>: Propriedades e fatos sobre entidades (“Paris é capital da França”)</li>
+</ol>
+<p>Pesquisas em interpretabilidade revelaram que diferentes camadas de um Transformer se especializam em diferentes tipos de informação <span class="citation" data-cites="rogers2020primer tenney2019bert">(<a href="../99-references.html#ref-rogers2020primer" role="doc-biblioref">Rogers, Kovaleva, e Rumshisky 2020</a>; <a href="../99-references.html#ref-tenney2019bert" role="doc-biblioref">Tenney, Das, e Pavlick 2019</a>)</span>, formando uma hierarquia de representações. Isso pode ser visualizado da seguinte forma:</p>
+<ul>
+<li><p><strong>Camadas Iniciais (1-4)</strong>: Informação <strong>sintática e superficial</strong></p>
+<ul>
+<li>Part-of-speech tagging (~95% accuracy na camada 2)</li>
+<li>Segmentação de constituintes sintáticos</li>
+<li>Detecção de pontuação e capitalização</li>
+</ul></li>
+<li><p><strong>Camadas Intermediárias (5-8)</strong>: Informação <strong>semântica e factual</strong></p>
+<ul>
+<li>Desambiguação de sentido de palavras (word sense disambiguation)</li>
+<li>Relações semânticas entre palavras</li>
+<li>Conhecimento factual básico (entidades, relações)</li>
+</ul></li>
+<li><p><strong>Camadas Finais (9-12+)</strong>: Informação <strong>task-specific e abstrata</strong></p>
+<ul>
+<li>Representações otimizadas para a tarefa de predição</li>
+<li>Raciocínio mais complexo e inferências</li>
+<li>Composição semântica de alta ordem</li>
+</ul></li>
+</ul>
+<p>Esta estrutura hierárquica é análoga a como CNNs (redes neurais convolucionais) aprendem features visuais:</p>
+<ul>
+<li>Camadas iniciais: Detectam edges, texturas básicas</li>
+<li>Camadas intermediárias: Detectam partes de objetos (olhos, rodas)</li>
+<li>Camadas finais: Detectam objetos completos e cenas complexas</li>
+</ul>
+<p>Isso tem uma implicação prática: se você está fazendo fine-tuning, muitas vezes vale congelar as camadas iniciais (que aprendem linguagem geral) e treinar apenas as finais (task-specific). Isso reduz drasticamente o custo computacional e dados necessários. Veremos isso em detalhes no próximo capítulo.</p>
+</section>
+<section id="capacidades-emergentes-além-do-treinamento" class="level2">
+<h2 class="anchored" data-anchor-id="capacidades-emergentes-além-do-treinamento">Capacidades Emergentes: Além do Treinamento</h2>
+<p><strong>O Fenômeno da Emergência</strong></p>
+<p>Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a <strong>emergência de capacidades que não foram explicitamente treinadas</strong> <span class="citation" data-cites="wei2022emergent">(<a href="../99-references.html#ref-wei2022emergent" role="doc-biblioref">Wei, Tay, et al. 2022</a>)</span>. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, <strong>mesmo treinados nos mesmos dados</strong>.</p>
+<p>Isso não é apenas “fazer a mesma coisa melhor”, é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas “mais quente ou mais fria”, é qualitativamente diferente (líquido vs.&nbsp;vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em “qualidade”, mas em <strong>quais tarefas conseguem realizar</strong>.</p>
+<p>Entre as capacidades emergentes mais documentadas na literatura, destacam-se: <strong>In-Context Learning</strong> (aprender de exemplos no prompt sem atualizar pesos), <strong>Chain-of-Thought Reasoning</strong> (raciocínio passo-a-passo explícito), e <strong>Instruction Following</strong> (seguir instruções complexas em linguagem natural). Existem outras capacidades emergentes importantes como raciocínio multi-hop, aritmética complexa, e decomposição de tarefas, mas focaremos nas três primeiras por sua relevância direta para construção de agentes de IA.</p>
+<section id="in-context-learning-icl" class="level3">
+<h3 class="anchored" data-anchor-id="in-context-learning-icl">In-Context Learning (ICL)</h3>
+<p>ICL consiste na capacidade do modelo aprender novas tarefas a partir de poucos exemplos no próprio prompt, <strong>sem atualizar pesos</strong> <span class="citation" data-cites="brown2020language">(<a href="../99-references.html#ref-brown2020language" role="doc-biblioref">Brown et al. 2020</a>)</span>. Isso é surpreendente porque o modelo foi treinado apenas para prever o próximo token, mas consegue “aprender” a partir de exemplos fornecidos no contexto.</p>
+<p>Exemplo:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Prompt com 3 exemplos de tradução</span></span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="st">Traduza inglês para francês:</span></span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="st">English: Hello</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="st">French: Bonjour</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="st">English: Good morning</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="st">French: Bonjour</span></span>
+<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="st">English: Thank you</span></span>
+<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a><span class="st">French: Merci</span></span>
+<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="st">English: How are you?</span></span>
+<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a><span class="st">French:"""</span></span>
+<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo "aprende" o padrão e completa corretamente</span></span>
+<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> <span class="st">"Comment allez-vous?"</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Isso é surpreendente porque, durante o treinamento, o modelo nunca viu a tarefa de “seguir um padrão de poucos exemplos”. Ele só foi treinado para prever o próximo token. Mas de alguma forma, essa capacidade de <em>meta-aprendizado</em> emerge em modelos maiores.</p>
+<p><strong>Variantes de ICL</strong>:</p>
+<ul>
+<li><strong>Zero-shot</strong>: Nenhum exemplo, apenas a instrução (“Traduza para francês: Hello”)</li>
+<li><strong>Few-shot</strong>: Poucos exemplos (1-10) antes da tarefa real</li>
+<li><strong>Many-shot</strong>: Muitos exemplos (10-100+) para tarefas complexas</li>
+</ul>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Few-shot ICL: Classificação de sentimento</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="st">Classifique o sentimento:</span></span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="st">Texto: "Esse filme é incrível!" → Positivo</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a><span class="st">Texto: "Péssimo atendimento." → Negativo</span></span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="st">Texto: "Adorei essa experiência!" → """</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> <span class="st">"Positivo"</span>  <span class="co"># Modelo generaliza o padrão</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="chain-of-thought-reasoning-cot" class="level3">
+<h3 class="anchored" data-anchor-id="chain-of-thought-reasoning-cot">Chain-of-Thought Reasoning (CoT)</h3>
+<p>CoT consiste na capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito <span class="citation" data-cites="wei2022chain">(<a href="../99-references.html#ref-wei2022chain" role="doc-biblioref">Wei, Wang, et al. 2022</a>)</span>. Esta é uma das descobertas mais impactantes para construção de agentes de IA, pois permite decompor problemas complexos em etapas <strong>verificáveis</strong> (o que é muito importante para conseguirmos debugar erros em produção).</p>
+<p><strong>O Problema do Raciocínio em LLMs</strong></p>
+<p>LLMs são treinados para prever o próximo token diretamente. Para problemas simples isso funciona:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb41"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co">"2 + 2 ="</span> → <span class="st">"4"</span>  <span class="co"># Resposta memorizada</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente falha:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb42"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Sem CoT (falha)</span></span>
+<span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?"</span></span>
+<span id="cb42-3"><a href="#cb42-3" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> <span class="st">"8"</span>  <span class="co"># ERRADO (deveria ser 11)</span></span>
+<span id="cb42-4"><a href="#cb42-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb42-5"><a href="#cb42-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Por que falhou? O modelo tentou "pular" para a resposta sem raciocinar:</span></span>
+<span id="cb42-6"><a href="#cb42-6" aria-hidden="true" tabindex="-1"></a><span class="co"># 5 bolas + 2 latas = 7? ou 5 + 3 = 8? Sem espaço para trabalhar, o modelo chuta.</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Veja os exemplos a seguir: na primeira imagem, eu usei um modelo pequeno, o <a href="https://ollama.com/library/gemma3:270m-it-fp16">gemma3:270m-it-fp16</a>, que não tem capacidade de raciocínio avançado. Na segunda imagem, usei o <a href="https://ollama.com/library/gpt-oss:20b">gpt-oss:20b</a>, que é capaz de raciocinar passo a passo.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./images/cot-fail-small.png" class="img-fluid figure-img"></p>
+<figcaption>Exemplo de falha de raciocínio em modelo pequeno. A resposta do modelo foi “Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada, então ele compra (2 = 6) bolas. Hoje ele tem (5 - 6 = -1) bolas.”</figcaption>
+</figure>
+</div>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="./images/cot-success-large.png" class="img-fluid figure-img"></p>
+<figcaption>Exemplo de raciocínio passo a passo em modelo grande. A resposta do modelo foi “Roger tem 5 bolas de tênis. Ele compra 2 latas, e cada lata contém 3 bolas. Quantidade comprada: (2 = 6) bolas. Total agora: (5 + 6 = 11) bolas. <strong>Resposta:</strong> 11 bolas de tênis.”</figcaption>
+</figure>
+</div>
+<p>Chain-of-Thought força o modelo a “mostrar o trabalho”, criando espaço no contexto para raciocínio intermediário:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb43"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Com CoT (sucesso)</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a><span class="st">Vamos pensar passo a passo:</span></span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a><span class="st">1. Roger começa com 5 bolas</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a><span class="st">2. Ele compra 2 latas</span></span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a><span class="st">3. Cada lata tem 3 bolas, então 2 × 3 = 6 bolas</span></span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a><span class="st">4. Total: 5 + 6 = 11 bolas</span></span>
+<span id="cb43-8"><a href="#cb43-8" aria-hidden="true" tabindex="-1"></a><span class="st">Resposta: 11"""</span></span>
+<span id="cb43-9"><a href="#cb43-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb43-10"><a href="#cb43-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Agora o modelo tem "espaço de trabalho" para raciocinar corretamente!</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>No exemplo com o gpt-oss:20b, podemos ver o raciocínio do modelo:</p>
+<blockquote class="blockquote">
+<p>The user writes in Portuguese: “Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?” So the problem: Roger has 5 tennis balls, buys 2 cans of 3 balls each. So 2 * 3 = 6. 5 + 6 = 11. So answer: 11 balls. Should respond in Portuguese: “Ele tem 11 bolas de tênis agora.” Should explain steps. That is straightforward.</p>
+</blockquote>
+<p>Perceba que o modelo ainda traduziu a pergunta para inglês internamente, fez o raciocínio, e depois respondeu em português. Isso mostra que o modelo está realmente “entendendo” o problema e aplicando raciocínio.</p>
+<p><strong>A Descoberta do Prompt “Mágico”</strong></p>
+<p><span class="citation" data-cites="wei2022chain">Wei, Wang, et al. (<a href="../99-references.html#ref-wei2022chain" role="doc-biblioref">2022</a>)</span> descobriram que simplesmente adicionar <strong>“Vamos pensar passo a passo”</strong> ou <strong>“Let’s think step by step”</strong> ao prompt melhora a performance em tarefas de raciocínio em modelos grandes:</p>
+<ul>
+<li><strong>GSM8K (math problems)</strong>: +35% de acurácia (de ~17% para ~52% em PaLM 540B)<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a></li>
+<li><strong>SVAMP (arithmetic word problems)</strong>: +28% de acurácia (de ~64% para ~92% em PaLM 540B)<a href="#fn2" class="footnote-ref" id="fnref2" role="doc-noteref"><sup>2</sup></a></li>
+<li><strong>StrategyQA (commonsense reasoning)</strong>: +17% de acurácia</li>
+<li><strong>AQuA (algebra)</strong>: +40% de acurácia</li>
+</ul>
+<p>Temos duas hipóteses principais para explicar por que CoT funciona assim tão bem:</p>
+<ol type="1">
+<li><strong>Espaço de Trabalho Intermediário</strong>: CoT cria tokens intermediários onde o modelo pode “pensar”. Sem isso, o modelo precisa comprimir todo o raciocínio em uma única predição de token.</li>
+<li><strong>Padrão de Treinamento</strong>: Dados de treinamento incluem muitos exemplos de raciocínio passo-a-passo (tutoriais, explicações, provas matemáticas). CoT ativa esse padrão aprendido.</li>
+</ol>
+<p><strong>Variantes de CoT</strong></p>
+<p>Temos algumas formas diferentes de aplicar CoT, como Zero-Shot CoT, Few-Shot CoT, e Self-Consistency.</p>
+<p><strong>Zero-Shot CoT</strong>: Apenas adicionar “Let’s think step by step” sem exemplos:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb44"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"Q: [problema]</span><span class="ch">\n</span><span class="st">A: Let's think step by step."</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Few-Shot CoT</strong>: Fornecer exemplos de raciocínio antes do problema:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb45"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb45-1"><a href="#cb45-1" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb45-2"><a href="#cb45-2" aria-hidden="true" tabindex="-1"></a><span class="st">Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas tem?</span></span>
+<span id="cb45-3"><a href="#cb45-3" aria-hidden="true" tabindex="-1"></a><span class="st">A: Tom começa com 3. Ele compra 2. 3 + 2 = 5. Resposta: 5.</span></span>
+<span id="cb45-4"><a href="#cb45-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-5"><a href="#cb45-5" aria-hidden="true" tabindex="-1"></a><span class="st">Q: Sarah tem 10 balas. Ela come 3. Quantas sobram?</span></span>
+<span id="cb45-6"><a href="#cb45-6" aria-hidden="true" tabindex="-1"></a><span class="st">A: Sarah começa com 10. Ela come 3. 10 - 3 = 7. Resposta: 7.</span></span>
+<span id="cb45-7"><a href="#cb45-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb45-8"><a href="#cb45-8" aria-hidden="true" tabindex="-1"></a><span class="st">Q: [seu problema]</span></span>
+<span id="cb45-9"><a href="#cb45-9" aria-hidden="true" tabindex="-1"></a><span class="st">A:</span></span>
+<span id="cb45-10"><a href="#cb45-10" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p><strong>Self-Consistency</strong>: Gerar múltiplas cadeias de raciocínio e usar voting majoritário:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb46"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Gera 5 respostas diferentes com CoT</span></span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>outputs <span class="op">=</span> [</span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"11"</span>,  <span class="co"># caminho de raciocínio 1</span></span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"11"</span>,  <span class="co"># caminho de raciocínio 2</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"12"</span>,  <span class="co"># caminho de raciocínio 3 (erro)</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"11"</span>,  <span class="co"># caminho de raciocínio 4</span></span>
+<span id="cb46-7"><a href="#cb46-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"11"</span>   <span class="co"># caminho de raciocínio 5</span></span>
+<span id="cb46-8"><a href="#cb46-8" aria-hidden="true" tabindex="-1"></a>]</span>
+<span id="cb46-9"><a href="#cb46-9" aria-hidden="true" tabindex="-1"></a>final_answer <span class="op">=</span> mode(outputs)  <span class="co"># 11 (maioria)</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Self-consistency adiciona mais ~10-20% de acurácia em problemas difíceis, mas custa 5-10× mais tokens.</p>
+<p>CoT tem algumas limitações importantes, que precisamos considerar ao aplicá-lo em nossos agentes:</p>
+<ol type="1">
+<li><strong>Não funciona para modelos muito pequenos</strong>: Requer pelo menos ~10B parâmetros para emergir de forma confiável</li>
+<li><strong>Pode inventar passos plausíveis mas incorretos</strong>: O modelo pode “alucinar” raciocínio que parece correto mas contém erros lógicos</li>
+<li><strong>Custo aumentado</strong>: Cada problema gera 50-200 tokens a mais de raciocínio intermediário</li>
+<li><strong>Não garante correção</strong>: CoT melhora significativamente, mas não resolve 100% dos problemas</li>
+</ol>
+<p><strong>Implicação para Agentes</strong></p>
+<p>CoT é fundamental para agentes de IA porque:</p>
+<ul>
+<li>Permite decomposição de tarefas complexas</li>
+<li>Torna o raciocínio <strong>inspecionável</strong> e <strong>debugável</strong></li>
+<li>Possibilita validação de etapas intermediárias</li>
+<li>Habilita correção de curso durante execução</li>
+<li>Possibilita guardar log de raciocínio para auditoria</li>
+</ul>
+<p>Veremos isso extensivamente quando implementarmos agentes nos próximos capítulos.</p>
+</section>
+<section id="instruction-following" class="level3">
+<h3 class="anchored" data-anchor-id="instruction-following">Instruction Following</h3>
+<p><em>Instruction Following</em> é a capacidade de seguir instruções complexas expressas em linguagem natural, incluindo instruções multi-etapa, condicionais e restrições. Embora os modelos sejam treinados apenas para prever o próximo token, modelos maiores aprendem a interpretar e executar instruções detalhadas.</p>
+<p>Vamos ver um exemplo para ilustrar:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb47"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb47-1"><a href="#cb47-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instrução simples</span></span>
+<span id="cb47-2"><a href="#cb47-2" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"Resuma o seguinte texto em 3 frases: [texto...]"</span></span>
+<span id="cb47-3"><a href="#cb47-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo executa diretamente</span></span>
+<span id="cb47-4"><a href="#cb47-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-5"><a href="#cb47-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Instrução multi-etapa com condicionais</span></span>
+<span id="cb47-6"><a href="#cb47-6" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb47-7"><a href="#cb47-7" aria-hidden="true" tabindex="-1"></a><span class="st">Analise o seguinte código Python:</span></span>
+<span id="cb47-8"><a href="#cb47-8" aria-hidden="true" tabindex="-1"></a><span class="st">1. Se houver problemas de segurança, liste-os com severidade (alta/média/baixa)</span></span>
+<span id="cb47-9"><a href="#cb47-9" aria-hidden="true" tabindex="-1"></a><span class="st">2. Se houver code smells, sugira refatorações específicas</span></span>
+<span id="cb47-10"><a href="#cb47-10" aria-hidden="true" tabindex="-1"></a><span class="st">3. Se o código estiver correto, apenas diga "Código aprovado"</span></span>
+<span id="cb47-11"><a href="#cb47-11" aria-hidden="true" tabindex="-1"></a><span class="st">4. Sempre termine com uma nota de 0-10 para qualidade geral</span></span>
+<span id="cb47-12"><a href="#cb47-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-13"><a href="#cb47-13" aria-hidden="true" tabindex="-1"></a><span class="st">Código:</span></span>
+<span id="cb47-14"><a href="#cb47-14" aria-hidden="true" tabindex="-1"></a><span class="st">def authenticate(username, password):</span></span>
+<span id="cb47-15"><a href="#cb47-15" aria-hidden="true" tabindex="-1"></a><span class="st">    query = f"SELECT * FROM users WHERE user='</span><span class="sc">{username}</span><span class="st">' AND pass='</span><span class="sc">{password}</span><span class="st">'"</span></span>
+<span id="cb47-16"><a href="#cb47-16" aria-hidden="true" tabindex="-1"></a><span class="st">    return db.execute(query)</span></span>
+<span id="cb47-17"><a href="#cb47-17" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb47-18"><a href="#cb47-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-19"><a href="#cb47-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Modelo segue cada etapa na ordem, aplicando condicionais:</span></span>
+<span id="cb47-20"><a href="#cb47-20" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb47-21"><a href="#cb47-21" aria-hidden="true" tabindex="-1"></a><span class="st">1. Problemas de Segurança (ALTA):</span></span>
+<span id="cb47-22"><a href="#cb47-22" aria-hidden="true" tabindex="-1"></a><span class="st">   - SQL Injection: Query concatena strings diretamente sem sanitização</span></span>
+<span id="cb47-23"><a href="#cb47-23" aria-hidden="true" tabindex="-1"></a><span class="st">   - Senha armazenada em texto plano (assume-se pelo código)</span></span>
+<span id="cb47-24"><a href="#cb47-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-25"><a href="#cb47-25" aria-hidden="true" tabindex="-1"></a><span class="st">2. Refatorações Sugeridas:</span></span>
+<span id="cb47-26"><a href="#cb47-26" aria-hidden="true" tabindex="-1"></a><span class="st">   - Use prepared statements/parameterized queries</span></span>
+<span id="cb47-27"><a href="#cb47-27" aria-hidden="true" tabindex="-1"></a><span class="st">   - Hash senhas com bcrypt ou argon2</span></span>
+<span id="cb47-28"><a href="#cb47-28" aria-hidden="true" tabindex="-1"></a><span class="st">   - Implemente rate limiting contra brute force</span></span>
+<span id="cb47-29"><a href="#cb47-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-30"><a href="#cb47-30" aria-hidden="true" tabindex="-1"></a><span class="st">3. (Não aplicável - código tem problemas críticos)</span></span>
+<span id="cb47-31"><a href="#cb47-31" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb47-32"><a href="#cb47-32" aria-hidden="true" tabindex="-1"></a><span class="st">4. Nota: 2/10 - Vulnerabilidades críticas de segurança</span></span>
+<span id="cb47-33"><a href="#cb47-33" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<p>O que torna isso notável é o fato de que o modelo não foi treinado em “siga instruções multi-etapa com condicionais”. Ele foi treinado apenas em next-token prediction. Mas aprendeu a:</p>
+<ul>
+<li>Decompor instruções complexas em sub-tarefas</li>
+<li>Executar condicionais (“se X então Y, senão Z”)</li>
+<li>Manter contexto e estado entre etapas</li>
+<li>Formatar saída conforme especificado</li>
+</ul>
+<p>Estas capacidades parecem “emergir” quando os modelos atingem certa escala. A hipótese predominante é que elas surgem de generalização de padrões vistos durante o pré-treinamento, mas a ciência exata ainda não é totalmente compreendida.</p>
+<p>Para engenheiros, a implicação prática é que modelos maiores não são apenas “modelos que fazem as mesmas coisas melhor”, eles podem ter capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o <em>fine-tune</em>.</p>
+</section>
+</section>
 <section id="exercícios-práticos" class="level2">
 <h2 class="anchored" data-anchor-id="exercícios-práticos">Exercícios Práticos</h2>
 <p>Agora que você compreende como foundation models são treinados, tokenização e dados de pré-treinamento, vamos aplicar esse conhecimento na prática.</p>
@@ -1618,121 +1870,121 @@ Iteração 5: ('n', 'e') → 'ne'
 <h3 class="anchored" data-anchor-id="exercício-1-análise-de-eficiência-de-tokenização">Exercício 1: Análise de Eficiência de Tokenização</h3>
 <p><strong>Objetivo:</strong> Entender o impacto da tokenização em diferentes idiomas e calcular custos de API.</p>
 <p><strong>Passo a Passo:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb38"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb38-1"><a href="#cb38-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação necessária: pip install tiktoken transformers</span></span>
-<span id="cb38-2"><a href="#cb38-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-3"><a href="#cb38-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tiktoken</span>
-<span id="cb38-4"><a href="#cb38-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-5"><a href="#cb38-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar tokenizer GPT-4</span></span>
-<span id="cb38-6"><a href="#cb38-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
-<span id="cb38-7"><a href="#cb38-7" aria-hidden="true" tabindex="-1"></a>    enc <span class="op">=</span> tiktoken.encoding_for_model(<span class="st">"gpt-4"</span>)</span>
-<span id="cb38-8"><a href="#cb38-8" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">KeyError</span>:</span>
-<span id="cb38-9"><a href="#cb38-9" aria-hidden="true" tabindex="-1"></a>    enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"cl100k_base"</span>)</span>
-<span id="cb38-10"><a href="#cb38-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-11"><a href="#cb38-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyze_tokenization(text, language):</span>
-<span id="cb38-12"><a href="#cb38-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Analisa eficiência de tokenização para um texto"""</span></span>
-<span id="cb38-13"><a href="#cb38-13" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> enc.encode(text)</span>
-<span id="cb38-14"><a href="#cb38-14" aria-hidden="true" tabindex="-1"></a>    token_count <span class="op">=</span> <span class="bu">len</span>(tokens)</span>
-<span id="cb38-15"><a href="#cb38-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-16"><a href="#cb38-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-17"><a href="#cb38-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Idioma: </span><span class="sc">{</span>language<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-18"><a href="#cb38-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-19"><a href="#cb38-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Texto original: </span><span class="sc">{</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-20"><a href="#cb38-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Número de tokens: </span><span class="sc">{</span>token_count<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-21"><a href="#cb38-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Caracteres: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-22"><a href="#cb38-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Razão caracteres/token: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="op">/</span>token_count<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
-<span id="cb38-23"><a href="#cb38-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-24"><a href="#cb38-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Visualizar tokens</span></span>
-<span id="cb38-25"><a href="#cb38-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Tokens decodificados:"</span>)</span>
-<span id="cb38-26"><a href="#cb38-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, token <span class="kw">in</span> <span class="bu">enumerate</span>(tokens[:<span class="dv">10</span>]):  <span class="co"># Mostrar apenas primeiros 10</span></span>
-<span id="cb38-27"><a href="#cb38-27" aria-hidden="true" tabindex="-1"></a>        decoded <span class="op">=</span> enc.decode([token])</span>
-<span id="cb38-28"><a href="#cb38-28" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Token </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">: '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">' (ID: </span><span class="sc">{</span>token<span class="sc">}</span><span class="ss">)"</span>)</span>
-<span id="cb38-29"><a href="#cb38-29" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-30"><a href="#cb38-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(tokens) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
-<span id="cb38-31"><a href="#cb38-31" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  ... e mais </span><span class="sc">{</span><span class="bu">len</span>(tokens) <span class="op">-</span> <span class="dv">10</span><span class="sc">}</span><span class="ss"> tokens"</span>)</span>
-<span id="cb38-32"><a href="#cb38-32" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-33"><a href="#cb38-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> token_count</span>
-<span id="cb38-34"><a href="#cb38-34" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-35"><a href="#cb38-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 1: Comparar eficiência entre idiomas</span></span>
-<span id="cb38-36"><a href="#cb38-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🔍 TESTE 1: Eficiência Multilíngue</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb38-37"><a href="#cb38-37" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-38"><a href="#cb38-38" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> {</span>
-<span id="cb38-39"><a href="#cb38-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Inglês"</span>: <span class="st">"The quick brown fox jumps over the lazy dog. Machine learning models require large datasets."</span>,</span>
-<span id="cb38-40"><a href="#cb38-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Português"</span>: <span class="st">"A rápida raposa marrom pula sobre o cachorro preguiçoso. Modelos de aprendizado de máquina requerem grandes conjuntos de dados."</span>,</span>
-<span id="cb38-41"><a href="#cb38-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Japonês"</span>: <span class="st">"素早い茶色の狐が怠け者の犬を飛び越える。機械学習モデルは大規模なデータセットを必要とする。"</span>,</span>
-<span id="cb38-42"><a href="#cb38-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Espanhol"</span>: <span class="st">"El rápido zorro marrón salta sobre el perro perezoso. Los modelos de aprendizaje automático requieren grandes conjuntos de datos."</span></span>
-<span id="cb38-43"><a href="#cb38-43" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb38-44"><a href="#cb38-44" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-45"><a href="#cb38-45" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> {}</span>
-<span id="cb38-46"><a href="#cb38-46" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lang, text <span class="kw">in</span> texts.items():</span>
-<span id="cb38-47"><a href="#cb38-47" aria-hidden="true" tabindex="-1"></a>    results[lang] <span class="op">=</span> analyze_tokenization(text, lang)</span>
-<span id="cb38-48"><a href="#cb38-48" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-49"><a href="#cb38-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação</span></span>
-<span id="cb38-50"><a href="#cb38-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-51"><a href="#cb38-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 COMPARAÇÃO DE EFICIÊNCIA"</span>)</span>
-<span id="cb38-52"><a href="#cb38-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-53"><a href="#cb38-53" aria-hidden="true" tabindex="-1"></a>baseline <span class="op">=</span> results[<span class="st">"Inglês"</span>]</span>
-<span id="cb38-54"><a href="#cb38-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lang, count <span class="kw">in</span> results.items():</span>
-<span id="cb38-55"><a href="#cb38-55" aria-hidden="true" tabindex="-1"></a>    efficiency <span class="op">=</span> (count <span class="op">/</span> baseline) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb38-56"><a href="#cb38-56" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>lang<span class="sc">:12}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:4}</span><span class="ss"> tokens (</span><span class="sc">{</span>efficiency<span class="sc">:6.1f}</span><span class="ss">% vs Inglês)"</span>)</span>
-<span id="cb38-57"><a href="#cb38-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-58"><a href="#cb38-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 2: Estimar custos de API</span></span>
-<span id="cb38-59"><a href="#cb38-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\n</span><span class="st">💰 TESTE 2: Estimativa de Custos de API</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb38-60"><a href="#cb38-60" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-61"><a href="#cb38-61" aria-hidden="true" tabindex="-1"></a><span class="co"># Preços típicos (valores aproximados em USD por 1K tokens)</span></span>
-<span id="cb38-62"><a href="#cb38-62" aria-hidden="true" tabindex="-1"></a>pricing <span class="op">=</span> {</span>
-<span id="cb38-63"><a href="#cb38-63" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-4 Turbo"</span>: {<span class="st">"input"</span>: <span class="fl">0.01</span>, <span class="st">"output"</span>: <span class="fl">0.03</span>},</span>
-<span id="cb38-64"><a href="#cb38-64" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-3.5 Turbo"</span>: {<span class="st">"input"</span>: <span class="fl">0.0005</span>, <span class="st">"output"</span>: <span class="fl">0.0015</span>},</span>
-<span id="cb38-65"><a href="#cb38-65" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Claude 3 Opus"</span>: {<span class="st">"input"</span>: <span class="fl">0.015</span>, <span class="st">"output"</span>: <span class="fl">0.075</span>},</span>
-<span id="cb38-66"><a href="#cb38-66" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Claude 3 Haiku"</span>: {<span class="st">"input"</span>: <span class="fl">0.00025</span>, <span class="st">"output"</span>: <span class="fl">0.00125</span>}</span>
-<span id="cb38-67"><a href="#cb38-67" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb38-68"><a href="#cb38-68" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-69"><a href="#cb38-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Simular prompt típico</span></span>
-<span id="cb38-70"><a href="#cb38-70" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> texts[<span class="st">"Português"</span>]</span>
-<span id="cb38-71"><a href="#cb38-71" aria-hidden="true" tabindex="-1"></a>expected_output_tokens <span class="op">=</span> <span class="dv">200</span>  <span class="co"># Resposta esperada</span></span>
-<span id="cb38-72"><a href="#cb38-72" aria-hidden="true" tabindex="-1"></a>input_tokens <span class="op">=</span> results[<span class="st">"Português"</span>]</span>
-<span id="cb38-73"><a href="#cb38-73" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-74"><a href="#cb38-74" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt: '</span><span class="sc">{</span>prompt[:<span class="dv">50</span>]<span class="sc">}</span><span class="ss">...'"</span>)</span>
-<span id="cb38-75"><a href="#cb38-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens de input: </span><span class="sc">{</span>input_tokens<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-76"><a href="#cb38-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens de output estimados: </span><span class="sc">{</span>expected_output_tokens<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb38-77"><a href="#cb38-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Custos estimados por requisição:</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb38-78"><a href="#cb38-78" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-79"><a href="#cb38-79" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model, prices <span class="kw">in</span> pricing.items():</span>
-<span id="cb38-80"><a href="#cb38-80" aria-hidden="true" tabindex="-1"></a>    input_cost <span class="op">=</span> (input_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> prices[<span class="st">"input"</span>]</span>
-<span id="cb38-81"><a href="#cb38-81" aria-hidden="true" tabindex="-1"></a>    output_cost <span class="op">=</span> (expected_output_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> prices[<span class="st">"output"</span>]</span>
-<span id="cb38-82"><a href="#cb38-82" aria-hidden="true" tabindex="-1"></a>    total_cost <span class="op">=</span> input_cost <span class="op">+</span> output_cost</span>
-<span id="cb38-83"><a href="#cb38-83" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>model<span class="sc">:20}</span><span class="ss"> $</span><span class="sc">{</span>total_cost<span class="sc">:.6f}</span><span class="ss"> (input: $</span><span class="sc">{</span>input_cost<span class="sc">:.6f}</span><span class="ss"> + output: $</span><span class="sc">{</span>output_cost<span class="sc">:.6f}</span><span class="ss">)"</span>)</span>
-<span id="cb38-84"><a href="#cb38-84" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-85"><a href="#cb38-85" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 3: Otimização de Prompt</span></span>
-<span id="cb38-86"><a href="#cb38-86" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\n</span><span class="st">✂️ TESTE 3: Otimização de Prompt para Reduzir Tokens</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb38-87"><a href="#cb38-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-88"><a href="#cb38-88" aria-hidden="true" tabindex="-1"></a>verbose_prompt <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb38-89"><a href="#cb38-89" aria-hidden="true" tabindex="-1"></a><span class="st">Por favor, você poderia me ajudar a analisar o seguinte texto e me fornecer uma análise</span></span>
-<span id="cb38-90"><a href="#cb38-90" aria-hidden="true" tabindex="-1"></a><span class="st">completa e detalhada sobre o sentimento expresso no texto, incluindo se é positivo,</span></span>
-<span id="cb38-91"><a href="#cb38-91" aria-hidden="true" tabindex="-1"></a><span class="st">negativo ou neutro? Aqui está o texto que eu gostaria que você analisasse:</span></span>
-<span id="cb38-92"><a href="#cb38-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-93"><a href="#cb38-93" aria-hidden="true" tabindex="-1"></a><span class="st">"Este produto é excelente! Recomendo fortemente."</span></span>
-<span id="cb38-94"><a href="#cb38-94" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-95"><a href="#cb38-95" aria-hidden="true" tabindex="-1"></a><span class="st">Muito obrigado pela sua ajuda!</span></span>
-<span id="cb38-96"><a href="#cb38-96" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb38-97"><a href="#cb38-97" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-98"><a href="#cb38-98" aria-hidden="true" tabindex="-1"></a>optimized_prompt <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb38-99"><a href="#cb38-99" aria-hidden="true" tabindex="-1"></a><span class="st">Classifique o sentimento (positivo/negativo/neutro):</span></span>
-<span id="cb38-100"><a href="#cb38-100" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-101"><a href="#cb38-101" aria-hidden="true" tabindex="-1"></a><span class="st">"Este produto é excelente! Recomendo fortemente."</span></span>
-<span id="cb38-102"><a href="#cb38-102" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb38-103"><a href="#cb38-103" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-104"><a href="#cb38-104" aria-hidden="true" tabindex="-1"></a>verbose_tokens <span class="op">=</span> <span class="bu">len</span>(enc.encode(verbose_prompt))</span>
-<span id="cb38-105"><a href="#cb38-105" aria-hidden="true" tabindex="-1"></a>optimized_tokens <span class="op">=</span> <span class="bu">len</span>(enc.encode(optimized_prompt))</span>
-<span id="cb38-106"><a href="#cb38-106" aria-hidden="true" tabindex="-1"></a>reduction <span class="op">=</span> ((verbose_tokens <span class="op">-</span> optimized_tokens) <span class="op">/</span> verbose_tokens) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb38-107"><a href="#cb38-107" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb38-108"><a href="#cb38-108" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt verboso: </span><span class="sc">{</span>verbose_tokens<span class="sc">}</span><span class="ss"> tokens"</span>)</span>
-<span id="cb38-109"><a href="#cb38-109" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt otimizado: </span><span class="sc">{</span>optimized_tokens<span class="sc">}</span><span class="ss"> tokens"</span>)</span>
-<span id="cb38-110"><a href="#cb38-110" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Redução: </span><span class="sc">{</span>reduction<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
-<span id="cb38-111"><a href="#cb38-111" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Economia em 1000 requisições (GPT-4):"</span>)</span>
-<span id="cb38-112"><a href="#cb38-112" aria-hidden="true" tabindex="-1"></a>saved_tokens <span class="op">=</span> (verbose_tokens <span class="op">-</span> optimized_tokens) <span class="op">*</span> <span class="dv">1000</span></span>
-<span id="cb38-113"><a href="#cb38-113" aria-hidden="true" tabindex="-1"></a>saved_cost <span class="op">=</span> (saved_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> pricing[<span class="st">"GPT-4 Turbo"</span>][<span class="st">"input"</span>]</span>
-<span id="cb38-114"><a href="#cb38-114" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens economizados: </span><span class="sc">{</span>saved_tokens<span class="sc">:,}</span><span class="ss">"</span>)</span>
-<span id="cb38-115"><a href="#cb38-115" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Custo economizado: $</span><span class="sc">{</span>saved_cost<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb48"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação necessária: pip install tiktoken transformers</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> tiktoken</span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-5"><a href="#cb48-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar tokenizer GPT-4</span></span>
+<span id="cb48-6"><a href="#cb48-6" aria-hidden="true" tabindex="-1"></a><span class="cf">try</span>:</span>
+<span id="cb48-7"><a href="#cb48-7" aria-hidden="true" tabindex="-1"></a>    enc <span class="op">=</span> tiktoken.encoding_for_model(<span class="st">"gpt-4"</span>)</span>
+<span id="cb48-8"><a href="#cb48-8" aria-hidden="true" tabindex="-1"></a><span class="cf">except</span> <span class="pp">KeyError</span>:</span>
+<span id="cb48-9"><a href="#cb48-9" aria-hidden="true" tabindex="-1"></a>    enc <span class="op">=</span> tiktoken.get_encoding(<span class="st">"cl100k_base"</span>)</span>
+<span id="cb48-10"><a href="#cb48-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-11"><a href="#cb48-11" aria-hidden="true" tabindex="-1"></a><span class="kw">def</span> analyze_tokenization(text, language):</span>
+<span id="cb48-12"><a href="#cb48-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">"""Analisa eficiência de tokenização para um texto"""</span></span>
+<span id="cb48-13"><a href="#cb48-13" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> enc.encode(text)</span>
+<span id="cb48-14"><a href="#cb48-14" aria-hidden="true" tabindex="-1"></a>    token_count <span class="op">=</span> <span class="bu">len</span>(tokens)</span>
+<span id="cb48-15"><a href="#cb48-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-16"><a href="#cb48-16" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-17"><a href="#cb48-17" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Idioma: </span><span class="sc">{</span>language<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-18"><a href="#cb48-18" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-19"><a href="#cb48-19" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Texto original: </span><span class="sc">{</span>text<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-20"><a href="#cb48-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Número de tokens: </span><span class="sc">{</span>token_count<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-21"><a href="#cb48-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Caracteres: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-22"><a href="#cb48-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"Razão caracteres/token: </span><span class="sc">{</span><span class="bu">len</span>(text)<span class="op">/</span>token_count<span class="sc">:.2f}</span><span class="ss">"</span>)</span>
+<span id="cb48-23"><a href="#cb48-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-24"><a href="#cb48-24" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Visualizar tokens</span></span>
+<span id="cb48-25"><a href="#cb48-25" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">Tokens decodificados:"</span>)</span>
+<span id="cb48-26"><a href="#cb48-26" aria-hidden="true" tabindex="-1"></a>    <span class="cf">for</span> i, token <span class="kw">in</span> <span class="bu">enumerate</span>(tokens[:<span class="dv">10</span>]):  <span class="co"># Mostrar apenas primeiros 10</span></span>
+<span id="cb48-27"><a href="#cb48-27" aria-hidden="true" tabindex="-1"></a>        decoded <span class="op">=</span> enc.decode([token])</span>
+<span id="cb48-28"><a href="#cb48-28" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  Token </span><span class="sc">{</span>i<span class="sc">}</span><span class="ss">: '</span><span class="sc">{</span>decoded<span class="sc">}</span><span class="ss">' (ID: </span><span class="sc">{</span>token<span class="sc">}</span><span class="ss">)"</span>)</span>
+<span id="cb48-29"><a href="#cb48-29" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-30"><a href="#cb48-30" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(tokens) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
+<span id="cb48-31"><a href="#cb48-31" aria-hidden="true" tabindex="-1"></a>        <span class="bu">print</span>(<span class="ss">f"  ... e mais </span><span class="sc">{</span><span class="bu">len</span>(tokens) <span class="op">-</span> <span class="dv">10</span><span class="sc">}</span><span class="ss"> tokens"</span>)</span>
+<span id="cb48-32"><a href="#cb48-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-33"><a href="#cb48-33" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> token_count</span>
+<span id="cb48-34"><a href="#cb48-34" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-35"><a href="#cb48-35" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 1: Comparar eficiência entre idiomas</span></span>
+<span id="cb48-36"><a href="#cb48-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">🔍 TESTE 1: Eficiência Multilíngue</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb48-37"><a href="#cb48-37" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-38"><a href="#cb48-38" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> {</span>
+<span id="cb48-39"><a href="#cb48-39" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Inglês"</span>: <span class="st">"The quick brown fox jumps over the lazy dog. Machine learning models require large datasets."</span>,</span>
+<span id="cb48-40"><a href="#cb48-40" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Português"</span>: <span class="st">"A rápida raposa marrom pula sobre o cachorro preguiçoso. Modelos de aprendizado de máquina requerem grandes conjuntos de dados."</span>,</span>
+<span id="cb48-41"><a href="#cb48-41" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Japonês"</span>: <span class="st">"素早い茶色の狐が怠け者の犬を飛び越える。機械学習モデルは大規模なデータセットを必要とする。"</span>,</span>
+<span id="cb48-42"><a href="#cb48-42" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Espanhol"</span>: <span class="st">"El rápido zorro marrón salta sobre el perro perezoso. Los modelos de aprendizaje automático requieren grandes conjuntos de datos."</span></span>
+<span id="cb48-43"><a href="#cb48-43" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb48-44"><a href="#cb48-44" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-45"><a href="#cb48-45" aria-hidden="true" tabindex="-1"></a>results <span class="op">=</span> {}</span>
+<span id="cb48-46"><a href="#cb48-46" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lang, text <span class="kw">in</span> texts.items():</span>
+<span id="cb48-47"><a href="#cb48-47" aria-hidden="true" tabindex="-1"></a>    results[lang] <span class="op">=</span> analyze_tokenization(text, lang)</span>
+<span id="cb48-48"><a href="#cb48-48" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-49"><a href="#cb48-49" aria-hidden="true" tabindex="-1"></a><span class="co"># Comparação</span></span>
+<span id="cb48-50"><a href="#cb48-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-51"><a href="#cb48-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 COMPARAÇÃO DE EFICIÊNCIA"</span>)</span>
+<span id="cb48-52"><a href="#cb48-52" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-53"><a href="#cb48-53" aria-hidden="true" tabindex="-1"></a>baseline <span class="op">=</span> results[<span class="st">"Inglês"</span>]</span>
+<span id="cb48-54"><a href="#cb48-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> lang, count <span class="kw">in</span> results.items():</span>
+<span id="cb48-55"><a href="#cb48-55" aria-hidden="true" tabindex="-1"></a>    efficiency <span class="op">=</span> (count <span class="op">/</span> baseline) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb48-56"><a href="#cb48-56" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>lang<span class="sc">:12}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:4}</span><span class="ss"> tokens (</span><span class="sc">{</span>efficiency<span class="sc">:6.1f}</span><span class="ss">% vs Inglês)"</span>)</span>
+<span id="cb48-57"><a href="#cb48-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-58"><a href="#cb48-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 2: Estimar custos de API</span></span>
+<span id="cb48-59"><a href="#cb48-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\n</span><span class="st">💰 TESTE 2: Estimativa de Custos de API</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb48-60"><a href="#cb48-60" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-61"><a href="#cb48-61" aria-hidden="true" tabindex="-1"></a><span class="co"># Preços típicos (valores aproximados em USD por 1K tokens)</span></span>
+<span id="cb48-62"><a href="#cb48-62" aria-hidden="true" tabindex="-1"></a>pricing <span class="op">=</span> {</span>
+<span id="cb48-63"><a href="#cb48-63" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-4 Turbo"</span>: {<span class="st">"input"</span>: <span class="fl">0.01</span>, <span class="st">"output"</span>: <span class="fl">0.03</span>},</span>
+<span id="cb48-64"><a href="#cb48-64" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-3.5 Turbo"</span>: {<span class="st">"input"</span>: <span class="fl">0.0005</span>, <span class="st">"output"</span>: <span class="fl">0.0015</span>},</span>
+<span id="cb48-65"><a href="#cb48-65" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Claude 3 Opus"</span>: {<span class="st">"input"</span>: <span class="fl">0.015</span>, <span class="st">"output"</span>: <span class="fl">0.075</span>},</span>
+<span id="cb48-66"><a href="#cb48-66" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Claude 3 Haiku"</span>: {<span class="st">"input"</span>: <span class="fl">0.00025</span>, <span class="st">"output"</span>: <span class="fl">0.00125</span>}</span>
+<span id="cb48-67"><a href="#cb48-67" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb48-68"><a href="#cb48-68" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-69"><a href="#cb48-69" aria-hidden="true" tabindex="-1"></a><span class="co"># Simular prompt típico</span></span>
+<span id="cb48-70"><a href="#cb48-70" aria-hidden="true" tabindex="-1"></a>prompt <span class="op">=</span> texts[<span class="st">"Português"</span>]</span>
+<span id="cb48-71"><a href="#cb48-71" aria-hidden="true" tabindex="-1"></a>expected_output_tokens <span class="op">=</span> <span class="dv">200</span>  <span class="co"># Resposta esperada</span></span>
+<span id="cb48-72"><a href="#cb48-72" aria-hidden="true" tabindex="-1"></a>input_tokens <span class="op">=</span> results[<span class="st">"Português"</span>]</span>
+<span id="cb48-73"><a href="#cb48-73" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-74"><a href="#cb48-74" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt: '</span><span class="sc">{</span>prompt[:<span class="dv">50</span>]<span class="sc">}</span><span class="ss">...'"</span>)</span>
+<span id="cb48-75"><a href="#cb48-75" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens de input: </span><span class="sc">{</span>input_tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-76"><a href="#cb48-76" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Tokens de output estimados: </span><span class="sc">{</span>expected_output_tokens<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb48-77"><a href="#cb48-77" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Custos estimados por requisição:</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb48-78"><a href="#cb48-78" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-79"><a href="#cb48-79" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> model, prices <span class="kw">in</span> pricing.items():</span>
+<span id="cb48-80"><a href="#cb48-80" aria-hidden="true" tabindex="-1"></a>    input_cost <span class="op">=</span> (input_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> prices[<span class="st">"input"</span>]</span>
+<span id="cb48-81"><a href="#cb48-81" aria-hidden="true" tabindex="-1"></a>    output_cost <span class="op">=</span> (expected_output_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> prices[<span class="st">"output"</span>]</span>
+<span id="cb48-82"><a href="#cb48-82" aria-hidden="true" tabindex="-1"></a>    total_cost <span class="op">=</span> input_cost <span class="op">+</span> output_cost</span>
+<span id="cb48-83"><a href="#cb48-83" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>model<span class="sc">:20}</span><span class="ss"> $</span><span class="sc">{</span>total_cost<span class="sc">:.6f}</span><span class="ss"> (input: $</span><span class="sc">{</span>input_cost<span class="sc">:.6f}</span><span class="ss"> + output: $</span><span class="sc">{</span>output_cost<span class="sc">:.6f}</span><span class="ss">)"</span>)</span>
+<span id="cb48-84"><a href="#cb48-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-85"><a href="#cb48-85" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 3: Otimização de Prompt</span></span>
+<span id="cb48-86"><a href="#cb48-86" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n\n</span><span class="st">✂️ TESTE 3: Otimização de Prompt para Reduzir Tokens</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb48-87"><a href="#cb48-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-88"><a href="#cb48-88" aria-hidden="true" tabindex="-1"></a>verbose_prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb48-89"><a href="#cb48-89" aria-hidden="true" tabindex="-1"></a><span class="st">Por favor, você poderia me ajudar a analisar o seguinte texto e me fornecer uma análise</span></span>
+<span id="cb48-90"><a href="#cb48-90" aria-hidden="true" tabindex="-1"></a><span class="st">completa e detalhada sobre o sentimento expresso no texto, incluindo se é positivo,</span></span>
+<span id="cb48-91"><a href="#cb48-91" aria-hidden="true" tabindex="-1"></a><span class="st">negativo ou neutro? Aqui está o texto que eu gostaria que você analisasse:</span></span>
+<span id="cb48-92"><a href="#cb48-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-93"><a href="#cb48-93" aria-hidden="true" tabindex="-1"></a><span class="st">"Este produto é excelente! Recomendo fortemente."</span></span>
+<span id="cb48-94"><a href="#cb48-94" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-95"><a href="#cb48-95" aria-hidden="true" tabindex="-1"></a><span class="st">Muito obrigado pela sua ajuda!</span></span>
+<span id="cb48-96"><a href="#cb48-96" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb48-97"><a href="#cb48-97" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-98"><a href="#cb48-98" aria-hidden="true" tabindex="-1"></a>optimized_prompt <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb48-99"><a href="#cb48-99" aria-hidden="true" tabindex="-1"></a><span class="st">Classifique o sentimento (positivo/negativo/neutro):</span></span>
+<span id="cb48-100"><a href="#cb48-100" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-101"><a href="#cb48-101" aria-hidden="true" tabindex="-1"></a><span class="st">"Este produto é excelente! Recomendo fortemente."</span></span>
+<span id="cb48-102"><a href="#cb48-102" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb48-103"><a href="#cb48-103" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-104"><a href="#cb48-104" aria-hidden="true" tabindex="-1"></a>verbose_tokens <span class="op">=</span> <span class="bu">len</span>(enc.encode(verbose_prompt))</span>
+<span id="cb48-105"><a href="#cb48-105" aria-hidden="true" tabindex="-1"></a>optimized_tokens <span class="op">=</span> <span class="bu">len</span>(enc.encode(optimized_prompt))</span>
+<span id="cb48-106"><a href="#cb48-106" aria-hidden="true" tabindex="-1"></a>reduction <span class="op">=</span> ((verbose_tokens <span class="op">-</span> optimized_tokens) <span class="op">/</span> verbose_tokens) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb48-107"><a href="#cb48-107" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb48-108"><a href="#cb48-108" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt verboso: </span><span class="sc">{</span>verbose_tokens<span class="sc">}</span><span class="ss"> tokens"</span>)</span>
+<span id="cb48-109"><a href="#cb48-109" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Prompt otimizado: </span><span class="sc">{</span>optimized_tokens<span class="sc">}</span><span class="ss"> tokens"</span>)</span>
+<span id="cb48-110"><a href="#cb48-110" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Redução: </span><span class="sc">{</span>reduction<span class="sc">:.1f}</span><span class="ss">%"</span>)</span>
+<span id="cb48-111"><a href="#cb48-111" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="ss">Economia em 1000 requisições (GPT-4):"</span>)</span>
+<span id="cb48-112"><a href="#cb48-112" aria-hidden="true" tabindex="-1"></a>saved_tokens <span class="op">=</span> (verbose_tokens <span class="op">-</span> optimized_tokens) <span class="op">*</span> <span class="dv">1000</span></span>
+<span id="cb48-113"><a href="#cb48-113" aria-hidden="true" tabindex="-1"></a>saved_cost <span class="op">=</span> (saved_tokens <span class="op">/</span> <span class="dv">1000</span>) <span class="op">*</span> pricing[<span class="st">"GPT-4 Turbo"</span>][<span class="st">"input"</span>]</span>
+<span id="cb48-114"><a href="#cb48-114" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Tokens economizados: </span><span class="sc">{</span>saved_tokens<span class="sc">:,}</span><span class="ss">"</span>)</span>
+<span id="cb48-115"><a href="#cb48-115" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"  Custo economizado: $</span><span class="sc">{</span>saved_cost<span class="sc">:.2f}</span><span class="ss">"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Desafios adicionais:</strong></p>
 <ol type="1">
 <li><strong>Compare tokenizers diferentes</strong>: Use <code>AutoTokenizer.from_pretrained()</code> para comparar GPT-4, LLaMA e Mistral</li>
@@ -1744,141 +1996,141 @@ Iteração 5: ('n', 'e') → 'ne'
 <h3 class="anchored" data-anchor-id="exercício-2-explorando-dados-de-pré-treinamento">Exercício 2: Explorando Dados de Pré-Treinamento</h3>
 <p><strong>Objetivo:</strong> Entender a composição e qualidade de datasets usados para treinar foundation models.</p>
 <p><strong>Passo a Passo:</strong></p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb39"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação: pip install datasets</span></span>
-<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
-<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
-<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
-<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar uma amostra do dataset C4 (usado para treinar T5, LLaMA)</span></span>
-<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📦 Carregando amostra do dataset C4 (Common Crawl)...</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb39-9"><a href="#cb39-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-10"><a href="#cb39-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar apenas uma pequena amostra para análise</span></span>
-<span id="cb39-11"><a href="#cb39-11" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> load_dataset(<span class="st">"c4"</span>, <span class="st">"en"</span>, split<span class="op">=</span><span class="st">"train"</span>, streaming<span class="op">=</span><span class="va">True</span>)</span>
-<span id="cb39-12"><a href="#cb39-12" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-13"><a href="#cb39-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Analisar primeiros 100 exemplos</span></span>
-<span id="cb39-14"><a href="#cb39-14" aria-hidden="true" tabindex="-1"></a>sample_size <span class="op">=</span> <span class="dv">100</span></span>
-<span id="cb39-15"><a href="#cb39-15" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> []</span>
-<span id="cb39-16"><a href="#cb39-16" aria-hidden="true" tabindex="-1"></a>domains <span class="op">=</span> []</span>
-<span id="cb39-17"><a href="#cb39-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-18"><a href="#cb39-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Analisando </span><span class="sc">{</span>sample_size<span class="sc">}</span><span class="ss"> documentos...</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb39-19"><a href="#cb39-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-20"><a href="#cb39-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, example <span class="kw">in</span> <span class="bu">enumerate</span>(dataset):</span>
-<span id="cb39-21"><a href="#cb39-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">&gt;=</span> sample_size:</span>
-<span id="cb39-22"><a href="#cb39-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
-<span id="cb39-23"><a href="#cb39-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-24"><a href="#cb39-24" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> example[<span class="st">'text'</span>]</span>
-<span id="cb39-25"><a href="#cb39-25" aria-hidden="true" tabindex="-1"></a>    url <span class="op">=</span> example.get(<span class="st">'url'</span>, <span class="st">''</span>)</span>
-<span id="cb39-26"><a href="#cb39-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-27"><a href="#cb39-27" aria-hidden="true" tabindex="-1"></a>    texts.append(text)</span>
-<span id="cb39-28"><a href="#cb39-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-29"><a href="#cb39-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extrair domínio do URL</span></span>
-<span id="cb39-30"><a href="#cb39-30" aria-hidden="true" tabindex="-1"></a>    domain_match <span class="op">=</span> re.search(<span class="vs">r'https</span><span class="op">?</span><span class="vs">://</span>(?:<span class="vs">www</span><span class="ch">\.</span>)<span class="op">?</span><span class="kw">(</span><span class="pp">[^/]</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, url)</span>
-<span id="cb39-31"><a href="#cb39-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> domain_match:</span>
-<span id="cb39-32"><a href="#cb39-32" aria-hidden="true" tabindex="-1"></a>        domains.append(domain_match.group(<span class="dv">1</span>))</span>
-<span id="cb39-33"><a href="#cb39-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-34"><a href="#cb39-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 1: Estatísticas de comprimento</span></span>
-<span id="cb39-35"><a href="#cb39-35" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
-<span id="cb39-36"><a href="#cb39-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 ESTATÍSTICAS DE COMPRIMENTO"</span>)</span>
-<span id="cb39-37"><a href="#cb39-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
-<span id="cb39-38"><a href="#cb39-38" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-39"><a href="#cb39-39" aria-hidden="true" tabindex="-1"></a>lengths <span class="op">=</span> [<span class="bu">len</span>(text.split()) <span class="cf">for</span> text <span class="kw">in</span> texts]</span>
-<span id="cb39-40"><a href="#cb39-40" aria-hidden="true" tabindex="-1"></a>avg_length <span class="op">=</span> <span class="bu">sum</span>(lengths) <span class="op">/</span> <span class="bu">len</span>(lengths)</span>
-<span id="cb39-41"><a href="#cb39-41" aria-hidden="true" tabindex="-1"></a>min_length <span class="op">=</span> <span class="bu">min</span>(lengths)</span>
-<span id="cb39-42"><a href="#cb39-42" aria-hidden="true" tabindex="-1"></a>max_length <span class="op">=</span> <span class="bu">max</span>(lengths)</span>
-<span id="cb39-43"><a href="#cb39-43" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-44"><a href="#cb39-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento médio: </span><span class="sc">{</span>avg_length<span class="sc">:.0f}</span><span class="ss"> palavras"</span>)</span>
-<span id="cb39-45"><a href="#cb39-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento mínimo: </span><span class="sc">{</span>min_length<span class="sc">}</span><span class="ss"> palavras"</span>)</span>
-<span id="cb39-46"><a href="#cb39-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento máximo: </span><span class="sc">{</span>max_length<span class="sc">}</span><span class="ss"> palavras"</span>)</span>
-<span id="cb39-47"><a href="#cb39-47" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-48"><a href="#cb39-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 2: Distribuição de domínios</span></span>
-<span id="cb39-49"><a href="#cb39-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb39-50"><a href="#cb39-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🌐 DISTRIBUIÇÃO DE DOMÍNIOS (Top 10)"</span>)</span>
-<span id="cb39-51"><a href="#cb39-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb39-52"><a href="#cb39-52" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-53"><a href="#cb39-53" aria-hidden="true" tabindex="-1"></a>domain_counts <span class="op">=</span> Counter(domains)</span>
-<span id="cb39-54"><a href="#cb39-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> domain, count <span class="kw">in</span> domain_counts.most_common(<span class="dv">10</span>):</span>
-<span id="cb39-55"><a href="#cb39-55" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(domains)) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb39-56"><a href="#cb39-56" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>domain<span class="sc">:40}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
-<span id="cb39-57"><a href="#cb39-57" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-58"><a href="#cb39-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 3: Tipos de conteúdo (heurística simples)</span></span>
-<span id="cb39-59"><a href="#cb39-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb39-60"><a href="#cb39-60" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📝 TIPOS DE CONTEÚDO (baseado em heurísticas)"</span>)</span>
-<span id="cb39-61"><a href="#cb39-61" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb39-62"><a href="#cb39-62" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-63"><a href="#cb39-63" aria-hidden="true" tabindex="-1"></a>content_types <span class="op">=</span> {</span>
-<span id="cb39-64"><a href="#cb39-64" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Código"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-65"><a href="#cb39-65" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Conversação/Forum"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-66"><a href="#cb39-66" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Notícia/Artigo"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-67"><a href="#cb39-67" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Técnico/Documentação"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-68"><a href="#cb39-68" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Outros"</span>: <span class="dv">0</span></span>
-<span id="cb39-69"><a href="#cb39-69" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb39-70"><a href="#cb39-70" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-71"><a href="#cb39-71" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> text <span class="kw">in</span> texts:</span>
-<span id="cb39-72"><a href="#cb39-72" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heurísticas simples para classificar tipo de conteúdo</span></span>
-<span id="cb39-73"><a href="#cb39-73" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'def '</span>, <span class="st">'class '</span>, <span class="st">'function'</span>, <span class="st">'import '</span>, <span class="st">'return'</span>]):</span>
-<span id="cb39-74"><a href="#cb39-74" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Código"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-75"><a href="#cb39-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'posted by'</span>, <span class="st">'reply'</span>, <span class="st">'comment'</span>, <span class="st">'said:'</span>]):</span>
-<span id="cb39-76"><a href="#cb39-76" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Conversação/Forum"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-77"><a href="#cb39-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'according to'</span>, <span class="st">'reported'</span>, <span class="st">'published'</span>]):</span>
-<span id="cb39-78"><a href="#cb39-78" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Notícia/Artigo"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-79"><a href="#cb39-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'tutorial'</span>, <span class="st">'documentation'</span>, <span class="st">'api'</span>, <span class="st">'parameter'</span>]):</span>
-<span id="cb39-80"><a href="#cb39-80" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Técnico/Documentação"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-81"><a href="#cb39-81" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
-<span id="cb39-82"><a href="#cb39-82" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Outros"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-83"><a href="#cb39-83" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-84"><a href="#cb39-84" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> content_type, count <span class="kw">in</span> content_types.items():</span>
-<span id="cb39-85"><a href="#cb39-85" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(texts)) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb39-86"><a href="#cb39-86" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>content_type<span class="sc">:25}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
-<span id="cb39-87"><a href="#cb39-87" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-88"><a href="#cb39-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 4: Qualidade dos dados (heurísticas)</span></span>
-<span id="cb39-89"><a href="#cb39-89" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb39-90"><a href="#cb39-90" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ QUALIDADE DOS DADOS"</span>)</span>
-<span id="cb39-91"><a href="#cb39-91" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
-<span id="cb39-92"><a href="#cb39-92" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-93"><a href="#cb39-93" aria-hidden="true" tabindex="-1"></a>quality_issues <span class="op">=</span> {</span>
-<span id="cb39-94"><a href="#cb39-94" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Muito curtos (&lt; 50 palavras)"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-95"><a href="#cb39-95" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Muita repetição"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-96"><a href="#cb39-96" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Excesso de URLs"</span>: <span class="dv">0</span>,</span>
-<span id="cb39-97"><a href="#cb39-97" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Caracteres não-ASCII"</span>: <span class="dv">0</span></span>
-<span id="cb39-98"><a href="#cb39-98" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb39-99"><a href="#cb39-99" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-100"><a href="#cb39-100" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> text <span class="kw">in</span> texts:</span>
-<span id="cb39-101"><a href="#cb39-101" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> text.split()</span>
-<span id="cb39-102"><a href="#cb39-102" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-103"><a href="#cb39-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(words) <span class="op">&lt;</span> <span class="dv">50</span>:</span>
-<span id="cb39-104"><a href="#cb39-104" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Muito curtos (&lt; 50 palavras)"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-105"><a href="#cb39-105" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-106"><a href="#cb39-106" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Detectar repetição (palavras duplicadas consecutivas)</span></span>
-<span id="cb39-107"><a href="#cb39-107" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(words) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
-<span id="cb39-108"><a href="#cb39-108" aria-hidden="true" tabindex="-1"></a>        repetitions <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(words)<span class="op">-</span><span class="dv">1</span>) <span class="cf">if</span> words[i] <span class="op">==</span> words[i<span class="op">+</span><span class="dv">1</span>])</span>
-<span id="cb39-109"><a href="#cb39-109" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> repetitions <span class="op">&gt;</span> <span class="bu">len</span>(words) <span class="op">*</span> <span class="fl">0.1</span>:  <span class="co"># Mais de 10% de repetição</span></span>
-<span id="cb39-110"><a href="#cb39-110" aria-hidden="true" tabindex="-1"></a>            quality_issues[<span class="st">"Muita repetição"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-111"><a href="#cb39-111" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-112"><a href="#cb39-112" aria-hidden="true" tabindex="-1"></a>    <span class="co"># URLs</span></span>
-<span id="cb39-113"><a href="#cb39-113" aria-hidden="true" tabindex="-1"></a>    url_count <span class="op">=</span> <span class="bu">len</span>(re.findall(<span class="vs">r'http</span><span class="pp">[s]</span><span class="op">?</span><span class="vs">://'</span>, text))</span>
-<span id="cb39-114"><a href="#cb39-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> url_count <span class="op">&gt;</span> <span class="dv">5</span>:</span>
-<span id="cb39-115"><a href="#cb39-115" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Excesso de URLs"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-116"><a href="#cb39-116" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-117"><a href="#cb39-117" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Caracteres não-ASCII (pode indicar encoding issues)</span></span>
-<span id="cb39-118"><a href="#cb39-118" aria-hidden="true" tabindex="-1"></a>    non_ascii <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> c <span class="kw">in</span> text <span class="cf">if</span> <span class="bu">ord</span>(c) <span class="op">&gt;</span> <span class="dv">127</span>)</span>
-<span id="cb39-119"><a href="#cb39-119" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> non_ascii <span class="op">&gt;</span> <span class="bu">len</span>(text) <span class="op">*</span> <span class="fl">0.05</span>:  <span class="co"># Mais de 5%</span></span>
-<span id="cb39-120"><a href="#cb39-120" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Caracteres não-ASCII"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
-<span id="cb39-121"><a href="#cb39-121" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-122"><a href="#cb39-122" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> issue, count <span class="kw">in</span> quality_issues.items():</span>
-<span id="cb39-123"><a href="#cb39-123" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(texts)) <span class="op">*</span> <span class="dv">100</span></span>
-<span id="cb39-124"><a href="#cb39-124" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>issue<span class="sc">:35}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
-<span id="cb39-125"><a href="#cb39-125" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb39-126"><a href="#cb39-126" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb39-127"><a href="#cb39-127" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"💡 INSIGHTS"</span>)</span>
-<span id="cb39-128"><a href="#cb39-128" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb39-129"><a href="#cb39-129" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"""</span></span>
-<span id="cb39-130"><a href="#cb39-130" aria-hidden="true" tabindex="-1"></a><span class="st">1. Datasets de pré-treinamento contêm conteúdo extremamente diverso</span></span>
-<span id="cb39-131"><a href="#cb39-131" aria-hidden="true" tabindex="-1"></a><span class="st">2. Qualidade varia significativamente entre documentos</span></span>
-<span id="cb39-132"><a href="#cb39-132" aria-hidden="true" tabindex="-1"></a><span class="st">3. Data cleaning é crucial para remover conteúdo problemático</span></span>
-<span id="cb39-133"><a href="#cb39-133" aria-hidden="true" tabindex="-1"></a><span class="st">4. Balanceamento de domínios afeta conhecimento do modelo</span></span>
-<span id="cb39-134"><a href="#cb39-134" aria-hidden="true" tabindex="-1"></a><span class="st">5. Comprimento dos documentos influencia context window necessário</span></span>
-<span id="cb39-135"><a href="#cb39-135" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb49"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Instalação: pip install datasets</span></span>
+<span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-3"><a href="#cb49-3" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> datasets <span class="im">import</span> load_dataset</span>
+<span id="cb49-4"><a href="#cb49-4" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> collections <span class="im">import</span> Counter</span>
+<span id="cb49-5"><a href="#cb49-5" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> re</span>
+<span id="cb49-6"><a href="#cb49-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-7"><a href="#cb49-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar uma amostra do dataset C4 (usado para treinar T5, LLaMA)</span></span>
+<span id="cb49-8"><a href="#cb49-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📦 Carregando amostra do dataset C4 (Common Crawl)...</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb49-9"><a href="#cb49-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-10"><a href="#cb49-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar apenas uma pequena amostra para análise</span></span>
+<span id="cb49-11"><a href="#cb49-11" aria-hidden="true" tabindex="-1"></a>dataset <span class="op">=</span> load_dataset(<span class="st">"c4"</span>, <span class="st">"en"</span>, split<span class="op">=</span><span class="st">"train"</span>, streaming<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb49-12"><a href="#cb49-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-13"><a href="#cb49-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Analisar primeiros 100 exemplos</span></span>
+<span id="cb49-14"><a href="#cb49-14" aria-hidden="true" tabindex="-1"></a>sample_size <span class="op">=</span> <span class="dv">100</span></span>
+<span id="cb49-15"><a href="#cb49-15" aria-hidden="true" tabindex="-1"></a>texts <span class="op">=</span> []</span>
+<span id="cb49-16"><a href="#cb49-16" aria-hidden="true" tabindex="-1"></a>domains <span class="op">=</span> []</span>
+<span id="cb49-17"><a href="#cb49-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-18"><a href="#cb49-18" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Analisando </span><span class="sc">{</span>sample_size<span class="sc">}</span><span class="ss"> documentos...</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb49-19"><a href="#cb49-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-20"><a href="#cb49-20" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> i, example <span class="kw">in</span> <span class="bu">enumerate</span>(dataset):</span>
+<span id="cb49-21"><a href="#cb49-21" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> i <span class="op">&gt;=</span> sample_size:</span>
+<span id="cb49-22"><a href="#cb49-22" aria-hidden="true" tabindex="-1"></a>        <span class="cf">break</span></span>
+<span id="cb49-23"><a href="#cb49-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-24"><a href="#cb49-24" aria-hidden="true" tabindex="-1"></a>    text <span class="op">=</span> example[<span class="st">'text'</span>]</span>
+<span id="cb49-25"><a href="#cb49-25" aria-hidden="true" tabindex="-1"></a>    url <span class="op">=</span> example.get(<span class="st">'url'</span>, <span class="st">''</span>)</span>
+<span id="cb49-26"><a href="#cb49-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-27"><a href="#cb49-27" aria-hidden="true" tabindex="-1"></a>    texts.append(text)</span>
+<span id="cb49-28"><a href="#cb49-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-29"><a href="#cb49-29" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Extrair domínio do URL</span></span>
+<span id="cb49-30"><a href="#cb49-30" aria-hidden="true" tabindex="-1"></a>    domain_match <span class="op">=</span> re.search(<span class="vs">r'https</span><span class="op">?</span><span class="vs">://</span>(?:<span class="vs">www</span><span class="ch">\.</span>)<span class="op">?</span><span class="kw">(</span><span class="pp">[^/]</span><span class="op">+</span><span class="kw">)</span><span class="vs">'</span>, url)</span>
+<span id="cb49-31"><a href="#cb49-31" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> domain_match:</span>
+<span id="cb49-32"><a href="#cb49-32" aria-hidden="true" tabindex="-1"></a>        domains.append(domain_match.group(<span class="dv">1</span>))</span>
+<span id="cb49-33"><a href="#cb49-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-34"><a href="#cb49-34" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 1: Estatísticas de comprimento</span></span>
+<span id="cb49-35"><a href="#cb49-35" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb49-36"><a href="#cb49-36" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📊 ESTATÍSTICAS DE COMPRIMENTO"</span>)</span>
+<span id="cb49-37"><a href="#cb49-37" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb49-38"><a href="#cb49-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-39"><a href="#cb49-39" aria-hidden="true" tabindex="-1"></a>lengths <span class="op">=</span> [<span class="bu">len</span>(text.split()) <span class="cf">for</span> text <span class="kw">in</span> texts]</span>
+<span id="cb49-40"><a href="#cb49-40" aria-hidden="true" tabindex="-1"></a>avg_length <span class="op">=</span> <span class="bu">sum</span>(lengths) <span class="op">/</span> <span class="bu">len</span>(lengths)</span>
+<span id="cb49-41"><a href="#cb49-41" aria-hidden="true" tabindex="-1"></a>min_length <span class="op">=</span> <span class="bu">min</span>(lengths)</span>
+<span id="cb49-42"><a href="#cb49-42" aria-hidden="true" tabindex="-1"></a>max_length <span class="op">=</span> <span class="bu">max</span>(lengths)</span>
+<span id="cb49-43"><a href="#cb49-43" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-44"><a href="#cb49-44" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento médio: </span><span class="sc">{</span>avg_length<span class="sc">:.0f}</span><span class="ss"> palavras"</span>)</span>
+<span id="cb49-45"><a href="#cb49-45" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento mínimo: </span><span class="sc">{</span>min_length<span class="sc">}</span><span class="ss"> palavras"</span>)</span>
+<span id="cb49-46"><a href="#cb49-46" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Comprimento máximo: </span><span class="sc">{</span>max_length<span class="sc">}</span><span class="ss"> palavras"</span>)</span>
+<span id="cb49-47"><a href="#cb49-47" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-48"><a href="#cb49-48" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 2: Distribuição de domínios</span></span>
+<span id="cb49-49"><a href="#cb49-49" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb49-50"><a href="#cb49-50" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"🌐 DISTRIBUIÇÃO DE DOMÍNIOS (Top 10)"</span>)</span>
+<span id="cb49-51"><a href="#cb49-51" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb49-52"><a href="#cb49-52" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-53"><a href="#cb49-53" aria-hidden="true" tabindex="-1"></a>domain_counts <span class="op">=</span> Counter(domains)</span>
+<span id="cb49-54"><a href="#cb49-54" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> domain, count <span class="kw">in</span> domain_counts.most_common(<span class="dv">10</span>):</span>
+<span id="cb49-55"><a href="#cb49-55" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(domains)) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb49-56"><a href="#cb49-56" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>domain<span class="sc">:40}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
+<span id="cb49-57"><a href="#cb49-57" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-58"><a href="#cb49-58" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 3: Tipos de conteúdo (heurística simples)</span></span>
+<span id="cb49-59"><a href="#cb49-59" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb49-60"><a href="#cb49-60" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"📝 TIPOS DE CONTEÚDO (baseado em heurísticas)"</span>)</span>
+<span id="cb49-61"><a href="#cb49-61" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb49-62"><a href="#cb49-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-63"><a href="#cb49-63" aria-hidden="true" tabindex="-1"></a>content_types <span class="op">=</span> {</span>
+<span id="cb49-64"><a href="#cb49-64" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Código"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-65"><a href="#cb49-65" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Conversação/Forum"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-66"><a href="#cb49-66" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Notícia/Artigo"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-67"><a href="#cb49-67" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Técnico/Documentação"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-68"><a href="#cb49-68" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Outros"</span>: <span class="dv">0</span></span>
+<span id="cb49-69"><a href="#cb49-69" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb49-70"><a href="#cb49-70" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-71"><a href="#cb49-71" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> text <span class="kw">in</span> texts:</span>
+<span id="cb49-72"><a href="#cb49-72" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Heurísticas simples para classificar tipo de conteúdo</span></span>
+<span id="cb49-73"><a href="#cb49-73" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'def '</span>, <span class="st">'class '</span>, <span class="st">'function'</span>, <span class="st">'import '</span>, <span class="st">'return'</span>]):</span>
+<span id="cb49-74"><a href="#cb49-74" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Código"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-75"><a href="#cb49-75" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'posted by'</span>, <span class="st">'reply'</span>, <span class="st">'comment'</span>, <span class="st">'said:'</span>]):</span>
+<span id="cb49-76"><a href="#cb49-76" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Conversação/Forum"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-77"><a href="#cb49-77" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'according to'</span>, <span class="st">'reported'</span>, <span class="st">'published'</span>]):</span>
+<span id="cb49-78"><a href="#cb49-78" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Notícia/Artigo"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-79"><a href="#cb49-79" aria-hidden="true" tabindex="-1"></a>    <span class="cf">elif</span> <span class="bu">any</span>(keyword <span class="kw">in</span> text.lower() <span class="cf">for</span> keyword <span class="kw">in</span> [<span class="st">'tutorial'</span>, <span class="st">'documentation'</span>, <span class="st">'api'</span>, <span class="st">'parameter'</span>]):</span>
+<span id="cb49-80"><a href="#cb49-80" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Técnico/Documentação"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-81"><a href="#cb49-81" aria-hidden="true" tabindex="-1"></a>    <span class="cf">else</span>:</span>
+<span id="cb49-82"><a href="#cb49-82" aria-hidden="true" tabindex="-1"></a>        content_types[<span class="st">"Outros"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-83"><a href="#cb49-83" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-84"><a href="#cb49-84" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> content_type, count <span class="kw">in</span> content_types.items():</span>
+<span id="cb49-85"><a href="#cb49-85" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(texts)) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb49-86"><a href="#cb49-86" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>content_type<span class="sc">:25}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
+<span id="cb49-87"><a href="#cb49-87" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-88"><a href="#cb49-88" aria-hidden="true" tabindex="-1"></a><span class="co"># Análise 4: Qualidade dos dados (heurísticas)</span></span>
+<span id="cb49-89"><a href="#cb49-89" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb49-90"><a href="#cb49-90" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"✅ QUALIDADE DOS DADOS"</span>)</span>
+<span id="cb49-91"><a href="#cb49-91" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ch">\n</span><span class="ss">"</span>)</span>
+<span id="cb49-92"><a href="#cb49-92" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-93"><a href="#cb49-93" aria-hidden="true" tabindex="-1"></a>quality_issues <span class="op">=</span> {</span>
+<span id="cb49-94"><a href="#cb49-94" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Muito curtos (&lt; 50 palavras)"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-95"><a href="#cb49-95" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Muita repetição"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-96"><a href="#cb49-96" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Excesso de URLs"</span>: <span class="dv">0</span>,</span>
+<span id="cb49-97"><a href="#cb49-97" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Caracteres não-ASCII"</span>: <span class="dv">0</span></span>
+<span id="cb49-98"><a href="#cb49-98" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb49-99"><a href="#cb49-99" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-100"><a href="#cb49-100" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> text <span class="kw">in</span> texts:</span>
+<span id="cb49-101"><a href="#cb49-101" aria-hidden="true" tabindex="-1"></a>    words <span class="op">=</span> text.split()</span>
+<span id="cb49-102"><a href="#cb49-102" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-103"><a href="#cb49-103" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(words) <span class="op">&lt;</span> <span class="dv">50</span>:</span>
+<span id="cb49-104"><a href="#cb49-104" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Muito curtos (&lt; 50 palavras)"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-105"><a href="#cb49-105" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-106"><a href="#cb49-106" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Detectar repetição (palavras duplicadas consecutivas)</span></span>
+<span id="cb49-107"><a href="#cb49-107" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span>(words) <span class="op">&gt;</span> <span class="dv">10</span>:</span>
+<span id="cb49-108"><a href="#cb49-108" aria-hidden="true" tabindex="-1"></a>        repetitions <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> i <span class="kw">in</span> <span class="bu">range</span>(<span class="bu">len</span>(words)<span class="op">-</span><span class="dv">1</span>) <span class="cf">if</span> words[i] <span class="op">==</span> words[i<span class="op">+</span><span class="dv">1</span>])</span>
+<span id="cb49-109"><a href="#cb49-109" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> repetitions <span class="op">&gt;</span> <span class="bu">len</span>(words) <span class="op">*</span> <span class="fl">0.1</span>:  <span class="co"># Mais de 10% de repetição</span></span>
+<span id="cb49-110"><a href="#cb49-110" aria-hidden="true" tabindex="-1"></a>            quality_issues[<span class="st">"Muita repetição"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-111"><a href="#cb49-111" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-112"><a href="#cb49-112" aria-hidden="true" tabindex="-1"></a>    <span class="co"># URLs</span></span>
+<span id="cb49-113"><a href="#cb49-113" aria-hidden="true" tabindex="-1"></a>    url_count <span class="op">=</span> <span class="bu">len</span>(re.findall(<span class="vs">r'http</span><span class="pp">[s]</span><span class="op">?</span><span class="vs">://'</span>, text))</span>
+<span id="cb49-114"><a href="#cb49-114" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> url_count <span class="op">&gt;</span> <span class="dv">5</span>:</span>
+<span id="cb49-115"><a href="#cb49-115" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Excesso de URLs"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-116"><a href="#cb49-116" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-117"><a href="#cb49-117" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Caracteres não-ASCII (pode indicar encoding issues)</span></span>
+<span id="cb49-118"><a href="#cb49-118" aria-hidden="true" tabindex="-1"></a>    non_ascii <span class="op">=</span> <span class="bu">sum</span>(<span class="dv">1</span> <span class="cf">for</span> c <span class="kw">in</span> text <span class="cf">if</span> <span class="bu">ord</span>(c) <span class="op">&gt;</span> <span class="dv">127</span>)</span>
+<span id="cb49-119"><a href="#cb49-119" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> non_ascii <span class="op">&gt;</span> <span class="bu">len</span>(text) <span class="op">*</span> <span class="fl">0.05</span>:  <span class="co"># Mais de 5%</span></span>
+<span id="cb49-120"><a href="#cb49-120" aria-hidden="true" tabindex="-1"></a>        quality_issues[<span class="st">"Caracteres não-ASCII"</span>] <span class="op">+=</span> <span class="dv">1</span></span>
+<span id="cb49-121"><a href="#cb49-121" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-122"><a href="#cb49-122" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> issue, count <span class="kw">in</span> quality_issues.items():</span>
+<span id="cb49-123"><a href="#cb49-123" aria-hidden="true" tabindex="-1"></a>    percentage <span class="op">=</span> (count <span class="op">/</span> <span class="bu">len</span>(texts)) <span class="op">*</span> <span class="dv">100</span></span>
+<span id="cb49-124"><a href="#cb49-124" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span>issue<span class="sc">:35}</span><span class="ss"> </span><span class="sc">{</span>count<span class="sc">:3}</span><span class="ss"> (</span><span class="sc">{</span>percentage<span class="sc">:5.1f}</span><span class="ss">%)"</span>)</span>
+<span id="cb49-125"><a href="#cb49-125" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb49-126"><a href="#cb49-126" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb49-127"><a href="#cb49-127" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"💡 INSIGHTS"</span>)</span>
+<span id="cb49-128"><a href="#cb49-128" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb49-129"><a href="#cb49-129" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"""</span></span>
+<span id="cb49-130"><a href="#cb49-130" aria-hidden="true" tabindex="-1"></a><span class="st">1. Datasets de pré-treinamento contêm conteúdo extremamente diverso</span></span>
+<span id="cb49-131"><a href="#cb49-131" aria-hidden="true" tabindex="-1"></a><span class="st">2. Qualidade varia significativamente entre documentos</span></span>
+<span id="cb49-132"><a href="#cb49-132" aria-hidden="true" tabindex="-1"></a><span class="st">3. Data cleaning é crucial para remover conteúdo problemático</span></span>
+<span id="cb49-133"><a href="#cb49-133" aria-hidden="true" tabindex="-1"></a><span class="st">4. Balanceamento de domínios afeta conhecimento do modelo</span></span>
+<span id="cb49-134"><a href="#cb49-134" aria-hidden="true" tabindex="-1"></a><span class="st">5. Comprimento dos documentos influencia context window necessário</span></span>
+<span id="cb49-135"><a href="#cb49-135" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Desafios adicionais:</strong></p>
 <ol type="1">
 <li><strong>Compare datasets</strong>: Analise C4, Wikipedia, OpenWebText</li>
@@ -1889,49 +2141,49 @@ Iteração 5: ('n', 'e') → 'ne'
 <section id="exercício-3-experimente-com-tokenizers-diferentes" class="level3">
 <h3 class="anchored" data-anchor-id="exercício-3-experimente-com-tokenizers-diferentes">Exercício 3: Experimente com Tokenizers Diferentes</h3>
 <p><strong>Objetivo:</strong> Comparar comportamento de diferentes estratégias de tokenização.</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb40"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoTokenizer</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar diferentes tokenizers</span></span>
-<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>tokenizers <span class="op">=</span> {</span>
-<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-2"</span>: AutoTokenizer.from_pretrained(<span class="st">"gpt2"</span>),</span>
-<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LLaMA 2"</span>: AutoTokenizer.from_pretrained(<span class="st">"meta-llama/Llama-2-7b-hf"</span>),</span>
-<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Code Llama"</span>: AutoTokenizer.from_pretrained(<span class="st">"codellama/CodeLlama-7b-hf"</span>),</span>
-<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Mistral"</span>: AutoTokenizer.from_pretrained(<span class="st">"mistralai/Mistral-7B-v0.1"</span>)</span>
-<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>}</span>
-<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 1: Texto natural</span></span>
-<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
-<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"TESTE 1: Texto Natural"</span>)</span>
-<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
-<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-16"><a href="#cb40-16" aria-hidden="true" tabindex="-1"></a>text_natural <span class="op">=</span> <span class="st">"The transformer architecture revolutionized natural language processing."</span></span>
-<span id="cb40-17"><a href="#cb40-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-18"><a href="#cb40-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, tokenizer <span class="kw">in</span> tokenizers.items():</span>
-<span id="cb40-19"><a href="#cb40-19" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> tokenizer.encode(text_natural)</span>
-<span id="cb40-20"><a href="#cb40-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">:"</span>)</span>
-<span id="cb40-21"><a href="#cb40-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb40-22"><a href="#cb40-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Decodificação: </span><span class="sc">{</span>tokenizer<span class="sc">.</span>convert_ids_to_tokens(tokens)[:<span class="dv">10</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb40-23"><a href="#cb40-23" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-24"><a href="#cb40-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 2: Código</span></span>
-<span id="cb40-25"><a href="#cb40-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb40-26"><a href="#cb40-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"TESTE 2: Código Python"</span>)</span>
-<span id="cb40-27"><a href="#cb40-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
-<span id="cb40-28"><a href="#cb40-28" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-29"><a href="#cb40-29" aria-hidden="true" tabindex="-1"></a>code <span class="op">=</span> <span class="st">"""</span></span>
-<span id="cb40-30"><a href="#cb40-30" aria-hidden="true" tabindex="-1"></a><span class="st">def fibonacci(n):</span></span>
-<span id="cb40-31"><a href="#cb40-31" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
-<span id="cb40-32"><a href="#cb40-32" aria-hidden="true" tabindex="-1"></a><span class="st">        return n</span></span>
-<span id="cb40-33"><a href="#cb40-33" aria-hidden="true" tabindex="-1"></a><span class="st">    return fibonacci(n-1) + fibonacci(n-2)</span></span>
-<span id="cb40-34"><a href="#cb40-34" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
-<span id="cb40-35"><a href="#cb40-35" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-36"><a href="#cb40-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, tokenizer <span class="kw">in</span> tokenizers.items():</span>
-<span id="cb40-37"><a href="#cb40-37" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> tokenizer.encode(code)</span>
-<span id="cb40-38"><a href="#cb40-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">:"</span>)</span>
-<span id="cb40-39"><a href="#cb40-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb40-40"><a href="#cb40-40" aria-hidden="true" tabindex="-1"></a>    decoded_tokens <span class="op">=</span> tokenizer.convert_ids_to_tokens(tokens)</span>
-<span id="cb40-41"><a href="#cb40-41" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Primeiros tokens: </span><span class="sc">{</span>decoded_tokens[:<span class="dv">15</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb40-42"><a href="#cb40-42" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb40-43"><a href="#cb40-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">💡 Observe que Code Llama tokeniza código mais eficientemente!"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb50"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> transformers <span class="im">import</span> AutoTokenizer</span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Carregar diferentes tokenizers</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>tokenizers <span class="op">=</span> {</span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"GPT-2"</span>: AutoTokenizer.from_pretrained(<span class="st">"gpt2"</span>),</span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"LLaMA 2"</span>: AutoTokenizer.from_pretrained(<span class="st">"meta-llama/Llama-2-7b-hf"</span>),</span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Code Llama"</span>: AutoTokenizer.from_pretrained(<span class="st">"codellama/CodeLlama-7b-hf"</span>),</span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>    <span class="st">"Mistral"</span>: AutoTokenizer.from_pretrained(<span class="st">"mistralai/Mistral-7B-v0.1"</span>)</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>}</span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 1: Texto natural</span></span>
+<span id="cb50-12"><a href="#cb50-12" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb50-13"><a href="#cb50-13" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"TESTE 1: Texto Natural"</span>)</span>
+<span id="cb50-14"><a href="#cb50-14" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb50-15"><a href="#cb50-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-16"><a href="#cb50-16" aria-hidden="true" tabindex="-1"></a>text_natural <span class="op">=</span> <span class="st">"The transformer architecture revolutionized natural language processing."</span></span>
+<span id="cb50-17"><a href="#cb50-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-18"><a href="#cb50-18" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, tokenizer <span class="kw">in</span> tokenizers.items():</span>
+<span id="cb50-19"><a href="#cb50-19" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> tokenizer.encode(text_natural)</span>
+<span id="cb50-20"><a href="#cb50-20" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb50-21"><a href="#cb50-21" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-22"><a href="#cb50-22" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Decodificação: </span><span class="sc">{</span>tokenizer<span class="sc">.</span>convert_ids_to_tokens(tokens)[:<span class="dv">10</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-23"><a href="#cb50-23" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-24"><a href="#cb50-24" aria-hidden="true" tabindex="-1"></a><span class="co"># Teste 2: Código</span></span>
+<span id="cb50-25"><a href="#cb50-25" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span><span class="st">'='</span><span class="op">*</span><span class="dv">60</span><span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-26"><a href="#cb50-26" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"TESTE 2: Código Python"</span>)</span>
+<span id="cb50-27"><a href="#cb50-27" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"="</span><span class="op">*</span><span class="dv">60</span>)</span>
+<span id="cb50-28"><a href="#cb50-28" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-29"><a href="#cb50-29" aria-hidden="true" tabindex="-1"></a>code <span class="op">=</span> <span class="st">"""</span></span>
+<span id="cb50-30"><a href="#cb50-30" aria-hidden="true" tabindex="-1"></a><span class="st">def fibonacci(n):</span></span>
+<span id="cb50-31"><a href="#cb50-31" aria-hidden="true" tabindex="-1"></a><span class="st">    if n &lt;= 1:</span></span>
+<span id="cb50-32"><a href="#cb50-32" aria-hidden="true" tabindex="-1"></a><span class="st">        return n</span></span>
+<span id="cb50-33"><a href="#cb50-33" aria-hidden="true" tabindex="-1"></a><span class="st">    return fibonacci(n-1) + fibonacci(n-2)</span></span>
+<span id="cb50-34"><a href="#cb50-34" aria-hidden="true" tabindex="-1"></a><span class="st">"""</span></span>
+<span id="cb50-35"><a href="#cb50-35" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-36"><a href="#cb50-36" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> name, tokenizer <span class="kw">in</span> tokenizers.items():</span>
+<span id="cb50-37"><a href="#cb50-37" aria-hidden="true" tabindex="-1"></a>    tokens <span class="op">=</span> tokenizer.encode(code)</span>
+<span id="cb50-38"><a href="#cb50-38" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"</span><span class="ch">\n</span><span class="sc">{</span>name<span class="sc">}</span><span class="ss">:"</span>)</span>
+<span id="cb50-39"><a href="#cb50-39" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Tokens: </span><span class="sc">{</span><span class="bu">len</span>(tokens)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-40"><a href="#cb50-40" aria-hidden="true" tabindex="-1"></a>    decoded_tokens <span class="op">=</span> tokenizer.convert_ids_to_tokens(tokens)</span>
+<span id="cb50-41"><a href="#cb50-41" aria-hidden="true" tabindex="-1"></a>    <span class="bu">print</span>(<span class="ss">f"  Primeiros tokens: </span><span class="sc">{</span>decoded_tokens[:<span class="dv">15</span>]<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb50-42"><a href="#cb50-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb50-43"><a href="#cb50-43" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"</span><span class="ch">\n</span><span class="st">💡 Observe que Code Llama tokeniza código mais eficientemente!"</span>)</span></code></pre></div><button title="Copiar para a área de transferência" class="code-copy-button"><i class="bi"></i></button></div>
 <p><strong>Questões para reflexão:</strong></p>
 <ol type="1">
 <li>Qual tokenizer é mais eficiente para texto em português?</li>
@@ -2022,6 +2274,9 @@ Raffel, Colin, Noam Shazeer, Adam Roberts, Katherine Lee, Sharan Narang, Michael
 <div id="ref-rocklin2015dask" class="csl-entry" role="listitem">
 Rocklin, Matthew. 2015. <span>«Dask: Parallel Computation with Blocked algorithms and Task Scheduling»</span>. Em <em>Proceedings of the 14th Python in Science Conference</em>, 130–36. <a href="https://doi.org/10.25080/Majora-7b98e3ed-013">https://doi.org/10.25080/Majora-7b98e3ed-013</a>.
 </div>
+<div id="ref-rogers2020primer" class="csl-entry" role="listitem">
+Rogers, Anna, Olga Kovaleva, e Anna Rumshisky. 2020. <span>«A Primer in BERTology: What We Know About How BERT Works»</span>. <em>Transactions of the Association for Computational Linguistics</em> 8: 842–66. <a href="https://aclanthology.org/2020.tacl-1.54/">https://aclanthology.org/2020.tacl-1.54/</a>.
+</div>
 <div id="ref-rust2021good" class="csl-entry" role="listitem">
 Rust, Phillip, Jonas Pfeiffer, Ivan Vulic, Sebastian Ruder, e Iryna Gurevych. 2021. <span>«How Good is Your Tokenizer? On the Monolingual Performance of Multilingual Language Models»</span>. Em <em>Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 1: Long Papers)</em>, 3118–35. <a href="https://aclanthology.org/2021.acl-long.243/">https://aclanthology.org/2021.acl-long.243/</a>.
 </div>
@@ -2031,8 +2286,17 @@ Schuster, Mike, e Kaisuke Nakajima. 2012. <span>«Japanese and Korean Voice Sear
 <div id="ref-sennrich2016neural" class="csl-entry" role="listitem">
 Sennrich, Rico, Barry Haddow, e Alexandra Birch. 2016. <span>«Neural Machine Translation of Rare Words with Subword Units»</span>. <em>arXiv preprint arXiv:1508.07909</em>. <a href="https://arxiv.org/abs/1508.07909">https://arxiv.org/abs/1508.07909</a>.
 </div>
+<div id="ref-tenney2019bert" class="csl-entry" role="listitem">
+Tenney, Ian, Dipanjan Das, e Ellie Pavlick. 2019. <span>«BERT Rediscovers the Classical NLP Pipeline»</span>. Em <em>Proceedings of the 57th Annual Meeting of the Association for Computational Linguistics</em>, 4593–4601. <a href="https://aclanthology.org/P19-1452/">https://aclanthology.org/P19-1452/</a>.
+</div>
 <div id="ref-touvron2023llama" class="csl-entry" role="listitem">
 Touvron, Hugo, Thibaut Lavril, Gautier Izacard, et al. 2023. <span>«LLaMA: Open and Efficient Foundation Language Models»</span>. <em>arXiv preprint arXiv:2302.13971</em>. <a href="https://arxiv.org/abs/2302.13971">https://arxiv.org/abs/2302.13971</a>.
+</div>
+<div id="ref-wei2022emergent" class="csl-entry" role="listitem">
+Wei, Jason, Yi Tay, Rishi Bommasani, et al. 2022. <span>«Emergent Abilities of Large Language Models»</span>. <em>arXiv preprint arXiv:2206.07682</em>. <a href="https://arxiv.org/abs/2206.07682">https://arxiv.org/abs/2206.07682</a>.
+</div>
+<div id="ref-wei2022chain" class="csl-entry" role="listitem">
+Wei, Jason, Xuezhi Wang, Dale Schuurmans, Maarten Bosma, Brian Ichter, Fei Xia, Ed Chi, Quoc Le, e Denny Zhou. 2022. <span>«Chain-of-Thought Prompting Elicits Reasoning in Large Language Models»</span>. <em>arXiv preprint arXiv:2201.11903</em>. <a href="https://arxiv.org/abs/2201.11903">https://arxiv.org/abs/2201.11903</a>.
 </div>
 <div id="ref-wolf2020huggingface" class="csl-entry" role="listitem">
 Wolf, Thomas, Lysandre Debut, Victor Sanh, et al. 2020. <span>«Transformers: State-of-the-Art Natural Language Processing»</span>. <em>Proceedings of the 2020 Conference on Empirical Methods in Natural Language Processing: System Demonstrations</em>, 38–45.
@@ -2053,6 +2317,13 @@ Zheng, Lianmin, Wei-Lin Chiang, Ying Sheng, et al. 2023. <span>«Judging LLM-as-
 Zhu, Eric. 2024. <span>«datasketch: Probabilistic Data Structures for Python»</span>. 2024. <a href="https://github.com/ekzhu/datasketch">https://github.com/ekzhu/datasketch</a>.
 </div>
 </div>
+</section>
+<section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes">
+<hr>
+<ol>
+<li id="fn1"><p>Valores específicos do paper original: Standard prompting alcançou 17.9% de acurácia, enquanto CoT alcançou 52.5% no dataset GSM8K usando PaLM 540B <span class="citation" data-cites="wei2022chain">(<a href="../99-references.html#ref-wei2022chain" role="doc-biblioref">Wei, Wang, et al. 2022</a>)</span>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn2"><p>No dataset SVAMP, standard prompting obteve 64.3% enquanto CoT obteve 92.5% <span class="citation" data-cites="wei2022chain">(<a href="../99-references.html#ref-wei2022chain" role="doc-biblioref">Wei, Wang, et al. 2022</a>)</span>.<a href="#fnref2" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
 </section>
 
 </main> <!-- /main -->
