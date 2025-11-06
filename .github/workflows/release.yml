@@ -15,7 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-artifacts:
+  # Job para build do PDF
+  build-pdf:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -130,106 +131,39 @@ jobs:
             exit 1
           fi
 
-      - name: Render book to all formats
-        timeout-minutes: 30
+      - name: Render PDF
+        timeout-minutes: 25
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
 
           # Configuração do Chrome para ambiente CI
           export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
           export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
-
-          # Flags otimizadas para evitar timeout e uso excessivo de recursos
           export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-extensions --disable-dbus"
-
-          # Timeout para operações do Puppeteer (30 segundos por diagrama)
           export PUPPETEER_TIMEOUT=30000
 
           echo "=== Renderizando PDF ==="
           quarto render book/ --to pdf --verbose
-          echo ""
-          echo "=== Renderizando EPUB ==="
-          quarto render book/ --to epub --verbose || echo "⚠ EPUB falhou, continuando..."
 
-      - name: Verify files generation
+      - name: Verify PDF generation
         run: |
-          echo "=== Verificando arquivos gerados ==="
-          ls -lh book/_book/
-
-          # Verifica se os arquivos principais foram gerados
           if [ ! -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
             echo "✗ PDF não foi gerado!"
             exit 1
           fi
 
-          echo "✓ Arquivos gerados com sucesso"
+          PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
+          echo "✓ PDF gerado com sucesso: $(numfmt --to=iec-i --suffix=B $PDF_SIZE)"
 
-      - name: Upload artifacts
+      - name: Upload PDF artifact
         uses: actions/upload-artifact@v4
         with:
-          name: book-artifacts
-          path: book/_book/
+          name: pdf-artifact
+          path: book/_book/Dominando-Agentes-de-IA.pdf
           retention-days: 1
 
-  create-release:
-    needs: build-artifacts
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v5
-
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: book-artifacts
-          path: book/_book
-
-      - name: Extract version from tag
-        id: version
-        run: |
-          # Remove o 'v' do início da tag (v1.0.0 -> 1.0.0)
-          VERSION=${GITHUB_REF#refs/tags/v}
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Versão: $VERSION"
-
-      - name: Verify downloaded files
-        run: |
-          echo "=== Arquivos baixados ==="
-          ls -lh book/_book/
-
-          if [ ! -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
-            echo "✗ PDF não encontrado nos artefatos!"
-            exit 1
-          fi
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Versão ${{ steps.version.outputs.version }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-          files: |
-            book/_book/Dominando-Agentes-de-IA.pdf
-            book/_book/Dominando-Agentes-de-IA.epub
-          body: |
-            📚 **Livro: Dominando Agentes de IA**
-
-            ## Downloads Disponíveis
-
-            - 📄 **PDF**: Ideal para impressão e leitura offline
-            - 📱 **EPUB**: Compatível com e-readers (Kindle, Kobo, etc)
-            - 🌐 **HTML**: Acesse a versão online via [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
-
-            ---
-
-            **Versão:** ${{ steps.version.outputs.version }}
-            **Tag:** ${{ github.ref_name }}
-            **Commit:** ${{ github.sha }}
-
-            🤖 Gerado automaticamente com GitHub Actions
-
-  build-html:
+  # Job para build do EPUB
+  build-epub:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
@@ -268,8 +202,77 @@ jobs:
           npm install -g @mermaid-js/mermaid-cli
           mmdc --version
 
-      - name: Render HTML for GitHub Pages
+      - name: Render EPUB
         timeout-minutes: 15
+        run: |
+          # Configuração do Chrome para ambiente CI
+          export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
+          export PUPPETEER_TIMEOUT=30000
+
+          echo "=== Renderizando EPUB ==="
+          quarto render book/ --to epub --verbose
+
+      - name: Verify EPUB generation
+        run: |
+          if [ ! -f "book/_book/Dominando-Agentes-de-IA.epub" ]; then
+            echo "✗ EPUB não foi gerado!"
+            exit 1
+          fi
+
+          EPUB_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.epub)
+          echo "✓ EPUB gerado com sucesso: $(numfmt --to=iec-i --suffix=B $EPUB_SIZE)"
+
+      - name: Upload EPUB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: epub-artifact
+          path: book/_book/Dominando-Agentes-de-IA.epub
+          retention-days: 1
+
+  # Job para build do HTML
+  build-html:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Chrome for Mermaid diagrams
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+        with:
+          chrome-version: stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install Mermaid CLI
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          mmdc --version
+
+      - name: Render HTML for GitHub Pages
+        timeout-minutes: 12
         run: |
           # Configuração do Chrome para ambiente CI
           export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
@@ -280,6 +283,14 @@ jobs:
           echo "=== Renderizando HTML para GitHub Pages ==="
           quarto render book/ --to html --verbose
 
+      - name: Verify HTML generation
+        run: |
+          if [ ! -f "book/_book/index.html" ]; then
+            echo "✗ HTML não foi gerado!"
+            exit 1
+          fi
+          echo "✓ HTML gerado com sucesso!"
+
       - name: Upload HTML artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -287,6 +298,76 @@ jobs:
           path: book/_book/
           retention-days: 1
 
+  # Job para criar release (depende de PDF e EPUB)
+  create-release:
+    needs: [build-pdf, build-epub]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Download PDF artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: pdf-artifact
+          path: ./artifacts
+
+      - name: Download EPUB artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: epub-artifact
+          path: ./artifacts
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          # Remove o 'v' do início da tag (v1.0.0 -> 1.0.0)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Versão: $VERSION"
+
+      - name: Verify downloaded files
+        run: |
+          echo "=== Arquivos baixados ==="
+          ls -lh ./artifacts/
+
+          if [ ! -f "./artifacts/Dominando-Agentes-de-IA.pdf" ]; then
+            echo "✗ PDF não encontrado nos artefatos!"
+            exit 1
+          fi
+
+          if [ ! -f "./artifacts/Dominando-Agentes-de-IA.epub" ]; then
+            echo "⚠ EPUB não encontrado nos artefatos!"
+          fi
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Versão ${{ steps.version.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            ./artifacts/Dominando-Agentes-de-IA.pdf
+            ./artifacts/Dominando-Agentes-de-IA.epub
+          body: |
+            📚 **Livro: Dominando Agentes de IA**
+
+            ## Downloads Disponíveis
+
+            - 📄 **PDF**: Ideal para impressão e leitura offline
+            - 📱 **EPUB**: Compatível com e-readers (Kindle, Kobo, etc)
+            - 🌐 **HTML**: Acesse a versão online via [GitHub Pages](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/)
+
+            ---
+
+            **Versão:** ${{ steps.version.outputs.version }}
+            **Tag:** ${{ github.ref_name }}
+            **Commit:** ${{ github.sha }}
+
+            🤖 Gerado automaticamente com GitHub Actions
+
+  # Job para deploy no GitHub Pages (depende do HTML)
   deploy-gh-pages:
     needs: build-html
     runs-on: ubuntu-latest
@@ -294,9 +375,6 @@ jobs:
       contents: read
       pages: write
       id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Download HTML artifacts
         uses: actions/download-artifact@v4
