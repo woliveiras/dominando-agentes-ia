@@ -1,0 +1,816 @@
+# Capítulo 4: Dominando LLMs na Prática {.unnumbered}
+
+Nos capítulos anteriores, exploramos a arquitetura dos Transformers, como foundation models são treinados, e técnicas de fine-tuning. Agora é hora de focar nos aspectos práticos de usar LLMs em produção: como configurar parâmetros de geração para controlar o comportamento do modelo, gerenciar o context window eficientemente, e otimizar custo e latência sem sacrificar qualidade.
+
+Este capítulo é sobre engenharia prática. Você aprenderá as decisões técnicas que separam uma prova de conceito funcional de um sistema de produção robusto e eficiente.
+
+## Configuração de Parâmetros de Geração
+
+Quando você chama um LLM para gerar texto, não está simplesmente pressionando "play" em um modelo determinístico. Existe uma série de parâmetros que controlam **como** o modelo gera texto, cada um com trade-offs específicos entre criatividade, consistência, qualidade e performance.
+
+### Temperature: Controlando Aleatoriedade
+
+**O que é**: Temperature escala as probabilidades antes de sampling, controlando quão "aleatório" ou "focado" o modelo é.
+
+**Como funciona matematicamente**:
+
+```python
+# Sem temperature (raw logits)
+logits = [2.0, 1.0, 0.5]  # scores do modelo para 3 tokens candidatos
+
+# Com temperature = 1.0 (padrão, sem mudança)
+probs = softmax(logits / 1.0)  # [0.659, 0.242, 0.099]
+
+# Com temperature = 0.1 (muito focado)
+probs = softmax(logits / 0.1)  # [0.999, 0.001, 0.000]
+
+# Com temperature = 2.0 (mais aleatório)
+probs = softmax(logits / 2.0)  # [0.483, 0.307, 0.210]
+```
+
+**Efeitos práticos**:
+
+- **Temperature = 0** (ou próximo): Greedy decoding, sempre escolhe o token mais provável
+  - **Use quando**: Precisão é crítica (geração de código, extração de dados estruturados, respostas factuais)
+  - **Evite quando**: Precisa de criatividade ou diversidade (brainstorming, escrita criativa)
+
+- **Temperature = 0.7-1.0**: Balanço entre aleatoriedade e coerência
+  - **Use quando**: Tarefas gerais de geração de texto, conversação natural
+  - **Default** para a maioria dos casos
+
+- **Temperature > 1.5**: Alta aleatoriedade, mais "criativo" mas menos coerente
+  - **Use quando**: Brainstorming, geração de ideias diversas, exploração criativa
+  - **Evite quando**: Precisa de consistência ou precisão factual
+
+**Exemplo comparativo**:
+
+```python
+prompt = "Os três pilares da engenharia de software são:"
+
+# Temperature = 0.0
+"qualidade, manutenibilidade e escalabilidade."  # Resposta mais provável
+
+# Temperature = 0.7
+"qualidade de código, testes automatizados e documentação clara."  # Variação razoável
+
+# Temperature = 1.5
+"colaboração entre equipes, inovação contínua e café infinito."  # Mais criativo/inusitado
+```
+
+### Top-p (Nucleus Sampling): Controle Dinâmico de Vocabulário
+
+**O que é**: Em vez de considerar todos os tokens possíveis ou apenas os top-k, nucleus sampling considera os tokens cuja probabilidade acumulada atinge `p`.
+
+**Como funciona**:
+
+```python
+# Probabilidades dos tokens após softmax
+probs = {
+    "é": 0.40,
+    "foi": 0.25,
+    "será": 0.15,
+    "era": 0.10,
+    "seria": 0.05,
+    "possa": 0.03,
+    "pudesse": 0.02
+}
+
+# Top-p = 0.9: considera tokens até probabilidade acumulada ≥ 90%
+# Seleciona: "é" (0.40) + "foi" (0.65) + "será" (0.80) + "era" (0.90)
+# Ignora: "seria", "possa", "pudesse" (tail improvável)
+```
+
+**Comparação Top-p vs Top-k**:
+
+| Método | Funcionamento | Vantagem | Desvantagem |
+|--------|---------------|----------|-------------|
+| **Top-k** | Considera sempre k tokens mais prováveis | Simples, previsível | k fixo pode ser muito restritivo ou permissivo |
+| **Top-p** | Considera tokens até probabilidade acumulada p | Adapta-se à distribuição | Mais complexo, pode incluir muitos tokens em distribuições planas |
+
+**Recomendações**:
+
+- **Top-p = 0.9-0.95**: Default recomendado para maioria dos casos
+- **Top-p = 1.0**: Sem filtro (usa toda a distribuição)
+- **Top-p < 0.8**: Geração mais focada e determinística
+
+**Combinando Temperature + Top-p**:
+
+```python
+# Configuração conservadora (factual, precisa)
+config = {
+    "temperature": 0.3,
+    "top_p": 0.8
+}
+
+# Configuração balanceada (geral)
+config = {
+    "temperature": 0.7,
+    "top_p": 0.9
+}
+
+# Configuração criativa (brainstorming)
+config = {
+    "temperature": 1.2,
+    "top_p": 0.95
+}
+```
+
+### Max Tokens: Controlando Comprimento de Saída
+
+**O que é**: Número máximo de tokens que o modelo pode gerar na resposta.
+
+**Considerações importantes**:
+
+1. **Custo**: Você paga por token gerado. Se `max_tokens=1000` mas a resposta completa em 100, paga apenas 100.
+2. **Latência**: Mais tokens = mais tempo de geração (~50ms por token em média)
+3. **Truncamento**: Se a resposta atingir `max_tokens`, pode ser cortada no meio de uma frase
+
+**Estratégias**:
+
+```python
+# Para respostas curtas (classificação, extração)
+max_tokens = 10-50
+
+# Para explicações médias
+max_tokens = 200-500
+
+# Para geração longa (artigos, análises)
+max_tokens = 1000-2000
+
+# Para streaming (exibir enquanto gera)
+max_tokens = 500-1000 com stream=True
+```
+
+**Armadilha comum**: Definir `max_tokens` muito alto "por segurança" aumenta custo e latência desnecessariamente.
+
+### Stop Sequences: Terminando Geração Antecipadamente
+
+**O que é**: Strings que, quando geradas pelo modelo, param a geração imediatamente.
+
+**Casos de uso**:
+
+```python
+# Exemplo 1: Geração estruturada
+prompt = "Liste 3 vantagens do Python:\n1."
+stop = ["\n\n", "Conclusão"]  # Para após listar os 3 itens
+
+# Exemplo 2: Conversação
+prompt = f"{user_message}\nAssistant:"
+stop = ["\nUser:", "\nAssistant:"]  # Para quando começar nova rodada
+
+# Exemplo 3: Code generation
+prompt = "def calculate_fibonacci(n):"
+stop = ["\ndef ", "\nclass "]  # Para ao começar nova função/classe
+```
+
+**Best practices**:
+
+- Use stop sequences para formatos estruturados
+- Evite stop sequences muito curtas (podem truncar prematuramente)
+- Combine com `max_tokens` como fallback
+
+### Frequency Penalty e Presence Penalty
+
+**O que são**: Penalizam tokens que já apareceram na geração para reduzir repetição.
+
+**Diferença**:
+
+- **Frequency Penalty**: Penaliza proporcionalmente ao número de vezes que o token apareceu
+- **Presence Penalty**: Penaliza igualmente qualquer token que já apareceu (binário)
+
+**Matemática**:
+
+```python
+# Logit original do token
+logit_original = 2.5
+
+# Se token "mundo" já apareceu 3 vezes:
+frequency_penalty = 0.5
+presence_penalty = 0.3
+
+# Novo logit
+logit_ajustado = logit_original - (3 * frequency_penalty) - presence_penalty
+# = 2.5 - 1.5 - 0.3 = 0.7
+```
+
+**Recomendações**:
+
+```python
+# Sem penalidade (default)
+frequency_penalty = 0.0
+presence_penalty = 0.0
+
+# Penalidade moderada (reduzir repetição leve)
+frequency_penalty = 0.3-0.5
+presence_penalty = 0.1-0.3
+
+# Penalidade forte (forçar diversidade)
+frequency_penalty = 0.8-1.0
+presence_penalty = 0.5-0.8
+```
+
+**Quando usar**:
+
+- ✅ Geração longa onde repetição é problema (artigos, histórias)
+- ✅ Geração de múltiplas alternativas (brainstorming)
+- ❌ Respostas curtas e factuais (pode distorcer precisão)
+- ❌ Code generation (pode quebrar convenções necessárias)
+
+### Exemplo Completo: Configurações por Caso de Uso
+
+```python
+# 1. Extração de dados estruturados
+config_extraction = {
+    "temperature": 0.0,
+    "max_tokens": 100,
+    "stop": ["\n\n"],
+    "top_p": 1.0
+}
+
+# 2. Conversação natural
+config_conversation = {
+    "temperature": 0.7,
+    "max_tokens": 500,
+    "top_p": 0.9,
+    "presence_penalty": 0.2
+}
+
+# 3. Code generation
+config_code = {
+    "temperature": 0.2,
+    "max_tokens": 1000,
+    "stop": ["\n\ndef ", "\n\nclass "],
+    "top_p": 0.95
+}
+
+# 4. Brainstorming criativo
+config_creative = {
+    "temperature": 1.0,
+    "max_tokens": 800,
+    "top_p": 0.95,
+    "presence_penalty": 0.6,
+    "frequency_penalty": 0.5
+}
+
+# 5. Análise factual
+config_factual = {
+    "temperature": 0.3,
+    "max_tokens": 300,
+    "top_p": 0.85
+}
+```
+
+## Context Window: Gerenciamento de Memória
+
+O **context window** (ou **context length**) é o número máximo de tokens que o modelo consegue processar de uma vez, incluindo tanto o prompt de entrada quanto a resposta gerada.
+
+### Limites por Modelo
+
+| Modelo | Context Window | Notas |
+|--------|----------------|-------|
+| GPT-3.5-turbo | 16K tokens | ~12K palavras |
+| GPT-4 | 8K / 32K tokens | Versões diferentes |
+| GPT-4-turbo | 128K tokens | ~96K palavras, ~300 páginas |
+| Claude 3.5 Sonnet | 200K tokens | ~150K palavras |
+| LLaMA 2 | 4K tokens | Limitado |
+| LLaMA 3 | 8K tokens | Melhorado |
+| Gemini 1.5 Pro | 1M tokens | ~700K palavras |
+
+### O Problema do Context Window
+
+**Situação comum**:
+
+```python
+# Conversação com histórico crescente
+messages = [
+    {"role": "user", "content": "Explique fotossíntese"},
+    {"role": "assistant", "content": "[500 tokens de explicação]"},
+    {"role": "user", "content": "E respiração celular?"},
+    {"role": "assistant", "content": "[600 tokens de explicação]"},
+    {"role": "user", "content": "Compare os dois processos"},
+    {"role": "assistant", "content": "[700 tokens de explicação]"},
+    # ... continua crescendo
+]
+
+# Após 10 rodadas: histórico pode ter 8K+ tokens
+# Problema: Próxima chamada pode exceder context window!
+```
+
+### Estratégias de Gerenciamento
+
+#### 1. Sliding Window (Janela Deslizante)
+
+Mantém apenas as N mensagens mais recentes:
+
+```python
+def sliding_window(messages, max_messages=10):
+    """Mantém apenas as últimas max_messages mensagens"""
+    system_message = messages[0]  # Preserva system message
+    recent_messages = messages[-max_messages:]
+    return [system_message] + recent_messages
+
+# Uso
+messages = sliding_window(conversation_history, max_messages=8)
+```
+
+**Prós**: Simples, preserva contexto recente
+**Contras**: Perde informações antigas que podem ser relevantes
+
+#### 2. Summarization (Sumarização)
+
+Sumariza mensagens antigas para economizar tokens:
+
+```python
+def summarize_old_context(messages, threshold=10):
+    """Sumariza mensagens antigas quando histórico fica muito longo"""
+    if len(messages) < threshold:
+        return messages
+
+    # Mensagens antigas para sumarizar
+    old_messages = messages[1:threshold]  # Pula system message
+    recent_messages = messages[threshold:]
+
+    # Chama LLM para sumarizar
+    summary_prompt = f"""
+    Resuma as seguintes mensagens de conversação em 2-3 parágrafos:
+    {format_messages(old_messages)}
+    """
+    summary = llm.generate(summary_prompt, max_tokens=300)
+
+    # Reconstrói histórico
+    return [
+        messages[0],  # System message
+        {"role": "system", "content": f"Resumo da conversa anterior: {summary}"},
+        *recent_messages
+    ]
+```
+
+**Prós**: Preserva informação essencial, compacto
+**Contras**: Custo extra de chamada de sumarização, pode perder detalhes
+
+#### 3. Token-Based Trimming (Corte por Tokens)
+
+Remove mensagens antigas até caber no limit de tokens:
+
+```python
+def trim_to_token_limit(messages, max_tokens=15000, model="gpt-4"):
+    """Remove mensagens antigas até caber no limite de tokens"""
+    import tiktoken
+
+    enc = tiktoken.encoding_for_model(model)
+    system_message = messages[0]
+    conversation = messages[1:]
+
+    # Conta tokens do system message
+    system_tokens = len(enc.encode(system_message["content"]))
+    remaining_tokens = max_tokens - system_tokens - 1000  # buffer para resposta
+
+    # Adiciona mensagens de trás pra frente até atingir limite
+    trimmed = []
+    current_tokens = 0
+
+    for msg in reversed(conversation):
+        msg_tokens = len(enc.encode(msg["content"]))
+        if current_tokens + msg_tokens > remaining_tokens:
+            break
+        trimmed.insert(0, msg)
+        current_tokens += msg_tokens
+
+    return [system_message] + trimmed
+```
+
+**Prós**: Controle preciso de tokens
+**Contras**: Pode cortar no meio de um tópico importante
+
+#### 4. Hybrid: Summarization + Sliding Window
+
+Combina as duas abordagens:
+
+```python
+def hybrid_context_management(messages, max_tokens=15000, window_size=6):
+    """Sumariza mensagens antigas, mantém janela recente completa"""
+    if len(messages) < window_size + 2:  # +2 para system message e margem
+        return trim_to_token_limit(messages, max_tokens)
+
+    # Divide em: system, antigas (sumarizar), recentes (manter)
+    system = messages[0]
+    old = messages[1:-window_size]
+    recent = messages[-window_size:]
+
+    # Sumariza mensagens antigas
+    if len(old) > 0:
+        summary = summarize_messages(old)
+        summary_msg = {"role": "system", "content": f"Contexto anterior: {summary}"}
+        reconstructed = [system, summary_msg] + recent
+    else:
+        reconstructed = [system] + recent
+
+    # Garante que cabe no limite de tokens
+    return trim_to_token_limit(reconstructed, max_tokens)
+```
+
+**Prós**: Melhor de dois mundos
+**Contras**: Mais complexo, custo de sumarização
+
+### Best Practices para Context Management
+
+1. **Monitore token usage**:
+   ```python
+   import tiktoken
+
+   def count_tokens(messages, model="gpt-4"):
+       enc = tiktoken.encoding_for_model(model)
+       return sum(len(enc.encode(m["content"])) for m in messages)
+
+   # Alerta quando atingir 80% do limite
+   current_tokens = count_tokens(messages)
+   if current_tokens > 0.8 * MAX_CONTEXT:
+       print(f"⚠️ Usando {current_tokens}/{MAX_CONTEXT} tokens")
+   ```
+
+2. **System message eficiente**:
+   ```python
+   # ❌ Ruim: System message muito longo
+   system = "Você é um assistente útil, prestativo, preciso, factual, conciso, claro, objetivo, direto..."  # 500+ tokens
+
+   # ✅ Bom: Conciso e direto
+   system = "Você é um assistente especializado em programação Python. Seja conciso e forneça exemplos práticos."  # ~30 tokens
+   ```
+
+3. **Evite redundância**:
+   ```python
+   # ❌ Ruim: Repetir contexto a cada mensagem
+   prompt = f"""
+   Você é um especialista em Python.
+   Considere o seguinte código:
+   {code}
+
+   Histórico da conversa: {conversation_history}
+
+   Pergunta: {user_question}
+   """
+
+   # ✅ Bom: Contexto no system message, resto nas mensagens
+   messages = [
+       {"role": "system", "content": "Você é um especialista em Python."},
+       {"role": "user", "content": f"Código:\n{code}"},
+       {"role": "user", "content": user_question}
+   ]
+   ```
+
+## Otimização de Custo e Latência
+
+### Estrutura de Custos
+
+Modelos LLM cobram por **tokens processados**:
+
+```python
+# Exemplo: GPT-4 (preços aproximados em jan 2024)
+input_cost_per_1k_tokens = 0.03   # USD
+output_cost_per_1k_tokens = 0.06  # USD
+
+# Conversação típica
+input_tokens = 1500   # Prompt + histórico
+output_tokens = 500   # Resposta gerada
+
+cost = (input_tokens / 1000 * 0.03) + (output_tokens / 1000 * 0.06)
+# = 0.045 + 0.030 = $0.075 por chamada
+```
+
+**Para 100K chamadas por mês**: $0.075 × 100,000 = **$7,500/mês**
+
+### Estratégias de Redução de Custo
+
+#### 1. Escolha o Modelo Certo por Tarefa
+
+```python
+# Cascading: Use modelo menor primeiro, escale se necessário
+def cascading_llm(prompt, complexity_threshold=0.7):
+    # Tenta com modelo mais barato primeiro
+    response = gpt35_turbo.generate(prompt)
+
+    # Se resposta parece incerta/complexa, tenta modelo maior
+    confidence = estimate_confidence(response)
+    if confidence < complexity_threshold:
+        response = gpt4.generate(prompt)
+
+    return response
+
+# Tabela de custos (aproximados, jan 2024)
+models_cost_comparison = {
+    "gpt-3.5-turbo": 0.002,    # USD per 1K tokens (mix input/output)
+    "gpt-4": 0.045,             # 22x mais caro
+    "gpt-4-turbo": 0.015,       # 7.5x mais caro
+    "claude-3-haiku": 0.00125,  # Mais barato
+    "claude-3-sonnet": 0.015,   # Intermediário
+    "claude-3-opus": 0.075      # Mais caro e poderoso
+}
+```
+
+**Quando usar cada modelo**:
+
+- **GPT-3.5 / Claude Haiku**: Classificação, extração simples, respostas curtas e factuais
+- **GPT-4-turbo / Claude Sonnet**: Geração de código, análise complexa, conversação natural
+- **GPT-4 / Claude Opus**: Raciocínio profundo, tarefas críticas, análise de segurança
+
+#### 2. Caching de Prompts
+
+```python
+import hashlib
+import redis
+
+class PromptCache:
+    def __init__(self, redis_client, ttl=3600):
+        self.redis = redis_client
+        self.ttl = ttl
+
+    def get_cache_key(self, prompt, config):
+        # Hash determinístico do prompt + config
+        content = f"{prompt}:{json.dumps(config, sort_keys=True)}"
+        return hashlib.sha256(content.encode()).hexdigest()
+
+    def get(self, prompt, config):
+        key = self.get_cache_key(prompt, config)
+        cached = self.redis.get(key)
+        return json.loads(cached) if cached else None
+
+    def set(self, prompt, config, response):
+        key = self.get_cache_key(prompt, config)
+        self.redis.setex(key, self.ttl, json.dumps(response))
+
+# Uso
+cache = PromptCache(redis_client)
+
+def generate_with_cache(prompt, config):
+    # Tenta buscar do cache
+    cached = cache.get(prompt, config)
+    if cached:
+        print("✓ Cache hit - economia de custo")
+        return cached
+
+    # Cache miss - chama LLM
+    response = llm.generate(prompt, **config)
+    cache.set(prompt, config, response)
+    return response
+```
+
+**Economia potencial**: 30-70% em chamadas redundantes (depende do domínio)
+
+#### 3. Batch Processing
+
+Processe múltiplas tarefas em um único prompt quando possível:
+
+```python
+# ❌ Ineficiente: 5 chamadas separadas
+sentiments = []
+for review in reviews:
+    prompt = f"Classifique o sentimento: {review}"
+    sentiments.append(llm.generate(prompt))
+# Custo: 5 × overhead de chamada
+
+# ✅ Eficiente: 1 chamada com batch
+prompt = f"""
+Classifique o sentimento de cada review abaixo (Positivo/Negativo/Neutro):
+
+{chr(10).join(f"{i+1}. {review}" for i, review in enumerate(reviews))}
+
+Responda no formato:
+1. [Sentimento]
+2. [Sentimento]
+...
+"""
+response = llm.generate(prompt)
+# Custo: 1 × overhead de chamada
+```
+
+**Quando funciona bem**: Tarefas idênticas/similares (classificação, tradução, sumarização)
+**Limitação**: Context window pode limitar batch size
+
+#### 4. Prompt Compression
+
+Reduza tokens desnecessários sem perder informação:
+
+```python
+# ❌ Prompt verboso (150 tokens)
+prompt = """
+I would like you to please analyze the following code snippet very carefully
+and provide me with a detailed explanation of what exactly this code does,
+including any potential issues or problems that you might identify, and also
+please suggest some improvements that could make it better:
+
+def calculate(x, y):
+    return x + y
+"""
+
+# ✅ Prompt comprimido (50 tokens)
+prompt = """
+Analyze this code, identify issues, and suggest improvements:
+
+def calculate(x, y):
+    return x + y
+"""
+```
+
+**Técnicas de compressão**:
+- Remove palavras de cortesia ("por favor", "você poderia")
+- Use listas em vez de parágrafos
+- Abreviações comuns (mas cuidado com clareza)
+- Evite instruções redundantes
+
+### Otimização de Latência
+
+**Latência típica**: 50-100ms por token gerado
+
+```python
+# Para resposta de 500 tokens:
+latency = 500 tokens × 80ms/token = 40 segundos
+```
+
+#### 1. Streaming
+
+Exiba resposta enquanto é gerada:
+
+```python
+import anthropic
+
+def generate_with_streaming(prompt):
+    client = anthropic.Anthropic()
+
+    with client.messages.stream(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=1000,
+        messages=[{"role": "user", "content": prompt}]
+    ) as stream:
+        for text in stream.text_stream:
+            print(text, end="", flush=True)
+            yield text
+
+# Time to first token: ~500ms
+# Usuário vê progresso imediatamente
+```
+
+**Benefício**: Percepção de latência reduzida (usuário vê resposta mais cedo)
+
+#### 2. Reduza max_tokens Quando Possível
+
+```python
+# ❌ Sempre usar max_tokens alto "por segurança"
+response = llm.generate(prompt, max_tokens=2000)  # Pode gerar até 2000, mas usa só 200
+
+# ✅ Estimar tokens necessários por tarefa
+task_token_estimates = {
+    "classification": 10,
+    "short_answer": 100,
+    "explanation": 300,
+    "article": 1000
+}
+
+max_tokens = task_token_estimates[task_type] * 1.2  # 20% buffer
+response = llm.generate(prompt, max_tokens=max_tokens)
+```
+
+#### 3. Paralelização
+
+Execute chamadas independentes em paralelo:
+
+```python
+import asyncio
+from anthropic import AsyncAnthropic
+
+async def process_documents_parallel(documents):
+    client = AsyncAnthropic()
+
+    async def summarize(doc):
+        response = await client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=300,
+            messages=[{"role": "user", "content": f"Resumir: {doc}"}]
+        )
+        return response.content[0].text
+
+    # Executa todas as sumarizações em paralelo
+    summaries = await asyncio.gather(*[summarize(doc) for doc in documents])
+    return summaries
+
+# 10 documentos:
+# Serial: 10 × 5s = 50 segundos
+# Paralelo: ~5 segundos (limitado pelo mais lento)
+```
+
+#### 4. Load Balancing e Fallbacks
+
+```python
+class LLMLoadBalancer:
+    def __init__(self, providers):
+        self.providers = providers  # Lista de providers (OpenAI, Anthropic, etc.)
+        self.current = 0
+
+    async def generate(self, prompt, max_retries=3):
+        for attempt in range(max_retries):
+            provider = self.providers[self.current % len(self.providers)]
+
+            try:
+                response = await provider.generate(prompt, timeout=10)
+                return response
+            except TimeoutError:
+                print(f"Timeout com {provider.name}, tentando próximo...")
+                self.current += 1
+            except Exception as e:
+                print(f"Erro com {provider.name}: {e}")
+                self.current += 1
+
+        raise Exception("Todos os providers falharam")
+
+# Uso
+balancer = LLMLoadBalancer([openai_client, anthropic_client])
+response = await balancer.generate(prompt)
+```
+
+### Monitoramento e Métricas
+
+Acompanhe métricas essenciais:
+
+```python
+import time
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class LLMMetrics:
+    prompt_tokens: int
+    completion_tokens: int
+    total_tokens: int
+    latency_ms: float
+    cost_usd: float
+    model: str
+    cached: bool = False
+
+class MetricsTracker:
+    def __init__(self):
+        self.metrics = []
+
+    def track_call(self, metrics: LLMMetrics):
+        self.metrics.append(metrics)
+
+    def report_daily(self):
+        total_calls = len(self.metrics)
+        total_cost = sum(m.cost_usd for m in self.metrics)
+        avg_latency = sum(m.latency_ms for m in self.metrics) / total_calls
+        cache_hit_rate = sum(1 for m in self.metrics if m.cached) / total_calls
+
+        print(f"""
+        📊 Relatório Diário:
+        - Chamadas: {total_calls}
+        - Custo: ${total_cost:.2f}
+        - Latência média: {avg_latency:.0f}ms
+        - Taxa de cache: {cache_hit_rate:.1%}
+        """)
+
+# Wrapper que rastreia métricas automaticamente
+def generate_with_metrics(prompt, config, tracker):
+    start = time.time()
+
+    # Tenta cache
+    cached = cache.get(prompt, config)
+    if cached:
+        metrics = LLMMetrics(
+            prompt_tokens=0, completion_tokens=0, total_tokens=0,
+            latency_ms=(time.time() - start) * 1000,
+            cost_usd=0, model=config.get("model", "unknown"),
+            cached=True
+        )
+        tracker.track_call(metrics)
+        return cached
+
+    # Chamada real
+    response = llm.generate(prompt, **config)
+    latency = (time.time() - start) * 1000
+
+    metrics = LLMMetrics(
+        prompt_tokens=response.usage.prompt_tokens,
+        completion_tokens=response.usage.completion_tokens,
+        total_tokens=response.usage.total_tokens,
+        latency_ms=latency,
+        cost_usd=calculate_cost(response.usage, config["model"]),
+        model=config["model"]
+    )
+    tracker.track_call(metrics)
+
+    return response
+```
+
+## Conclusão
+
+Dominar LLMs na prática vai além de entender a arquitetura. Requer expertise em configurar parâmetros de geração adequadamente para cada caso de uso, gerenciar context windows de forma eficiente, e otimizar custo e latência sem sacrificar qualidade.
+
+**Checklist para produção**:
+
+- [ ] Testei diferentes configurações de temperature/top-p para meu caso de uso
+- [ ] Implementei gerenciamento de context window (sliding window, summarization, ou híbrido)
+- [ ] Monitoro token usage e custos
+- [ ] Uso caching para chamadas redundantes
+- [ ] Implementei streaming para melhor UX
+- [ ] Tenho fallbacks configurados para alta disponibilidade
+- [ ] Rastreio métricas (latência, custo, cache hit rate)
+
+Nos próximos capítulos, exploraremos técnicas avançadas de prompt engineering e como construir sistemas de agentes que orquestram múltiplos LLMs de forma eficiente.

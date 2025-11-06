@@ -1411,6 +1411,294 @@ model = GPT2LMHeadModel(config)
 | **Special tokens** | Sempre incluir <s>, </s>, <unk>, <pad> | Necessário para treinamento |
 | **Tempo** | Espere 30min-2h para 1B tokens | Planeje adequadamente |
 
+## Representações Contextualizadas: O que Está Dentro dos Vetores
+
+**Da Ambiguidade à Precisão Semântica**
+
+Um dos avanços dos Transformers em relação a word embeddings estáticos (como word2vec e GloVe) é que eles produzem **representações contextualizadas**. *Embeddings* estáticos atribuem um único vetor fixo para cada palavra, independente do contexto, "bank" sempre tem a mesma representação, seja "bank of the river" (margem) ou "bank is closed" (banco financeiro).
+
+Transformers resolvem isso computando representações dinamicamente para cada ocorrência:
+
+```python
+# Word2Vec (estático)
+"The bank of the river" -> bank = [0.2, -0.5, 0.8, ...]  # sempre igual
+"The bank is closed"    -> bank = [0.2, -0.5, 0.8, ...]  # sempre igual
+
+# Transformer (contextualizado)
+"The bank of the river" -> bank₁ = [0.1, -0.3, 0.9, ...]  # "margem"
+"The bank is closed"    -> bank₂ = [0.8,  0.5, -0.2, ...] # "banco financeiro"
+```
+
+A distância vetorial entre `bank₁` e `bank₂` pode ser maior que a distância entre `bank₁` e `river`, refletindo que "bank (margem)" está semanticamente mais próximo de "river" que de "bank (banco)".
+
+Estas representações contextualizadas capturam múltiplos níveis de informação linguística simultaneamente:
+
+1. **Informação Sintática**: Parte do discurso (substantivo, verbo), estrutura gramatical, relações de dependência
+1. **Informação Semântica**: Significado da palavra, relações semânticas (sinonímia, antonímia, hiperonímia)
+1. **Informação Contextual**: Significado específico derivado do contexto imediato (desambiguação)
+1. **Conhecimento Factual**: Propriedades e fatos sobre entidades ("Paris é capital da França")
+
+Pesquisas em interpretabilidade revelaram que diferentes camadas de um Transformer se especializam em diferentes tipos de informação [@rogers2020primer; @tenney2019bert], formando uma hierarquia de representações. Isso pode ser visualizado da seguinte forma:
+
+- **Camadas Iniciais (1-4)**: Informação **sintática e superficial**
+
+  - Part-of-speech tagging (~95% accuracy na camada 2)
+  - Segmentação de constituintes sintáticos
+  - Detecção de pontuação e capitalização
+
+- **Camadas Intermediárias (5-8)**: Informação **semântica e factual**
+
+  - Desambiguação de sentido de palavras (word sense disambiguation)
+  - Relações semânticas entre palavras
+  - Conhecimento factual básico (entidades, relações)
+
+- **Camadas Finais (9-12+)**: Informação **task-specific e abstrata**
+
+  - Representações otimizadas para a tarefa de predição
+  - Raciocínio mais complexo e inferências
+  - Composição semântica de alta ordem
+
+Esta estrutura hierárquica é análoga a como CNNs (redes neurais convolucionais) aprendem features visuais:
+
+- Camadas iniciais: Detectam edges, texturas básicas
+- Camadas intermediárias: Detectam partes de objetos (olhos, rodas)
+- Camadas finais: Detectam objetos completos e cenas complexas
+
+Isso tem uma implicação prática: se você está fazendo fine-tuning, muitas vezes vale congelar as camadas iniciais (que aprendem linguagem geral) e treinar apenas as finais (task-specific). Isso reduz drasticamente o custo computacional e dados necessários. Veremos isso em detalhes no próximo capítulo.
+
+## Capacidades Emergentes: Além do Treinamento
+
+**O Fenômeno da Emergência**
+
+Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas** [@wei2022emergent]. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
+
+Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas "mais quente ou mais fria", é qualitativamente diferente (líquido vs. vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em "qualidade", mas em **quais tarefas conseguem realizar**.
+
+Entre as capacidades emergentes mais documentadas na literatura, destacam-se: **In-Context Learning** (aprender de exemplos no prompt sem atualizar pesos), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo explícito), e **Instruction Following** (seguir instruções complexas em linguagem natural). Existem outras capacidades emergentes importantes como raciocínio multi-hop, aritmética complexa, e decomposição de tarefas, mas focaremos nas três primeiras por sua relevância direta para construção de agentes de IA.
+
+### In-Context Learning (ICL)
+
+ICL consiste na capacidade do modelo aprender novas tarefas a partir de poucos exemplos no próprio prompt, **sem atualizar pesos** [@brown2020language]. Isso é surpreendente porque o modelo foi treinado apenas para prever o próximo token, mas consegue "aprender" a partir de exemplos fornecidos no contexto.
+
+Exemplo: 
+
+```python
+# Prompt com 3 exemplos de tradução
+prompt = """
+Traduza inglês para francês:
+English: Hello
+French: Bonjour
+
+English: Good morning
+French: Bonjour
+
+English: Thank you
+French: Merci
+
+English: How are you?
+French:"""
+
+# Modelo "aprende" o padrão e completa corretamente
+output = "Comment allez-vous?"
+```
+
+Isso é surpreendente porque, durante o treinamento, o modelo nunca viu a tarefa de "seguir um padrão de poucos exemplos". Ele só foi treinado para prever o próximo token. Mas de alguma forma, essa capacidade de *meta-aprendizado* emerge em modelos maiores.
+
+**Variantes de ICL**:
+
+- **Zero-shot**: Nenhum exemplo, apenas a instrução ("Traduza para francês: Hello")
+- **Few-shot**: Poucos exemplos (1-10) antes da tarefa real
+- **Many-shot**: Muitos exemplos (10-100+) para tarefas complexas
+
+```python
+# Few-shot ICL: Classificação de sentimento
+prompt = """
+Classifique o sentimento:
+Texto: "Esse filme é incrível!" → Positivo
+Texto: "Péssimo atendimento." → Negativo
+Texto: "Adorei essa experiência!" → """
+
+output = "Positivo"  # Modelo generaliza o padrão
+```
+
+### Chain-of-Thought Reasoning (CoT)
+
+CoT consiste na capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito [@wei2022chain]. Esta é uma das descobertas mais impactantes para construção de agentes de IA, pois permite decompor problemas complexos em etapas **verificáveis** (o que é muito importante para conseguirmos debugar erros em produção).
+
+**O Problema do Raciocínio em LLMs**
+
+LLMs são treinados para prever o próximo token diretamente. Para problemas simples isso funciona:
+
+```python
+"2 + 2 =" → "4"  # Resposta memorizada
+```
+
+Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente falha:
+
+```python
+# Sem CoT (falha)
+prompt = "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?"
+output = "8"  # ERRADO (deveria ser 11)
+
+# Por que falhou? O modelo tentou "pular" para a resposta sem raciocinar:
+# 5 bolas + 2 latas = 7? ou 5 + 3 = 8? Sem espaço para trabalhar, o modelo chuta.
+```
+
+Veja os exemplos a seguir: na primeira imagem, eu usei um modelo pequeno, o [gemma3:270m-it-fp16](https://ollama.com/library/gemma3:270m-it-fp16), que não tem capacidade de raciocínio avançado. Na segunda imagem, usei o [gpt-oss:20b](https://ollama.com/library/gpt-oss:20b), que é capaz de raciocinar passo a passo.
+
+![Exemplo de falha de raciocínio em modelo pequeno. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada, então ele compra \(2 \times 3 = 6\) bolas.
+Hoje ele tem \(5 - 6 = -1\) bolas."](./images/cot-fail-small.png)
+
+![Exemplo de raciocínio passo a passo em modelo grande. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas, e cada lata contém 3 bolas. Quantidade comprada: \(2 \times 3 = 6\) bolas.  Total agora: \(5 + 6 = 11\) bolas. **Resposta:** 11 bolas de tênis."](./images/cot-success-large.png)
+
+Chain-of-Thought força o modelo a "mostrar o trabalho", criando espaço no contexto para raciocínio intermediário:
+
+```python
+# Com CoT (sucesso)
+prompt = """Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?
+Vamos pensar passo a passo:
+1. Roger começa com 5 bolas
+2. Ele compra 2 latas
+3. Cada lata tem 3 bolas, então 2 × 3 = 6 bolas
+4. Total: 5 + 6 = 11 bolas
+Resposta: 11"""
+
+# Agora o modelo tem "espaço de trabalho" para raciocinar corretamente!
+```
+
+No exemplo com o gpt-oss:20b, podemos ver o raciocínio do modelo:
+
+> The user writes in Portuguese: "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?" So the problem: Roger has 5 tennis balls, buys 2 cans of 3 balls each. So 2 * 3 = 6. 5 + 6 = 11. So answer: 11 balls. Should respond in Portuguese: "Ele tem 11 bolas de tênis agora." Should explain steps. That is straightforward.
+
+Perceba que o modelo ainda traduziu a pergunta para inglês internamente, fez o raciocínio, e depois respondeu em português. Isso mostra que o modelo está realmente "entendendo" o problema e aplicando raciocínio.
+
+**A Descoberta do Prompt "Mágico"**
+
+@wei2022chain descobriram que simplesmente adicionar **"Vamos pensar passo a passo"** ou **"Let's think step by step"** ao prompt melhora a performance em tarefas de raciocínio em modelos grandes:
+
+- **GSM8K (math problems)**: +35% de acurácia (de ~17% para ~52% em PaLM 540B)^[Valores específicos do paper original: Standard prompting alcançou 17.9% de acurácia, enquanto CoT alcançou 52.5% no dataset GSM8K usando PaLM 540B [@wei2022chain].]
+- **SVAMP (arithmetic word problems)**: +28% de acurácia (de ~64% para ~92% em PaLM 540B)^[No dataset SVAMP, standard prompting obteve 64.3% enquanto CoT obteve 92.5% [@wei2022chain].]
+- **StrategyQA (commonsense reasoning)**: +17% de acurácia
+- **AQuA (algebra)**: +40% de acurácia
+
+Temos duas hipóteses principais para explicar por que CoT funciona assim tão bem:
+
+1. **Espaço de Trabalho Intermediário**: CoT cria tokens intermediários onde o modelo pode "pensar". Sem isso, o modelo precisa comprimir todo o raciocínio em uma única predição de token.
+1. **Padrão de Treinamento**: Dados de treinamento incluem muitos exemplos de raciocínio passo-a-passo (tutoriais, explicações, provas matemáticas). CoT ativa esse padrão aprendido.
+
+**Variantes de CoT**
+
+Temos algumas formas diferentes de aplicar CoT, como Zero-Shot CoT, Few-Shot CoT, e Self-Consistency.
+
+**Zero-Shot CoT**: Apenas adicionar "Let's think step by step" sem exemplos:
+
+```python
+prompt = "Q: [problema]\nA: Let's think step by step."
+```
+
+**Few-Shot CoT**: Fornecer exemplos de raciocínio antes do problema:
+
+```python
+prompt = """
+Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas tem?
+A: Tom começa com 3. Ele compra 2. 3 + 2 = 5. Resposta: 5.
+
+Q: Sarah tem 10 balas. Ela come 3. Quantas sobram?
+A: Sarah começa com 10. Ela come 3. 10 - 3 = 7. Resposta: 7.
+
+Q: [seu problema]
+A:
+"""
+```
+
+**Self-Consistency**: Gerar múltiplas cadeias de raciocínio e usar voting majoritário:
+
+```python
+# Gera 5 respostas diferentes com CoT
+outputs = [
+    "11",  # caminho de raciocínio 1
+    "11",  # caminho de raciocínio 2
+    "12",  # caminho de raciocínio 3 (erro)
+    "11",  # caminho de raciocínio 4
+    "11"   # caminho de raciocínio 5
+]
+final_answer = mode(outputs)  # 11 (maioria)
+```
+
+Self-consistency adiciona mais ~10-20% de acurácia em problemas difíceis, mas custa 5-10× mais tokens.
+
+CoT tem algumas limitações importantes, que precisamos considerar ao aplicá-lo em nossos agentes:
+
+1. **Não funciona para modelos muito pequenos**: Requer pelo menos ~10B parâmetros para emergir de forma confiável
+1. **Pode inventar passos plausíveis mas incorretos**: O modelo pode "alucinar" raciocínio que parece correto mas contém erros lógicos
+1. **Custo aumentado**: Cada problema gera 50-200 tokens a mais de raciocínio intermediário
+1. **Não garante correção**: CoT melhora significativamente, mas não resolve 100% dos problemas
+
+**Implicação para Agentes**
+
+CoT é fundamental para agentes de IA porque:
+
+- Permite decomposição de tarefas complexas
+- Torna o raciocínio **inspecionável** e **debugável**
+- Possibilita validação de etapas intermediárias
+- Habilita correção de curso durante execução
+- Possibilita guardar log de raciocínio para auditoria
+
+Veremos isso extensivamente quando implementarmos agentes nos próximos capítulos.
+
+### Instruction Following
+
+*Instruction Following* é a capacidade de seguir instruções complexas expressas em linguagem natural, incluindo instruções multi-etapa, condicionais e restrições. Embora os modelos sejam treinados apenas para prever o próximo token, modelos maiores aprendem a interpretar e executar instruções detalhadas.
+
+Vamos ver um exemplo para ilustrar:
+
+```python
+# Instrução simples
+prompt = "Resuma o seguinte texto em 3 frases: [texto...]"
+# Modelo executa diretamente
+
+# Instrução multi-etapa com condicionais
+prompt = """
+Analise o seguinte código Python:
+1. Se houver problemas de segurança, liste-os com severidade (alta/média/baixa)
+2. Se houver code smells, sugira refatorações específicas
+3. Se o código estiver correto, apenas diga "Código aprovado"
+4. Sempre termine com uma nota de 0-10 para qualidade geral
+
+Código:
+def authenticate(username, password):
+    query = f"SELECT * FROM users WHERE user='{username}' AND pass='{password}'"
+    return db.execute(query)
+"""
+
+# Modelo segue cada etapa na ordem, aplicando condicionais:
+output = """
+1. Problemas de Segurança (ALTA):
+   - SQL Injection: Query concatena strings diretamente sem sanitização
+   - Senha armazenada em texto plano (assume-se pelo código)
+
+2. Refatorações Sugeridas:
+   - Use prepared statements/parameterized queries
+   - Hash senhas com bcrypt ou argon2
+   - Implemente rate limiting contra brute force
+
+3. (Não aplicável - código tem problemas críticos)
+
+4. Nota: 2/10 - Vulnerabilidades críticas de segurança
+"""
+```
+
+O que torna isso notável é o fato de que o modelo não foi treinado em "siga instruções multi-etapa com condicionais". Ele foi treinado apenas em next-token prediction. Mas aprendeu a:
+
+- Decompor instruções complexas em sub-tarefas
+- Executar condicionais ("se X então Y, senão Z")
+- Manter contexto e estado entre etapas
+- Formatar saída conforme especificado
+
+Estas capacidades parecem "emergir" quando os modelos atingem certa escala. A hipótese predominante é que elas surgem de generalização de padrões vistos durante o pré-treinamento, mas a ciência exata ainda não é totalmente compreendida.
+
+Para engenheiros, a implicação prática é que modelos maiores não são apenas "modelos que fazem as mesmas coisas melhor", eles podem ter capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o *fine-tune*.
+
 ## Exercícios Práticos
 
 Agora que você compreende como foundation models são treinados, tokenização e dados de pré-treinamento, vamos aplicar esse conhecimento na prática.
