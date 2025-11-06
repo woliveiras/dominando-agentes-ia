@@ -145,8 +145,11 @@ jobs:
           # Timeout para operações do Puppeteer (30 segundos por diagrama)
           export PUPPETEER_TIMEOUT=30000
 
-          echo "=== Renderizando todos os formatos (PDF, HTML, EPUB) ==="
-          quarto render book/ --verbose
+          echo "=== Renderizando PDF ==="
+          quarto render book/ --to pdf --verbose
+          echo ""
+          echo "=== Renderizando EPUB ==="
+          quarto render book/ --to epub --verbose || echo "⚠ EPUB falhou, continuando..."
 
       - name: Verify files generation
         run: |
@@ -226,8 +229,66 @@ jobs:
 
             🤖 Gerado automaticamente com GitHub Actions
 
+  build-html:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Chrome for Mermaid diagrams
+        uses: browser-actions/setup-chrome@v1
+        id: setup-chrome
+        with:
+          chrome-version: stable
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install Python dependencies
+        run: |
+          pip install uv
+          uv sync
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Install Mermaid CLI
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          mmdc --version
+
+      - name: Render HTML for GitHub Pages
+        timeout-minutes: 15
+        run: |
+          # Configuração do Chrome para ambiente CI
+          export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
+          export PUPPETEER_TIMEOUT=30000
+
+          echo "=== Renderizando HTML para GitHub Pages ==="
+          quarto render book/ --to html --verbose
+
+      - name: Upload HTML artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-artifacts
+          path: book/_book/
+          retention-days: 1
+
   deploy-gh-pages:
-    needs: build-artifacts
+    needs: build-html
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -237,10 +298,10 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Download artifacts
+      - name: Download HTML artifacts
         uses: actions/download-artifact@v4
         with:
-          name: book-artifacts
+          name: html-artifacts
           path: book/_book
 
       - name: Setup Pages
