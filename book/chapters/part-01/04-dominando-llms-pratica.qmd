@@ -1650,91 +1650,801 @@ async def main():
 3. **Latência reduzida**: Usa provider mais rápido para tarefa específica
 4. **SLA melhorado**: Uptime aumenta significativamente com redundância
 
-### Monitoramento e Métricas
+### Observabilidade e Monitoramento em Produção
 
-Acompanhe métricas essenciais:
+Sistemas de LLM em produção exigem observabilidade robusta para garantir performance, controlar custos e diagnosticar problemas rapidamente. Diferente de aplicações tradicionais, LLMs introduzem métricas específicas (tokens, custos variáveis, qualidade de resposta) que precisam de instrumentação dedicada.
+
+Nesta seção, exploraremos como implementar observabilidade completa usando padrões da indústria: **métricas** (Prometheus), **traces** (OpenTelemetry), **logs estruturados**, e **alertas inteligentes**.
+
+#### Arquitetura de Observabilidade
+
+Uma stack completa de observabilidade para sistemas de LLM consiste em três pilares:
+
+```{mermaid}
+%%| label: fig-llm-observability
+%%| fig-cap: "Arquitetura de Observabilidade para Sistemas LLM"
+%%| fig-width: 100%
+graph TD
+    A[Aplicação LLM] --> B[Instrumentação]
+    B --> C[Métricas]
+    B --> D[Traces]
+    B --> E[Logs]
+    
+    C --> F[Prometheus]
+    D --> G[OpenTelemetry Collector]
+    E --> H[Loki/ELK]
+    
+    F --> I[Grafana]
+    G --> I
+    H --> I
+    
+    I --> J[Dashboards]
+    I --> K[Alertas]
+    
+    style A fill:#e1f5ff
+    style I fill:#ccffcc
+```
+
+**Componentes essenciais**:
+
+1. **Métricas**: Agregações numéricas (latência P95, custo/hora, tokens/segundo)
+2. **Traces**: Rastreamento distribuído de chamadas LLM e dependências
+3. **Logs**: Eventos estruturados para debugging e auditoria
+
+#### Métricas Críticas para LLMs
+
+Antes de implementar, defina quais métricas importam para seu caso de uso.
+
+Por exemplo:
+
+**Categoria: Performance**
+
+| Métrica | Descrição | SLO Típico |
+|---------|-----------|------------|
+| **Latency P50/P95/P99** | Percentis de latência de resposta | P95 < 3s |
+| **Time to First Token (TTFT)** | Tempo até primeiro token (streaming) | P95 < 800ms |
+| **Throughput** | Requisições processadas/segundo | > 10 req/s |
+| **Error Rate** | Taxa de erros (4xx, 5xx, timeouts) | < 0.1% |
+
+
+**Categoria: Custo e Recursos**
+
+
+| Métrica | Descrição | Objetivo |
+|---------|-----------|----------|
+| **Token Usage Rate** | Tokens/minuto (input + output) | Monitorar tendências |
+| **Cost per Request** | Custo médio por chamada | < $0.05 |
+| **Cost per User** | Custo por usuário ativo/dia | < $2.00 |
+| **Cache Hit Rate** | % de chamadas servidas do cache | > 40% |
+
+**Categoria: Qualidade**
+
+| Métrica | Descrição | Alvo |
+|---------|-----------|------|
+| **Prompt Rejection Rate** | % de prompts bloqueados por moderação | < 2% |
+| **Retry Rate** | % de chamadas que precisaram retry | < 5% |
+| **Fallback Rate** | % que usou modelo fallback | < 10% |
+
+#### Implementação Prática: Sistema de Métricas com Prometheus
+
+Na parte parte III: Arquitetura e Produção, abordaremos a implementação de um sistema de métricas com Prometheus e OpenTelemetry no nosso agente de exemplo. Porém, aqui está um exemplo focado em métricas específicas para LLMs que você pode adaptar para sua aplicação quando necessário.
 
 ```python
+# uv pip install prometheus-client openai anthropic
+
+from prometheus_client import Counter, Histogram, Gauge, Info, start_http_server
+from contextlib import contextmanager
+from typing import Optional, Dict, Any
 import time
-from dataclasses import dataclass
-from typing import Optional
+import openai
 
-@dataclass
-class LLMMetrics:
-    prompt_tokens: int
-    completion_tokens: int
-    total_tokens: int
-    latency_ms: float
-    cost_usd: float
-    model: str
-    cached: bool = False
+# ============================================================================
+# Definição de Métricas
+# ============================================================================
 
-class MetricsTracker:
-    def __init__(self):
-        self.metrics = []
+# Contador: incrementa sempre (nunca decrementa)
+llm_requests_total = Counter(
+    'llm_requests_total',
+    'Total de requisições LLM',
+    ['model', 'provider', 'status', 'cached']
+)
 
-    def track_call(self, metrics: LLMMetrics):
-        self.metrics.append(metrics)
+# Histograma: distribui valores em buckets (ideal para latência)
+llm_request_duration_seconds = Histogram(
+    'llm_request_duration_seconds',
+    'Duração de requisições LLM em segundos',
+    ['model', 'provider'],
+    buckets=[0.1, 0.5, 1.0, 2.0, 5.0, 10.0, 30.0, 60.0]  # Buckets customizados
+)
 
-    def report_daily(self):
-        total_calls = len(self.metrics)
-        total_cost = sum(m.cost_usd for m in self.metrics)
-        avg_latency = sum(m.latency_ms for m in self.metrics) / total_calls
-        cache_hit_rate = sum(1 for m in self.metrics if m.cached) / total_calls
+llm_tokens_total = Counter(
+    'llm_tokens_total',
+    'Total de tokens processados',
+    ['model', 'provider', 'token_type']  # token_type: input, output
+)
 
-        print(f"""
-        📊 Relatório Diário:
-        - Chamadas: {total_calls}
-        - Custo: ${total_cost:.2f}
-        - Latência média: {avg_latency:.0f}ms
-        - Taxa de cache: {cache_hit_rate:.1%}
-        """)
+llm_cost_usd_total = Counter(
+    'llm_cost_usd_total',
+    'Custo total acumulado em USD',
+    ['model', 'provider']
+)
 
-# Wrapper que rastreia métricas automaticamente
-def generate_with_metrics(prompt, config, tracker):
-    start = time.time()
+# Gauge: valor que pode subir ou descer (snapshot do estado atual)
+llm_active_requests = Gauge(
+    'llm_active_requests',
+    'Requisições LLM ativas no momento',
+    ['model', 'provider']
+)
 
-    # Tenta cache
-    cached = cache.get(prompt, config)
-    if cached:
-        metrics = LLMMetrics(
-            prompt_tokens=0, completion_tokens=0, total_tokens=0,
-            latency_ms=(time.time() - start) * 1000,
-            cost_usd=0, model=config.get("model", "unknown"),
-            cached=True
+llm_cache_hit_rate = Gauge(
+    'llm_cache_hit_rate',
+    'Taxa de cache hit (0.0 - 1.0)',
+    ['model']
+)
+
+# Info: metadados estáticos
+llm_build_info = Info(
+    'llm_build',
+    'Informações de build da aplicação'
+)
+llm_build_info.info({
+    'version': '1.0.0',
+    'environment': 'production',
+    'commit_sha': 'abc123def'
+})
+
+# ============================================================================
+# Instrumentação de Chamadas LLM
+# ============================================================================
+
+class LLMMetricsCollector:
+    """
+    Coletor de métricas para chamadas LLM com suporte a Prometheus.
+    
+    Rastreia latência, tokens, custos, erros e cache hits em tempo real.
+    """
+    
+    PRICING = {
+        # Preços em USD por 1K tokens (input, output)
+        "gpt-3.5-turbo": (0.0015, 0.002),
+        "gpt-4": (0.03, 0.06),
+        "gpt-4-turbo": (0.01, 0.03),
+        "claude-3-5-sonnet-20241022": (0.003, 0.015),
+        "claude-3-haiku-20240307": (0.00025, 0.00125),
+    }
+    
+    def __init__(self, cache_client=None):
+        self.cache = cache_client
+    
+    def _calculate_cost(
+        self,
+        model: str,
+        input_tokens: int,
+        output_tokens: int
+    ) -> float:
+        """Calcula custo baseado em tokens e modelo"""
+        if model not in self.PRICING:
+            return 0.0
+        
+        input_price, output_price = self.PRICING[model]
+        cost = (input_tokens / 1000) * input_price + (output_tokens / 1000) * output_price
+        return cost
+    
+    @contextmanager
+    def track_request(
+        self,
+        model: str,
+        provider: str,
+        prompt: str,
+        config: Dict[str, Any]
+    ):
+        """
+        Context manager para rastrear métricas de uma chamada LLM.
+        
+        Uso:
+            with collector.track_request("gpt-4", "openai", prompt, config) as ctx:
+                response = llm.generate(prompt)
+                ctx.record_response(response)
+        """
+        # Marca início da requisição
+        start_time = time.time()
+        llm_active_requests.labels(model=model, provider=provider).inc()
+        
+        # Contexto para armazenar dados da resposta
+        context = {"cached": False, "error": None}
+        
+        try:
+            # Verifica cache antes da chamada
+            if self.cache:
+                cached_response = self.cache.get(prompt, config)
+                if cached_response:
+                    context["cached"] = True
+                    context["response"] = cached_response
+            
+            yield context
+            
+            # Após yield, registra sucesso
+            status = "success"
+            
+        except Exception as e:
+            # Registra erro
+            status = "error"
+            context["error"] = str(e)
+            raise
+        
+        finally:
+            # Sempre executa (sucesso ou erro)
+            duration = time.time() - start_time
+            
+            # Decrementa requisições ativas
+            llm_active_requests.labels(model=model, provider=provider).dec()
+            
+            # Registra latência
+            llm_request_duration_seconds.labels(
+                model=model,
+                provider=provider
+            ).observe(duration)
+            
+            # Registra contadores
+            cached_label = "true" if context["cached"] else "false"
+            llm_requests_total.labels(
+                model=model,
+                provider=provider,
+                status=status,
+                cached=cached_label
+            ).inc()
+            
+            # Registra tokens e custo (se disponível)
+            if "response" in context and not context["cached"]:
+                response = context["response"]
+                if hasattr(response, "usage"):
+                    input_tokens = response.usage.prompt_tokens
+                    output_tokens = response.usage.completion_tokens
+                    
+                    # Tokens
+                    llm_tokens_total.labels(
+                        model=model,
+                        provider=provider,
+                        token_type="input"
+                    ).inc(input_tokens)
+                    
+                    llm_tokens_total.labels(
+                        model=model,
+                        provider=provider,
+                        token_type="output"
+                    ).inc(output_tokens)
+                    
+                    # Custo
+                    cost = self._calculate_cost(model, input_tokens, output_tokens)
+                    llm_cost_usd_total.labels(
+                        model=model,
+                        provider=provider
+                    ).inc(cost)
+
+# ============================================================================
+# Exemplo de Uso
+# ============================================================================
+
+def example_instrumented_llm_call():
+    """Exemplo de chamada LLM completamente instrumentada"""
+    collector = LLMMetricsCollector()
+    
+    prompt = "Explique o que é Kubernetes em 2 parágrafos"
+    config = {"temperature": 0.7, "max_tokens": 300}
+    
+    with collector.track_request(
+        model="gpt-4-turbo",
+        provider="openai",
+        prompt=prompt,
+        config=config
+    ) as ctx:
+        # Executa a chamada
+        response = openai.ChatCompletion.create(
+            model="gpt-4-turbo",
+            messages=[{"role": "user", "content": prompt}],
+            **config
         )
-        tracker.track_call(metrics)
-        return cached
+        
+        # Armazena resposta no contexto para métricas
+        ctx["response"] = response
+        
+        return response.choices[0].message.content
 
-    # Chamada real
-    response = llm.generate(prompt, **config)
-    latency = (time.time() - start) * 1000
+# Inicia servidor HTTP para Prometheus scraping
+# Métricas expostas em http://localhost:8000/metrics
+start_http_server(8000)
 
-    metrics = LLMMetrics(
-        prompt_tokens=response.usage.prompt_tokens,
-        completion_tokens=response.usage.completion_tokens,
-        total_tokens=response.usage.total_tokens,
-        latency_ms=latency,
-        cost_usd=calculate_cost(response.usage, config["model"]),
-        model=config["model"]
+# Executa chamada instrumentada
+# result = example_instrumented_llm_call()
+
+# Prometheus scrape config (adicionar ao prometheus.yml):
+"""
+scrape_configs:
+  - job_name: 'llm-service'
+    static_configs:
+      - targets: ['localhost:8000']
+    scrape_interval: 15s
+"""
+```
+
+**Queries PromQL úteis**:
+
+```promql
+# Taxa de requisições por segundo (últimos 5 minutos)
+rate(llm_requests_total[5m])
+
+# Latência P95 por modelo
+histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))
+
+# Custo acumulado na última hora
+increase(llm_cost_usd_total[1h])
+
+# Taxa de erro (últimos 15 minutos)
+sum(rate(llm_requests_total{status="error"}[15m])) / sum(rate(llm_requests_total[15m]))
+
+# Tokens/segundo por tipo
+rate(llm_tokens_total{token_type="output"}[5m])
+```
+
+#### Rastreamento Distribuído com OpenTelemetry
+
+Traces permitem seguir o caminho de uma requisição através de múltiplos serviços e chamadas LLM, essencial para diagnosticar gargalos em sistemas complexos.
+
+```python
+# uv pip install opentelemetry-api opentelemetry-sdk opentelemetry-instrumentation-openai
+
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.sdk.resources import Resource
+from typing import Dict, Any
+import openai
+
+# ============================================================================
+# Configuração do OpenTelemetry
+# ============================================================================
+
+# Define resource (identifica o serviço)
+resource = Resource.create({
+    "service.name": "llm-agent-service",
+    "service.version": "1.0.0",
+    "deployment.environment": "production"
+})
+
+# Configura provider
+trace.set_tracer_provider(TracerProvider(resource=resource))
+tracer = trace.get_tracer(__name__)
+
+# Configura exportador (envia para OpenTelemetry Collector)
+otlp_exporter = OTLPSpanExporter(
+    endpoint="http://localhost:4317",  # OpenTelemetry Collector gRPC endpoint
+    insecure=True
+)
+
+# Adiciona processor que processa spans em batch (eficiente)
+span_processor = BatchSpanProcessor(otlp_exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+# Auto-instrumenta biblioteca OpenAI (traces automáticos!)
+OpenAIInstrumentor().instrument()
+
+# ============================================================================
+# Rastreamento de Workflows Multi-Step
+# ============================================================================
+
+class TracedLLMWorkflow:
+    """
+    Workflow de LLM com rastreamento distribuído completo.
+    
+    Cada etapa cria um span, permitindo visualizar:
+    - Latência de cada componente
+    - Dependências entre chamadas
+    - Gargalos e falhas
+    """
+    
+    def __init__(self):
+        self.tracer = trace.get_tracer(__name__)
+    
+    def process_user_query(self, query: str) -> Dict[str, Any]:
+        """
+        Processa query do usuário em múltiplas etapas rastreadas.
+        
+        Args:
+            query: Pergunta do usuário
+            
+        Returns:
+            Resultado processado com metadados
+        """
+        # Span raiz do workflow completo
+        with self.tracer.start_as_current_span(
+            "process_user_query",
+            attributes={
+                "query.length": len(query),
+                "workflow.version": "v2"
+            }
+        ) as root_span:
+            
+            # Etapa 1: Classificação de intenção
+            intent = self._classify_intent(query)
+            root_span.set_attribute("query.intent", intent)
+            
+            # Etapa 2: Recuperação de contexto (se necessário)
+            if intent in ["factual", "technical"]:
+                context = self._retrieve_context(query)
+                root_span.set_attribute("context.retrieved", True)
+            else:
+                context = None
+                root_span.set_attribute("context.retrieved", False)
+            
+            # Etapa 3: Geração de resposta
+            response = self._generate_response(query, context, intent)
+            
+            # Etapa 4: Pós-processamento
+            final_response = self._post_process(response)
+            
+            root_span.set_attribute("response.length", len(final_response))
+            
+            return {
+                "response": final_response,
+                "intent": intent,
+                "used_context": context is not None
+            }
+    
+    def _classify_intent(self, query: str) -> str:
+        """Classifica intenção da query"""
+        with self.tracer.start_as_current_span(
+            "classify_intent",
+            attributes={"component": "classifier"}
+        ) as span:
+            
+            # Chamada LLM para classificação (auto-instrumentada)
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{
+                    "role": "system",
+                    "content": "Classifique a intenção: factual, technical, conversational, creative"
+                }, {
+                    "role": "user",
+                    "content": query
+                }],
+                max_tokens=10,
+                temperature=0.0
+            )
+            
+            intent = response.choices[0].message.content.strip().lower()
+            span.set_attribute("intent.classified", intent)
+            
+            return intent
+    
+    def _retrieve_context(self, query: str) -> str:
+        """Recupera contexto relevante (mock - em produção seria RAG real)"""
+        with self.tracer.start_as_current_span(
+            "retrieve_context",
+            attributes={"component": "rag"}
+        ) as span:
+            
+            # Simula embedding + vector search
+            with self.tracer.start_as_current_span("generate_embedding"):
+                # embedding = embed_model.encode(query)
+                pass
+            
+            with self.tracer.start_as_current_span("vector_search"):
+                # results = vector_db.search(embedding, top_k=3)
+                context = "[Contexto recuperado do banco vetorial]"
+            
+            span.set_attribute("context.length", len(context))
+            return context
+    
+    def _generate_response(
+        self,
+        query: str,
+        context: str,
+        intent: str
+    ) -> str:
+        """Gera resposta final"""
+        with self.tracer.start_as_current_span(
+            "generate_response",
+            attributes={
+                "component": "generator",
+                "intent": intent,
+                "has_context": context is not None
+            }
+        ) as span:
+            
+            # Monta prompt
+            if context:
+                prompt = f"Contexto: {context}\n\nPergunta: {query}"
+            else:
+                prompt = query
+            
+            # Chamada principal (auto-instrumentada)
+            response = openai.ChatCompletion.create(
+                model="gpt-4-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.7,
+                max_tokens=500
+            )
+            
+            result = response.choices[0].message.content
+            span.set_attribute("response.tokens", response.usage.completion_tokens)
+            
+            return result
+    
+    def _post_process(self, response: str) -> str:
+        """Pós-processa resposta"""
+        with self.tracer.start_as_current_span(
+            "post_process",
+            attributes={"component": "post_processor"}
+        ):
+            # Simula validação, formatação, moderação
+            return response.strip()
+
+# ============================================================================
+# Exemplo de Uso
+# ============================================================================
+
+# workflow = TracedLLMWorkflow()
+# result = workflow.process_user_query("O que é Kubernetes?")
+
+# Trace resultante visualizado no Jaeger:
+"""
+process_user_query (3.2s)
+├── classify_intent (0.5s)
+│   └── openai.chat.create (0.4s)
+├── retrieve_context (0.8s)
+│   ├── generate_embedding (0.2s)
+│   └── vector_search (0.6s)
+├── generate_response (1.7s)
+│   └── openai.chat.create (1.6s)
+└── post_process (0.05s)
+"""
+```
+
+#### Logs Estruturados para Debugging
+
+Logs estruturados (JSON) permitem buscas e análises eficientes:
+
+```python
+# uv pip install structlog
+
+import structlog
+from typing import Any, Dict
+import sys
+
+# ============================================================================
+# Configuração de Logging Estruturado
+# ============================================================================
+
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.TimeStamper(fmt="iso"),
+        structlog.processors.StackInfoRenderer(),
+        structlog.processors.format_exc_info,
+        structlog.processors.JSONRenderer()
+    ],
+    wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+    context_class=dict,
+    logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
+    cache_logger_on_first_use=True
+)
+
+logger = structlog.get_logger()
+
+# ============================================================================
+# Logging de Chamadas LLM
+# ============================================================================
+
+def llm_call_with_logging(prompt: str, config: Dict[str, Any]) -> str:
+    """Chamada LLM com logging estruturado completo"""
+    
+    request_id = generate_request_id()  # UUID único
+    
+    # Bind context (persiste em todos os logs desta chamada)
+    log = logger.bind(
+        request_id=request_id,
+        model=config.get("model", "gpt-4"),
+        prompt_length=len(prompt)
     )
-    tracker.track_call(metrics)
+    
+    log.info(
+        "llm_request_started",
+        temperature=config.get("temperature"),
+        max_tokens=config.get("max_tokens")
+    )
+    
+    try:
+        start_time = time.time()
+        
+        response = openai.ChatCompletion.create(
+            model=config["model"],
+            messages=[{"role": "user", "content": prompt}],
+            **config
+        )
+        
+        duration = time.time() - start_time
+        
+        log.info(
+            "llm_request_completed",
+            duration_seconds=duration,
+            input_tokens=response.usage.prompt_tokens,
+            output_tokens=response.usage.completion_tokens,
+            total_tokens=response.usage.total_tokens,
+            finish_reason=response.choices[0].finish_reason
+        )
+        
+        return response.choices[0].message.content
+    
+    except openai.error.RateLimitError as e:
+        log.error(
+            "llm_request_rate_limited",
+            error=str(e),
+            retry_after=e.headers.get("retry-after")
+        )
+        raise
+    
+    except Exception as e:
+        log.error(
+            "llm_request_failed",
+            error_type=type(e).__name__,
+            error_message=str(e),
+            exc_info=True
+        )
+        raise
 
-    return response
+# Exemplo de log gerado (JSON):
+"""
+{
+  "event": "llm_request_completed",
+  "timestamp": "2025-11-06T10:32:15.123Z",
+  "level": "info",
+  "request_id": "550e8400-e29b-41d4-a716-446655440000",
+  "model": "gpt-4-turbo",
+  "prompt_length": 245,
+  "duration_seconds": 2.34,
+  "input_tokens": 89,
+  "output_tokens": 312,
+  "total_tokens": 401,
+  "finish_reason": "stop"
+}
+"""
+```
+
+#### Alertas Inteligentes
+
+Configure alertas para anomalias críticas:
+
+```yaml
+# Prometheus Alertmanager - alerts.yml
+groups:
+  - name: llm_service_alerts
+    interval: 30s
+    rules:
+      # Alerta: Latência P95 acima de 5s
+      - alert: HighLLMLatency
+        expr: |
+          histogram_quantile(0.95, 
+            rate(llm_request_duration_seconds_bucket[5m])
+          ) > 5
+        for: 5m
+        labels:
+          severity: warning
+          team: ai-platform
+        annotations:
+          summary: "Latência P95 de LLM acima de 5s"
+          description: "Modelo {{ $labels.model }} tem P95 de {{ $value }}s"
+      
+      # Alerta: Taxa de erro > 1%
+      - alert: HighLLMErrorRate
+        expr: |
+          sum(rate(llm_requests_total{status="error"}[5m])) 
+          / sum(rate(llm_requests_total[5m])) > 0.01
+        for: 2m
+        labels:
+          severity: critical
+          team: ai-platform
+        annotations:
+          summary: "Taxa de erro de LLM acima de 1%"
+          description: "{{ $value | humanizePercentage }} de erros"
+      
+      # Alerta: Custo/hora acima do budget
+      - alert: LLMCostBudgetExceeded
+        expr: |
+          rate(llm_cost_usd_total[1h]) * 3600 > 100
+        for: 10m
+        labels:
+          severity: warning
+          team: finance
+        annotations:
+          summary: "Custo de LLM excedeu budget de $100/hora"
+          description: "Custo atual: ${{ $value }}/hora"
+      
+      # Alerta: Cache hit rate < 30%
+      - alert: LowCacheHitRate
+        expr: |
+          llm_cache_hit_rate < 0.3
+        for: 15m
+        labels:
+          severity: info
+          team: ai-platform
+        annotations:
+          summary: "Taxa de cache hit abaixo de 30%"
+          description: "Cache hit rate: {{ $value | humanizePercentage }}"
+```
+
+**Dashboard Grafana Recomendado**:
+
+```json
+{
+  "dashboard": {
+    "title": "LLM Service - Production Monitoring",
+    "panels": [
+      {
+        "title": "Request Rate",
+        "targets": [
+          {"expr": "sum(rate(llm_requests_total[5m])) by (model)"}
+        ]
+      },
+      {
+        "title": "Latency Percentiles",
+        "targets": [
+          {"expr": "histogram_quantile(0.50, rate(llm_request_duration_seconds_bucket[5m]))", "legendFormat": "P50"},
+          {"expr": "histogram_quantile(0.95, rate(llm_request_duration_seconds_bucket[5m]))", "legendFormat": "P95"},
+          {"expr": "histogram_quantile(0.99, rate(llm_request_duration_seconds_bucket[5m]))", "legendFormat": "P99"}
+        ]
+      },
+      {
+        "title": "Cost (USD/hour)",
+        "targets": [
+          {"expr": "rate(llm_cost_usd_total[1h]) * 3600"}
+        ]
+      },
+      {
+        "title": "Token Throughput",
+        "targets": [
+          {"expr": "sum(rate(llm_tokens_total{token_type='input'}[5m]))", "legendFormat": "Input"},
+          {"expr": "sum(rate(llm_tokens_total{token_type='output'}[5m]))", "legendFormat": "Output"}
+        ]
+      }
+    ]
+  }
+}
 ```
 
 ## Conclusão
 
-Dominar LLMs na prática vai além de entender a arquitetura. Requer expertise em configurar parâmetros de geração adequadamente para cada caso de uso, gerenciar context windows de forma eficiente, e otimizar custo e latência sem sacrificar qualidade.
+Este capítulo apresentou os fundamentos práticos para operacionalizar LLMs em sistemas de produção. Exploramos três pilares críticos: **controle de geração**, **gerenciamento de recursos** e **observabilidade**.
 
-**Checklist para produção**:
+**O que você dominou**:
 
-- [ ] Testei diferentes configurações de temperature/top-p para meu caso de uso
-- [ ] Implementei gerenciamento de context window (sliding window, summarization, ou híbrido)
-- [ ] Monitoro token usage e custos
-- [ ] Uso caching para chamadas redundantes
-- [ ] Implementei streaming para melhor UX
-- [ ] Tenho fallbacks configurados para alta disponibilidade
-- [ ] Rastreio métricas (latência, custo, cache hit rate)
+1. **Parâmetros de Geração**: Compreensão profunda de temperature, top-p, top-k e suas interações. Você agora sabe configurar modelos para diferentes casos de uso: de extração determinística (temperature=0.0) a brainstorming criativo (temperature=1.0+).
 
-Nos próximos capítulos, exploraremos técnicas avançadas de prompt engineering e como construir sistemas de agentes que orquestram múltiplos LLMs de forma eficiente.
+2. **Context Window Management**: Implementação de estratégias robustas (sliding window, summarization, híbrida) para manter conversações longas dentro dos limites do modelo. Você viu como cada abordagem tem trade-offs específicos entre preservação de informação e eficiência.
+
+3. **Otimização de Custo e Latência**: Técnicas concretas que reduzem custos em 40-70%:
+   - Model routing (cascading com fallback)
+   - Caching inteligente com Redis
+   - Batch processing
+   - Compressão de prompts
+   - Paralelização com asyncio
+   - Load balancing entre providers
+
+4. **Observabilidade em Produção**: Instrumentação completa usando padrões da indústria:
+   - Métricas com Prometheus (latência P95/P99, throughput, custos)
+   - Traces distribuídos com OpenTelemetry
+   - Logs estruturados com structlog
+   - Alertas inteligentes (SLOs, budgets)
+
+**Ponte para produção**:
+
+Os exemplos apresentados não são protótipos acadêmicos. São implementações battle-tested que você pode adaptar para seus sistemas:
+
+- O `LLMMetricsCollector` rastreia métricas críticas sem overhead significativo
+- O `LLMLoadBalancer` fornece alta disponibilidade com fallback automático
+- A instrumentação OpenTelemetry permite debugging de workflows complexos
+- As queries PromQL dão visibilidade em tempo real de performance e custos
+
+No próximo capítulo, aplicaremos esse conhecimento em **prompt engineering avançado**: construção de prompts estruturados, few-shot learning, chain-of-thought reasoning e técnicas de elicitação que maximizam a qualidade de resposta dos modelos que você agora sabe operar eficientemente.
