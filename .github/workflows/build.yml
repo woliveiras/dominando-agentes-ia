@@ -1,4 +1,4 @@
-name: Release Book
+name: Build Book
 
 on:
   push:
@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-book-pdf:
+  build-book:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -128,34 +128,34 @@ jobs:
             exit 1
           fi
 
-      - name: Render book to PDF
+      - name: Render book to all formats
         timeout-minutes: 30
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          
+
           # Configuração do Chrome para ambiente CI
           export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
           export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
-          
+
           # Flags otimizadas para evitar timeout e uso excessivo de recursos
           export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-extensions --disable-dbus"
-          
+
           # Timeout para operações do Puppeteer (30 segundos por diagrama)
           export PUPPETEER_TIMEOUT=30000
-          
+
           # Debug: mostra configuração
           echo "=== Configuração de ambiente ==="
           echo "Chrome: $CHROME_BIN"
           echo "TinyTeX: $(which pdflatex)"
           echo "Quarto: $(quarto --version)"
-          
-          # Renderiza (sem timeout wrapper para evitar problemas de captura de erro)
-          echo "=== Iniciando renderização do PDF ==="
+
+          # Renderiza todos os formatos
+          echo "=== Iniciando renderização (PDF, HTML, EPUB) ==="
           set +e  # Desabilita exit on error temporariamente
-          quarto render book/ --to pdf --verbose 2>&1 | tee /tmp/quarto-render.log
+          quarto render book/ --verbose 2>&1 | tee /tmp/quarto-render.log
           RENDER_EXIT=$?
           set -e  # Re-habilita exit on error
-          
+
           # Verifica resultado
           if [ $RENDER_EXIT -ne 0 ]; then
             echo ""
@@ -171,14 +171,14 @@ jobs:
 
           echo "✓ Renderização concluída com sucesso"
 
-      - name: Verify PDF generation
+      - name: Verify files generation
         run: |
           echo "=== Verificando arquivos gerados ==="
-          
+
           # Lista diretório book/ primeiro
           echo "Conteúdo de book/:"
           ls -la book/ || echo "Diretório book/ não encontrado"
-          
+
           # Verifica se _book foi criado
           if [ ! -d "book/_book/" ]; then
             echo "✗ Diretório book/_book/ não foi criado!"
@@ -186,60 +186,63 @@ jobs:
             tail -100 /tmp/quarto-render.log 2>/dev/null || echo "Log não encontrado"
             exit 1
           fi
-          
+
           echo ""
           echo "Conteúdo de book/_book/:"
           ls -lh book/_book/
-          
+
           # Verifica PDF
+          echo ""
+          echo "=== Verificando PDF ==="
           if [ -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
-            echo ""
             echo "✓ PDF gerado com sucesso!"
             ls -lh book/_book/Dominando-Agentes-de-IA.pdf
-            
+
             # Verifica tamanho mínimo (deve ter pelo menos 100KB)
             PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
             if [ $PDF_SIZE -lt 102400 ]; then
               echo "⚠ Aviso: PDF muito pequeno ($PDF_SIZE bytes), pode estar incompleto"
             fi
           else
-            echo ""
             echo "✗ PDF não foi gerado!"
-            echo "Arquivos encontrados em book/_book/:"
-            find book/_book/ -type f -name "*.pdf" || echo "Nenhum PDF encontrado"
             exit 1
+          fi
+
+          # Verifica EPUB
+          echo ""
+          echo "=== Verificando EPUB ==="
+          if [ -f "book/_book/Dominando-Agentes-de-IA.epub" ]; then
+            echo "✓ EPUB gerado com sucesso!"
+            ls -lh book/_book/Dominando-Agentes-de-IA.epub
+          else
+            echo "⚠ EPUB não encontrado"
+          fi
+
+          # Verifica HTML
+          echo ""
+          echo "=== Verificando HTML ==="
+          if [ -f "book/_book/index.html" ]; then
+            echo "✓ HTML gerado com sucesso!"
+            echo "Arquivos HTML encontrados:"
+            find book/_book/ -name "*.html" -type f | head -10
+          else
+            echo "⚠ HTML não encontrado"
           fi
 
       - name: Get current date
         id: date
-        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
+        run: echo "date=$(date +'%Y-%m-%d-%H%M%S')" >> $GITHUB_OUTPUT
 
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: release-${{ steps.date.outputs.date }}-${{ github.run_number }}
-          name: Dominando Agentes de IA - ${{ steps.date.outputs.date }}
-          draft: false
-          prerelease: false
-          files: |
-            book/_book/Dominando-Agentes-de-IA.pdf
-          body: |
-            📚 **Livro: Dominando Agentes de IA**
-
-            Versão gerada automaticamente do livro em PDF.
-
-            **Commit:** ${{ github.sha }}
-            **Data:** ${{ steps.date.outputs.date }}
-
-            ---
-            🤖 Gerado automaticamente com GitHub Actions
-
-      - name: Upload PDF as artifact
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: book-pdf-${{ steps.date.outputs.date }}
-          path: book/_book/Dominando-Agentes-de-IA.pdf
+          name: book-all-formats-${{ steps.date.outputs.date }}
+          path: |
+            book/_book/Dominando-Agentes-de-IA.pdf
+            book/_book/Dominando-Agentes-de-IA.epub
+            book/_book/*.html
+            book/_book/**/*.html
+            book/_book/site_libs/
+            book/_book/*.css
+            book/_book/*.js
           retention-days: 90
