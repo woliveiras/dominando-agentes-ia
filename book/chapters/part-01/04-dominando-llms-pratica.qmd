@@ -1,8 +1,8 @@
 # Capítulo 4: Dominando LLMs na Prática {.unnumbered}
 
-Nos capítulos anteriores, exploramos a arquitetura dos Transformers, como foundation models são treinados, e técnicas de fine-tuning. Agora é hora de focar nos aspectos práticos de usar LLMs em produção: como configurar parâmetros de geração para controlar o comportamento do modelo, gerenciar o context window eficientemente, e otimizar custo e latência sem sacrificar qualidade.
+Nos capítulos anteriores, exploramos a arquitetura dos Transformers, como foundation models são treinados, e técnicas de fine-tuning. Agora é hora de focar nos aspectos práticos de usar LLMs em produção: como configurar parâmetros de geração para controlar o comportamento do modelo, gerenciar o *context window* eficientemente, e otimizar custo e latência sem sacrificar qualidade das respostas geradas.
 
-Este capítulo é sobre engenharia prática. Você aprenderá as decisões técnicas que separam uma prova de conceito funcional de um sistema de produção robusto e eficiente.
+Este capítulo é sobre engenharia prática. Você aprenderá as decisões técnicas que separam uma prova de conceito funcional de um sistema de produção robusto e eficiente. Ao final da leitura, você terá um conjunto de ferramentas para dominar LLMs em qualquer aplicação real.
 
 ## Configuração de Parâmetros de Geração
 
@@ -10,27 +10,82 @@ Quando você chama um LLM para gerar texto, não está simplesmente pressionando
 
 ### Temperature: Controlando Aleatoriedade
 
-**O que é**: Temperature escala as probabilidades antes de sampling, controlando quão "aleatório" ou "focado" o modelo é.
+O parâmetro **Temperature** controla quão "previsível" ou "criativo" o modelo será ao gerar texto. Pense nisso como um controle de volume entre "jogar sempre pelo seguro" e "se arriscar mais".
 
-**Como funciona matematicamente**:
+Imagine que o modelo está escolhendo a próxima palavra numa frase. Ele tem uma lista de candidatos com diferentes níveis de confiança:
+
+- **Candidato A**: "são" (65% de confiança)
+- **Candidato B**: "incluem" (24% de confiança)
+- **Candidato C**: "abrangem" (10% de confiança)
+
+**Temperature = 0** (Sempre optar pelo seguro):
+
+- Sempre escolhe a palavra com maior confiança
+- Resultado: Sempre escolhe "são" (100% das vezes)
+- É como alguém que só responde quando tem certeza absoluta da resposta
+
+**Temperature = 1.0** (Balanceado):
+
+- Escolhe proporcionalmente à confiança
+- Resultado: Escolhe "são" 65% das vezes, "incluem" 24%, "abrangem" 10%
+- É como alguém que responde o que acha mais provável, mas às vezes arrisca
+
+**Temperature = 2.0** (Mais arriscado):
+
+- "Achata" as diferenças de confiança
+- Resultado: Escolhe "são" 48% das vezes, "incluem" 31%, "abrangem" 21%
+- É como alguém que gosta de explorar alternativas menos óbvias
+
+**Visualizando o efeito**:
+
+```
+Temperature = 0.0:  ████████████████████ (sempre a mesma escolha)
+Temperature = 0.7:  ████████████░░░░░░░░ (variação controlada)
+Temperature = 1.5:  ██████░░░░░░████░░░░ (muita variação)
+```
+
+Matemáticamente, isso seria representado ajustando os logits antes do softmax:
+
+```
+P(token_i) = exp(logit_i / T) / Σ exp(logit_j / T)
+```
+
+Mas eu não sou matemático e, se você também não for, aqui está um exemplo prático em Python para ilustrar:
 
 ```python
-# Sem temperature (raw logits)
-logits = [2.0, 1.0, 0.5]  # scores do modelo para 3 tokens candidatos
+import numpy as np
 
-# Com temperature = 1.0 (padrão, sem mudança)
-probs = softmax(logits / 1.0)  # [0.659, 0.242, 0.099]
+def apply_temperature(logits, temperature):
+    """
+    Aplica temperature scaling aos logits antes do softmax.
 
-# Com temperature = 0.1 (muito focado)
-probs = softmax(logits / 0.1)  # [0.999, 0.001, 0.000]
+    Args:
+        logits: Array de scores do modelo (maiores = mais confiança)
+        temperature: Controla a "suavidade" da distribuição
+                    - Baixo (0.1): distribuição mais "apontada" (concentrada)
+                    - Alto (2.0): distribuição mais "plana" (diversa)
+    """
+    adjusted_logits = logits / temperature
+    exp_logits = np.exp(adjusted_logits - np.max(adjusted_logits))  # estabilidade numérica
+    probs = exp_logits / exp_logits.sum()
+    return probs
 
-# Com temperature = 2.0 (mais aleatório)
-probs = softmax(logits / 2.0)  # [0.483, 0.307, 0.210]
+# Exemplo prático - execute e veja os resultados!
+logits = np.array([2.0, 1.0, 0.5])  # Scores do modelo para 3 palavras candidatas
+
+print("Temperature = 0.1 (focado):")
+print(apply_temperature(logits, 0.1))  # [0.999, 0.001, 0.000]
+
+print("Temperature = 1.0 (balanceado):")
+print(apply_temperature(logits, 1.0))  # [0.659, 0.242, 0.099]
+
+print("Temperature = 2.0 (diverso):")
+print(apply_temperature(logits, 2.0))  # [0.483, 0.307, 0.210]
 ```
 
 **Efeitos práticos**:
 
-- **Temperature = 0** (ou próximo): Greedy decoding, sempre escolhe o token mais provável
+- **Temperature = 0** (ou próximo): *Greedy Decoding*, sempre escolhe o token mais provável
   - **Use quando**: Precisão é crítica (geração de código, extração de dados estruturados, respostas factuais)
   - **Evite quando**: Precisa de criatividade ou diversidade (brainstorming, escrita criativa)
 
@@ -57,9 +112,43 @@ prompt = "Os três pilares da engenharia de software são:"
 "colaboração entre equipes, inovação contínua e café infinito."  # Mais criativo/inusitado
 ```
 
+### Top-k Sampling: Limitando o Vocabulário
+
+**Top-k Sampling** é uma técnica simples de controle de vocabulário. O parâmetro `top-k` limita a escolha aos **k tokens mais prováveis**, ignorando completamente todos os outros.
+
+**Exemplo**:
+
+Imagine que o modelo tem 50.000 palavras no vocabulário, mas você define `top_k = 5`:
+
+```python
+# Todas as probabilidades do modelo (simplificado)
+todas_opcoes = {
+    "é": 0.40,      # ← Top 1
+    "foi": 0.25,    # ← Top 2
+    "será": 0.15,   # ← Top 3
+    "era": 0.10,    # ← Top 4
+    "seria": 0.05,  # ← Top 5
+    "possa": 0.03,  # ✗ Ignorado
+    "pudesse": 0.02, # ✗ Ignorado
+    # ... mais 49,993 palavras ✗ Todas ignoradas
+}
+
+# Com top_k=5, apenas as 5 primeiras são consideradas
+# Depois renormaliza: [0.40, 0.25, 0.15, 0.10, 0.05] → [0.42, 0.26, 0.16, 0.11, 0.05]
+```
+
+Top-k tem um problema: o valor `k` é **fixo**, independente da distribuição de probabilidades.
+
+Ou seja:
+
+- Se as probabilidades são muito concentradas: `k=50` pode incluir muitas opções ruins
+- Se as probabilidades são muito distribuídas: `k=5` pode ser muito restritivo
+
+É aí que entra outro parâmetro, o **Top-p**, que se adapta dinamicamente.
+
 ### Top-p (Nucleus Sampling): Controle Dinâmico de Vocabulário
 
-**O que é**: Em vez de considerar todos os tokens possíveis ou apenas os top-k, nucleus sampling considera os tokens cuja probabilidade acumulada atinge `p`.
+**O que é**: Em vez de usar um número fixo de tokens (top-k), nucleus sampling considera os tokens cuja **probabilidade acumulada** atinge `p`.
 
 **Como funciona**:
 
@@ -87,13 +176,15 @@ probs = {
 | **Top-k** | Considera sempre k tokens mais prováveis | Simples, previsível | k fixo pode ser muito restritivo ou permissivo |
 | **Top-p** | Considera tokens até probabilidade acumulada p | Adapta-se à distribuição | Mais complexo, pode incluir muitos tokens em distribuições planas |
 
-**Recomendações**:
+Podemos seguir este racional para definir valores práticos em nossos agentes de IA:
 
 - **Top-p = 0.9-0.95**: Default recomendado para maioria dos casos
 - **Top-p = 1.0**: Sem filtro (usa toda a distribuição)
 - **Top-p < 0.8**: Geração mais focada e determinística
 
-**Combinando Temperature + Top-p**:
+**Combinando Temperature + Top-p**
+
+Para uma configuração robusta, podemos combinar *temperature* e *top-p*.
 
 ```python
 # Configuração conservadora (factual, precisa)
@@ -117,57 +208,102 @@ config = {
 
 ### Max Tokens: Controlando Comprimento de Saída
 
-**O que é**: Número máximo de tokens que o modelo pode gerar na resposta.
+*max_tokens* é um pouco previsível, é, basicamente, o número máximo de tokens que o modelo pode gerar na sua resposta.
 
-**Considerações importantes**:
+Usamos *max_tokens* para evitar respostas excessivamente longas ou para garantir que a resposta caiba dentro do *context window*.
+
+Por exemplo, podemos considerar:
 
 1. **Custo**: Você paga por token gerado. Se `max_tokens=1000` mas a resposta completa em 100, paga apenas 100.
-2. **Latência**: Mais tokens = mais tempo de geração (~50ms por token em média)
-3. **Truncamento**: Se a resposta atingir `max_tokens`, pode ser cortada no meio de uma frase
+2. **Latência**: Mais tokens = mais tempo de geração (~50ms por token em média).
+3. **Truncamento**: Se a resposta atingir `max_tokens`, pode ser cortada no meio de uma frase, use com cuidado.
 
-**Estratégias**:
+Podemos seguir algumas estratégias práticas no uso de *max_tokens*:
 
 ```python
 # Para respostas curtas (classificação, extração)
-max_tokens = 10-50
+config_curtas = {
+    "max_tokens": 50,
+    "temperature": 0.2,
+    "top_p": 0.8
+}
 
 # Para explicações médias
-max_tokens = 200-500
+config_medias = {
+    "max_tokens": 500,
+    "temperature": 0.7,
+    "top_p": 0.9
+}
 
 # Para geração longa (artigos, análises)
-max_tokens = 1000-2000
+config_longas = {
+    "max_tokens": 2000,
+    "temperature": 0.8,
+    "top_p": 0.95
+}
 
-# Para streaming (exibir enquanto gera)
-max_tokens = 500-1000 com stream=True
+# Para streaming (exibir a resposta enquanto gera)
+config_streaming = {
+    "max_tokens": 1000,
+    "temperature": 0.7,
+    "top_p": 0.9,
+    "stream": True
+}
 ```
 
 **Armadilha comum**: Definir `max_tokens` muito alto "por segurança" aumenta custo e latência desnecessariamente.
 
 ### Stop Sequences: Terminando Geração Antecipadamente
 
-**O que é**: Strings que, quando geradas pelo modelo, param a geração imediatamente.
+Com *stop sequences* podemos definir *Strings* que, quando geradas pelo modelo, param a geração da resposta imediatamente.
 
-**Casos de uso**:
+Vamos ver alguns exemplos:
 
 ```python
 # Exemplo 1: Geração estruturada
-prompt = "Liste 3 vantagens do Python:\n1."
-stop = ["\n\n", "Conclusão"]  # Para após listar os 3 itens
+config_listagem = {
+    "prompt": "Liste 3 vantagens do Python:\n1.",
+    "stop": ["\n\n", "Conclusão"],  # Para após listar os 3 itens
+    "max_tokens": 200
+}
+# Saída esperada:
+# "1. Sintaxe clara e legível
+#  2. Grande ecossistema de bibliotecas
+#  3. Comunidade ativa e suporte"
+# [PARA aqui quando encontrar "\n\n"]
 
 # Exemplo 2: Conversação
-prompt = f"{user_message}\nAssistant:"
-stop = ["\nUser:", "\nAssistant:"]  # Para quando começar nova rodada
+user_message = "Qual a capital da França?"
+config_chat = {
+    "prompt": f"User: {user_message}\nAssistant:",
+    "stop": ["\nUser:", "\nAssistant:"],  # Para quando começar nova rodada
+    "max_tokens": 100
+}
+# Saída esperada:
+# "A capital da França é Paris."
+# [PARA aqui, não continua gerando mais rodadas de diálogo]
 
 # Exemplo 3: Code generation
-prompt = "def calculate_fibonacci(n):"
-stop = ["\ndef ", "\nclass "]  # Para ao começar nova função/classe
+config_code = {
+    "prompt": "def calculate_fibonacci(n):",
+    "stop": ["\ndef ", "\nclass "],  # Para ao começar nova função/classe
+    "max_tokens": 500
+}
+# Saída esperada:
+# "
+#     if n <= 1:
+#         return n
+#     return calculate_fibonacci(n-1) + calculate_fibonacci(n-2)
+# "
+# [PARA aqui quando detectar "\ndef " ou "\nclass "]
 ```
 
-**Best practices**:
+**Recomendações práticas**:
 
 - Use stop sequences para formatos estruturados
 - Evite stop sequences muito curtas (podem truncar prematuramente)
 - Combine com `max_tokens` como fallback
+    Exemplo: `stop=["\n\n"]`, `max_tokens=200`
 
 ### Frequency Penalty e Presence Penalty
 
