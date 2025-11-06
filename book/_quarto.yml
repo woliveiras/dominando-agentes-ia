@@ -46,9 +46,11 @@ format:
   pdf:
     documentclass: scrreprt
     keep-tex: false
+    html-math-method: mathjax
     include-in-header:
       text: |
         \usepackage{fancyvrb}
+        \usepackage{textcomp}
     filters:
       - quarto
     quiet: true

@@ -1378,7 +1378,7 @@ print(f"<unk> rate: {unk_count / total_tokens:.4%}")
 1. **Vocab muito pequeno**: Fertility rate alta (>2.0), muitos tokens por palavra
 2. **Vocab muito grande**: Muitos tokens raros (frequência < 10), embeddings subtreinadas
 3. **Pre-tokenization errada**: Palavras quebradas incorretamente, números fragmentados
-4. **Dados insuficientes**: Alto <unk> rate em validação, cobertura pobre
+4. **Dados insuficientes**: Alto `<unk>` rate em validação, cobertura pobre
 5. **Não incluir special tokens**: Problemas ao treinar modelo depois
 
 **Integração com Modelos:**
@@ -1408,7 +1408,7 @@ model = GPT2LMHeadModel(config)
 | **Vocab Size** | 32K-50K (padrão), 128K (avançado) | Balanço eficiência/cobertura |
 | **Dados** | Mínimo 100M tokens | Cobertura vocabular adequada |
 | **Pre-tokenization** | ByteLevel ou Metaspace | Preserva informação de espaços |
-| **Special tokens** | Sempre incluir <s>, </s>, <unk>, <pad> | Necessário para treinamento |
+| **Special tokens** | Sempre incluir `<s>`, `</s>`, `<unk>`, `<pad>` | Necessário para treinamento |
 | **Tempo** | Espere 30min-2h para 1B tokens | Planeje adequadamente |
 
 ## Representações Contextualizadas: O que Está Dentro dos Vetores
