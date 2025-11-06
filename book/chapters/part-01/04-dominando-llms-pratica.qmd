@@ -307,14 +307,12 @@ config_code = {
 
 ### Frequency Penalty e Presence Penalty
 
-**O que são**: Penalizam tokens que já apareceram na geração para reduzir repetição.
-
-**Diferença**:
+Os parâmetros *frequency_penalty* e *presence_penalty* penalizam tokens que já apareceram na geração para reduzir repetição.
 
 - **Frequency Penalty**: Penaliza proporcionalmente ao número de vezes que o token apareceu
 - **Presence Penalty**: Penaliza igualmente qualquer token que já apareceu (binário)
 
-**Matemática**:
+A matemática por trás desses parâmetros é simples:
 
 ```python
 # Logit original do token
@@ -329,28 +327,33 @@ logit_ajustado = logit_original - (3 * frequency_penalty) - presence_penalty
 # = 2.5 - 1.5 - 0.3 = 0.7
 ```
 
-**Recomendações**:
+**Recomendações práticas**:
 
 ```python
-# Sem penalidade (default)
-frequency_penalty = 0.0
-presence_penalty = 0.0
+# Sem penalidade (default - permite repetição natural)
+config_default = {
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "temperature": 0.7,
+    "max_tokens": 500
+}
 
 # Penalidade moderada (reduzir repetição leve)
-frequency_penalty = 0.3-0.5
-presence_penalty = 0.1-0.3
+config_moderada = {
+    "frequency_penalty": 0.5,
+    "presence_penalty": 0.3,
+    "temperature": 0.7,
+    "max_tokens": 500
+}
 
-# Penalidade forte (forçar diversidade)
-frequency_penalty = 0.8-1.0
-presence_penalty = 0.5-0.8
+# Penalidade forte (forçar diversidade máxima)
+config_diversa = {
+    "frequency_penalty": 1.0,
+    "presence_penalty": 0.8,
+    "temperature": 0.8,
+    "max_tokens": 500
+}
 ```
-
-**Quando usar**:
-
-- ✅ Geração longa onde repetição é problema (artigos, histórias)
-- ✅ Geração de múltiplas alternativas (brainstorming)
-- ❌ Respostas curtas e factuais (pode distorcer precisão)
-- ❌ Code generation (pode quebrar convenções necessárias)
 
 ### Exemplo Completo: Configurações por Caso de Uso
 
