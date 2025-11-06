@@ -1,7 +1,16 @@
-# Capítulo 3: Análise de Tokenização e Custos de API
-# Exercício 1 do capítulo - análise prática de eficiência
+"""
+Capítulo 3: Fine-Tuning e Otimização
+Exemplo 2: Análise de Tokenização e Custos de API
 
-# Instalação necessária: pip install tiktoken transformers
+Exercício prático de análise de eficiência de tokenização para diferentes
+idiomas e cálculo de custos de API baseado em tokens.
+
+Instalação necessária:
+uv pip install tiktoken transformers
+
+Execução:
+python 02-tokenization-analysis.py
+"""
 
 import tiktoken
 

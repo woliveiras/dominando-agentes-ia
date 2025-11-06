@@ -1,8 +1,19 @@
-# Capítulo 3: Fine-Tuning com LoRA
-# Exemplo completo de fine-tuning para tradução de termos técnicos
+"""
+Capítulo 3: Fine-Tuning e Otimização
+Exemplo 1: Fine-Tuning com LoRA
 
-# Instalação necessária:
-# uv pip install transformers peft datasets accelerate bitsandbytes torch
+Demonstra fine-tuning eficiente usando LoRA (Low-Rank Adaptation) para
+adaptação de LLM em tarefa de tradução de termos técnicos.
+
+Instalação necessária:
+uv pip install transformers peft datasets accelerate bitsandbytes torch
+
+Execução:
+python 01-lora-fine-tuning.py
+
+Nota: Requer arquivo 'tech_terms_pt_en.jsonl' na pasta ../../datasets/
+GPU recomendada, mas funciona em CPU (mais lento).
+"""
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, TrainingArguments, Trainer

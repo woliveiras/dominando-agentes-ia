@@ -1,5 +1,16 @@
-# Capítulo 1: Exemplo de Self-Attention
-# Implementação simplificada do mecanismo de self-attention
+"""
+Capítulo 1: Fundamentos de Transformers
+Exemplo 2: Mecanismo de Self-Attention
+
+Implementação simplificada do mecanismo de self-attention para entender
+como tokens em uma sequência se relacionam entre si.
+
+Instalação necessária:
+uv pip install torch
+
+Execução:
+python 02-self-attention-example.py
+"""
 
 import torch
 import torch.nn as nn

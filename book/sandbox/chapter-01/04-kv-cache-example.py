@@ -1,5 +1,16 @@
-# Capítulo 1: Exemplo de KV-Cache
-# Implementação de KV-Cache para geração autoregressiva eficiente
+"""
+Capítulo 1: Fundamentos de Transformers
+Exemplo 4: KV-Cache para Geração Autoregressiva Eficiente
+
+Implementação de KV-Cache que reduz computação redundante durante geração
+de texto, reutilizando keys e values já calculados.
+
+Instalação necessária:
+uv pip install torch
+
+Execução:
+python 04-kv-cache-example.py
+"""
 
 import torch
 import torch.nn as nn

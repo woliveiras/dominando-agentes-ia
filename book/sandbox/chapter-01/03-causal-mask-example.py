@@ -1,5 +1,16 @@
-# Capítulo 1: Exemplo de Causal Mask
-# Implementação da máscara causal para modelos decoder-only
+"""
+Capítulo 1: Fundamentos de Transformers
+Exemplo 3: Causal Mask para Modelos Decoder-Only
+
+Implementação da máscara causal que impede tokens de "olhar para o futuro"
+durante treinamento, essencial para modelos GPT-like.
+
+Instalação necessária:
+uv pip install torch
+
+Execução:
+python 03-causal-mask-example.py
+"""
 
 import torch
 

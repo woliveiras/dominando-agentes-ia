@@ -1,5 +1,18 @@
-# Capítulo 2: Treinamento de Tokenizer Customizado
-# Exemplo prático com HuggingFace Tokenizers
+"""
+Capítulo 2: Treinamento de Foundation Models
+Exemplo 3: Treinamento de Tokenizer Customizado
+
+Demonstra como treinar um tokenizer BPE do zero usando HuggingFace Tokenizers,
+incluindo configuração de vocabulário e tokens especiais.
+
+Instalação necessária:
+uv pip install tokenizers
+
+Execução:
+python 03-train-custom-tokenizer.py
+
+Nota: Requer arquivo 'tokenizer_train.txt' na pasta datasets/
+"""
 
 from tokenizers import (
     Tokenizer,

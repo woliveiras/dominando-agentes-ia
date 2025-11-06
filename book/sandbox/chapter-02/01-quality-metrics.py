@@ -1,5 +1,16 @@
-# Capítulo 2: Métricas de Qualidade de Dataset
-# Exemplo de heurísticas para avaliar qualidade textual
+"""
+Capítulo 2: Treinamento de Foundation Models
+Exemplo 1: Métricas de Qualidade de Dataset
+
+Implementa heurísticas para avaliar qualidade textual: entropia de Shannon,
+type-token ratio, e detecção de padrões problemáticos.
+
+Instalação necessária:
+(Usa apenas bibliotecas padrão do Python)
+
+Execução:
+python 01-quality-metrics.py
+"""
 
 import math
 from collections import Counter

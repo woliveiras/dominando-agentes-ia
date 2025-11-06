@@ -1,5 +1,16 @@
-# Capítulo 2: Deduplicação com MinHash e LSH
-# Exemplo de detecção de documentos near-duplicates
+"""
+Capítulo 2: Treinamento de Foundation Models
+Exemplo 2: Deduplicação com MinHash e LSH
+
+Demonstra detecção de documentos near-duplicates usando MinHash e
+Locality-Sensitive Hashing (LSH) para datasets em larga escala.
+
+Instalação necessária:
+uv pip install datasketch
+
+Execução:
+python 02-minhash-deduplication.py
+"""
 
 from datasketch import MinHash, MinHashLSH
 

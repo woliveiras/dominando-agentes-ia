@@ -1,22 +1,21 @@
-# Capítulo 1: Comparação de Tokenizers
-# Instale a biblioteca primeiro:
-# uv pip install transformers
-#
-################################################################################
-#
-# Rode este comando para verificar sua GPU:
-# nvidia-smi
-#
-################################################################################
-#
-# Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.
-# Para rodar sem GPU, faça o seguinte:
-# uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-# uv pip install transformers
-#
-################################################################################
-#
-# Ref.: https://huggingface.co/docs/transformers/en/installation#installation
+"""
+Capítulo 1: Fundamentos de Transformers
+Exemplo 1: Comparação de Tokenizers
+
+Este exemplo demonstra como diferentes tokenizers processam o mesmo texto,
+comparando vocabulário, fertility rate e eficiência de compressão.
+
+Instalação necessária:
+uv pip install transformers torch
+
+Execução:
+python 01-tokenizer-comparison.py
+
+Nota: Se não tiver GPU, o código funcionará (apenas mais lento).
+Para CPU: uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+Ref.: https://huggingface.co/docs/transformers/en/installation
+"""
 
 from transformers import AutoTokenizer
 

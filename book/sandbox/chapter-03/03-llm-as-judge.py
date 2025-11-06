@@ -1,7 +1,19 @@
-# Capítulo 3: Avaliação com LLM-as-Judge
-# Exemplo de sistema de avaliação automática
+"""
+Capítulo 3: Fine-Tuning e Otimização
+Exemplo 3: Avaliação com LLM-as-Judge
 
-# Instalação: uv pip install anthropic
+Sistema de avaliação automática de respostas de LLM usando outro LLM
+como juiz, incluindo rubrica estruturada e análise de viés.
+
+Instalação necessária:
+uv pip install anthropic
+
+Execução:
+export ANTHROPIC_API_KEY="sua-chave-aqui"
+python 03-llm-as-judge.py
+
+Nota: Requer chave de API da Anthropic.
+"""
 
 import anthropic
 import json
