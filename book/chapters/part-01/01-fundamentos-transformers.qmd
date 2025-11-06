@@ -72,6 +72,7 @@ config:
 ---
 %%| label: fig-pre-training-flow
 %%| fig-cap: "Fluxo de conhecimento em foundation models: do pré-treinamento para tarefas downstream."
+%%| fig-width: 100%
 graph TD
     Fonte["Fonte"] --> PreTreinamento["Pré-treinamento (upstream)"]
     PreTreinamento --> FineTuning["Fine-tuning"]
@@ -397,6 +398,7 @@ Para visualizar como os dados fluem através de um Transformer, considere este d
 ```{mermaid}
 %%| label: fig-transformer-flow
 %%| fig-cap: "Dados fluindo através de um modelo Transformer típico."
+%%| fig-width: 100%
 graph TD
     A[Input Tokens] --> B[Token Embedding]
     B --> C[Positional Encoding]
@@ -422,6 +424,7 @@ Cada **Transformer Block** é uma unidade completa de processamento que aplica s
 ```{mermaid}
 %%| label: fig-transformer-block
 %%| fig-cap: "Fluxo de dados dentro de um bloco Transformer."
+%%| fig-width: 100%
 graph TD
     A[Input from Previous Layer] --> B[Multi-Head Self-Attention]
     B --> C[Add & Norm]
@@ -659,6 +662,7 @@ Imagine uma empresa com 32 departamentos (heads). No Multi-Head Attention padrã
 ```{mermaid}
 %%| label: fig-shared-kv-metaphor
 %%| fig-cap: "Metáfora da empresa com departamentos e catálogos compartilhados"
+%%| fig-width: 100%
 graph TD
     A["Empresa"] -->|"32 Departamentos"| B["Multi-Head Attention"]
     B -->|"Cada departamento tem seu<br/>próprio catálogo"| C["Keys (K)"]
@@ -678,6 +682,7 @@ O benefício desta abordagem é a redução drástica do uso de memória, em vez
 ```{mermaid}
 %%| label: fig-central-kv-metaphor
 %%| fig-cap: "Metáfora da empresa com catálogo central compartilhado"
+%%| fig-width: 100%
 graph TD
     A["Empresa"] -->|"32 Departamentos"| B["Multi-Query Attention"]
     B -->|"Todos os departamentos<br/>compartilham o mesmo catálogo"| C["Keys (K)"]
@@ -704,6 +709,7 @@ Voltando à metáfora da empresa, em vez de 32 catálogos idênticos (MHA) ou 1 
 ```{mermaid}
 %%| label: fig-shared-group-kv-metaphor
 %%| fig-cap: "Metáfora da empresa com catálogos compartilhados por grupos"
+%%| fig-width: 100%
 graph TD
     A["Empresa"] -->|"32 Departamentos"| B["Grouped-Query Attention"]
     B -->|"8 Grupos de departamentos<br/>compartilham catálogos"| C["Keys (K)"]
@@ -1194,6 +1200,7 @@ MoE não é uma ideia nova relacionada aos LLMs. Ela foi introduzida em 1991 por
 ```{mermaid}
 %%| label: fig-moe-flow
 %%| fig-cap: "Fluxo de processamento em uma camada Mixture of Experts"
+%%| fig-width: 100%
 graph LR
     A["Token"] --> B["Router<br/>(gating network)"]
     B --> C["Top-K Selection"]
