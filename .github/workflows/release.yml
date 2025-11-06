@@ -49,7 +49,20 @@ jobs:
       - name: Install LaTeX packages for Portuguese
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          tlmgr install babel-portuges hyphen-portuguese collection-langportuguese
+          tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
+          tlmgr update --self
+          tlmgr install \
+            babel-portuges \
+            hyphen-portuguese \
+            collection-langportuguese \
+            koma-script \
+            fancyvrb \
+            framed \
+            tcolorbox \
+            environ \
+            trimspaces \
+            pgf \
+            booktabs
 
       - name: Render book
         run: |
