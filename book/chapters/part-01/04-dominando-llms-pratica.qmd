@@ -694,141 +694,396 @@ A diferença entre usar GPT-3.5 Turbo ($0.00175 média) e GPT-4 ($0.045 média) 
 
 ### Estratégias de Redução de Custo
 
-#### 1. Escolha o Modelo Certo por Tarefa
+Agora que entendemos como os custos escalam, vamos explorar estratégias práticas para otimizá-los sem comprometer a qualidade do sistema. As técnicas a seguir podem reduzir custos em 40-70%, dependendo do caso de uso.
+
+#### Estratégia 1: Model Routing (Roteamento Inteligente de Modelos)
+
+A ideia é simples: **nem toda tarefa precisa do modelo mais poderoso**. Use modelos menores e mais baratos para tarefas simples, reservando modelos caros apenas quando necessário.
+
+**Exemplo: Cascading com fallback**
+
+Imagine um sistema de atendimento ao cliente. Perguntas simples ("Qual o horário de atendimento?") não precisam de GPT-4. Perguntas complexas ("Explique a diferença entre os planos Premium e Enterprise considerando meu caso de uso específico") se beneficiam do modelo mais poderoso.
 
 ```python
-# Cascading: Use modelo menor primeiro, escale se necessário
-def cascading_llm(prompt, complexity_threshold=0.7):
-    # Tenta com modelo mais barato primeiro
-    response = gpt35_turbo.generate(prompt)
+from typing import Dict, Any
+import openai
 
-    # Se resposta parece incerta/complexa, tenta modelo maior
-    confidence = estimate_confidence(response)
-    if confidence < complexity_threshold:
-        response = gpt4.generate(prompt)
+class ModelRouter:
+    """Router inteligente que escolhe o modelo baseado na complexidade da tarefa"""
 
-    return response
+    def __init__(self):
+        self.models = {
+            "fast": "gpt-3.5-turbo",      # Rápido e barato
+            "balanced": "gpt-4-turbo",    # Balanceado
+            "powerful": "gpt-4"           # Poderoso mas caro
+        }
 
-# Tabela de custos (aproximados, jan 2024)
-models_cost_comparison = {
-    "gpt-3.5-turbo": 0.002,    # USD per 1K tokens (mix input/output)
-    "gpt-4": 0.045,             # 22x mais caro
-    "gpt-4-turbo": 0.015,       # 7.5x mais caro
-    "claude-3-haiku": 0.00125,  # Mais barato
-    "claude-3-sonnet": 0.015,   # Intermediário
-    "claude-3-opus": 0.075      # Mais caro e poderoso
-}
+    def classify_complexity(self, prompt: str) -> str:
+        """
+        Classifica a complexidade do prompt.
+        Em produção, isso poderia usar um modelo classificador dedicado.
+        """
+        # Heurísticas simples (você pode sofisticar isso)
+        # Podemos trabalhar com processamento de linguagem natural 
+        # usando SpaCy para uma melhor classificação
+        indicators_complex = ["explique", "compare", "analise", "por que", "como funciona"]
+        indicators_simple = ["qual", "quando", "onde", "liste"]
+
+        prompt_lower = prompt.lower()
+
+        # Contagem de palavras como proxy de complexidade
+        word_count = len(prompt.split())
+
+        if word_count > 50 or any(ind in prompt_lower for ind in indicators_complex):
+            return "powerful"
+        elif word_count > 20:
+            return "balanced"
+        else:
+            return "fast"
+
+    def generate(self, prompt: str, force_model: str = None) -> Dict[str, Any]:
+        """Gera resposta usando o modelo apropriado"""
+        # Permite override manual se necessário
+        if force_model:
+            model = self.models[force_model]
+        else:
+            complexity = self.classify_complexity(prompt)
+            model = self.models[complexity]
+
+        response = openai.ChatCompletion.create(
+            model=model,
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        return {
+            "response": response.choices[0].message.content,
+            "model_used": model,
+            "tokens": response.usage.total_tokens
+        }
+
+# Exemplo de uso
+router = ModelRouter()
+
+# Pergunta simples → usa GPT-3.5
+result1 = router.generate("Qual o horário de funcionamento?")
+print(f"Modelo usado: {result1['model_used']}")  # gpt-3.5-turbo
+
+# Pergunta complexa → usa GPT-4
+result2 = router.generate(
+    "Explique as diferenças arquiteturais entre microsserviços e monólitos, "
+    "considerando trade-offs de escalabilidade, manutenibilidade e custo operacional."
+)
+print(f"Modelo usado: {result2['model_used']}")  # gpt-4
 ```
 
-**Quando usar cada modelo**:
+**Matriz de decisão para escolha de modelo**:
 
-- **GPT-3.5 / Claude Haiku**: Classificação, extração simples, respostas curtas e factuais
-- **GPT-4-turbo / Claude Sonnet**: Geração de código, análise complexa, conversação natural
-- **GPT-4 / Claude Opus**: Raciocínio profundo, tarefas críticas, análise de segurança
+| Tipo de Tarefa | Complexidade | Modelo Recomendado | Custo Relativo |
+|----------------|--------------|-------------------|----------------|
+| Classificação de sentimento | Baixa | GPT-3.5 / Haiku | 1× |
+| Extração de entidades | Baixa | GPT-3.5 / Haiku | 1× |
+| Respostas factuais curtas | Baixa | GPT-3.5 / Haiku | 1× |
+| Geração de código simples | Média | GPT-4 Turbo / Sonnet | 5-8× |
+| Conversação natural | Média | GPT-4 Turbo / Sonnet | 5-8× |
+| Análise de código complexo | Alta | GPT-4 / Opus | 15-25× |
+| Raciocínio multi-step | Alta | GPT-4 / Opus | 15-25× |
+| Tarefas críticas de segurança | Alta | GPT-4 / Opus | 15-25× |
 
-#### 2. Caching de Prompts
+**Economia estimada**: 40-60% em sistemas com mix de tarefas simples e complexas.
+
+#### Estratégia 2: Caching Inteligente
+
+Muitas aplicações fazem chamadas redundantes ao LLM. Se você processa "Qual a capital da França?" 1.000 vezes por mês, está pagando 1.000 vezes pela mesma resposta.
+
+**Implementação de cache com Redis**:
 
 ```python
 import hashlib
+import json
 import redis
+from typing import Optional, Dict, Any
 
-class PromptCache:
-    def __init__(self, redis_client, ttl=3600):
+class LLMCache:
+    """
+    Cache inteligente para respostas de LLM.
+    Economiza custos evitando chamadas redundantes.
+    """
+
+    def __init__(self, redis_client: redis.Redis, default_ttl: int = 3600):
+        """
+        Args:
+            redis_client: Cliente Redis configurado
+            default_ttl: Tempo de vida do cache em segundos (default: 1 hora)
+        """
         self.redis = redis_client
-        self.ttl = ttl
+        self.default_ttl = default_ttl
 
-    def get_cache_key(self, prompt, config):
-        # Hash determinístico do prompt + config
-        content = f"{prompt}:{json.dumps(config, sort_keys=True)}"
-        return hashlib.sha256(content.encode()).hexdigest()
+    def _generate_cache_key(self, prompt: str, config: Dict[str, Any]) -> str:
+        """
+        Gera chave de cache determinística baseada em prompt + configuração.
 
-    def get(self, prompt, config):
-        key = self.get_cache_key(prompt, config)
+        Args:
+            prompt: Texto do prompt
+            config: Dicionário com configurações (temperature, max_tokens, etc.)
+
+        Returns:
+            Hash SHA-256 da combinação prompt + config
+        """
+        # Serializa config de forma determinística (sorted_keys garante ordem)
+        config_str = json.dumps(config, sort_keys=True)
+        cache_content = f"{prompt}||{config_str}"
+
+        # Gera hash
+        return hashlib.sha256(cache_content.encode()).hexdigest()
+
+    def get(self, prompt: str, config: Dict[str, Any]) -> Optional[str]:
+        """Busca resposta no cache"""
+        key = self._generate_cache_key(prompt, config)
         cached = self.redis.get(key)
-        return json.loads(cached) if cached else None
 
-    def set(self, prompt, config, response):
-        key = self.get_cache_key(prompt, config)
-        self.redis.setex(key, self.ttl, json.dumps(response))
+        if cached:
+            return json.loads(cached)
+        return None
+
+    def set(self, prompt: str, config: Dict[str, Any], response: str, ttl: int = None):
+        """Armazena resposta no cache"""
+        key = self._generate_cache_key(prompt, config)
+        ttl = ttl or self.default_ttl
+
+        self.redis.setex(
+            key,
+            ttl,
+            json.dumps(response)
+        )
+
+    def get_stats(self) -> Dict[str, int]:
+        """Retorna estatísticas de uso do cache"""
+        # Em produção, você manteria contadores de hits/misses
+        return {
+            "total_keys": self.redis.dbsize(),
+            # Implementar contadores de hit/miss rate
+        }
+
+# Exemplo de uso em produção
+def generate_with_cache(prompt: str, config: Dict[str, Any]) -> str:
+    """
+    Wrapper que adiciona cache transparente a chamadas LLM.
+    """
+    # Tenta buscar do cache primeiro
+    cached_response = cache.get(prompt, config)
+
+    if cached_response:
+        print(f"✓ Cache HIT - Economia de ~${calcular_custo_chamada(prompt):.4f}")
+        return cached_response
+
+    # Cache miss - chama o LLM
+    print(f"✗ Cache MISS - Chamando LLM...")
+    response = openai.ChatCompletion.create(
+        model=config.get("model", "gpt-4"),
+        messages=[{"role": "user", "content": prompt}],
+        temperature=config.get("temperature", 0.7),
+        max_tokens=config.get("max_tokens", 500)
+    )
+
+    result = response.choices[0].message.content
+
+    # Armazena no cache para próximas chamadas
+    cache.set(prompt, config, result)
+
+    return result
+
+# Configuração
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+cache = LLMCache(redis_client, default_ttl=7200)  # Cache de 2 horas
 
 # Uso
-cache = PromptCache(redis_client)
+config = {"model": "gpt-4", "temperature": 0.7, "max_tokens": 200}
 
-def generate_with_cache(prompt, config):
-    # Tenta buscar do cache
-    cached = cache.get(prompt, config)
-    if cached:
-        print("✓ Cache hit - economia de custo")
-        return cached
+# Primeira chamada - cache miss
+response1 = generate_with_cache("Explique o que é REST API", config)
+# ✗ Cache MISS - Chamando LLM...
 
-    # Cache miss - chama LLM
-    response = llm.generate(prompt, **config)
-    cache.set(prompt, config, response)
-    return response
+# Segunda chamada com mesmo prompt - cache hit
+response2 = generate_with_cache("Explique o que é REST API", config)
+# ✓ Cache HIT - Economia de ~$0.0450
 ```
 
-**Economia potencial**: 30-70% em chamadas redundantes (depende do domínio)
+**Considerações importantes sobre caching**:
 
-#### 3. Batch Processing
+1. **TTL (Time To Live)**: Ajuste conforme a natureza dos dados
+   - Respostas factuais estáveis: 24-48 horas
+   - Conteúdo que muda frequentemente: 1-2 horas
+   - Dados em tempo real: Não use cache ou TTL muito curto (<5 min)
 
-Processe múltiplas tarefas em um único prompt quando possível:
+2. **Invalidação de cache**: Implemente estratégias para limpar cache quando dados mudam
+   ```python
+   def invalidate_cache_pattern(pattern: str):
+       """Remove todas as chaves que correspondem ao padrão"""
+       for key in redis_client.scan_iter(match=pattern):
+           redis_client.delete(key)
+
+   # Exemplo: Invalida todos os caches relacionados a preços
+   invalidate_cache_pattern("*preço*")
+   ```
+
+#### Estratégia 3: Batch Processing
+
+Quando você tem múltiplas tarefas independentes do mesmo tipo, processe-as em lote em uma única chamada.
+
+**Exemplo: Análise de sentimento em batch**
 
 ```python
-# ❌ Ineficiente: 5 chamadas separadas
-sentiments = []
-for review in reviews:
-    prompt = f"Classifique o sentimento: {review}"
-    sentiments.append(llm.generate(prompt))
-# Custo: 5 × overhead de chamada
+from typing import List, Dict
 
-# ✅ Eficiente: 1 chamada com batch
-prompt = f"""
-Classifique o sentimento de cada review abaixo (Positivo/Negativo/Neutro):
+def analyze_sentiment_individual(reviews: List[str]) -> List[str]:
+    """❌ Abordagem ineficiente: uma chamada por review"""
+    results = []
+    for review in reviews:
+        prompt = f"Classifique o sentimento (Positivo/Negativo/Neutro): {review}"
+        response = llm.generate(prompt)
+        results.append(response)
 
-{chr(10).join(f"{i+1}. {review}" for i, review in enumerate(reviews))}
+    return results
 
-Responda no formato:
+# Custo para 100 reviews:
+# - 100 chamadas × overhead de API
+# - 100 × latência de round-trip
+# - ~100 × 50 tokens = 5,000 tokens input
+# - ~100 × 10 tokens = 1,000 tokens output
+# Total: ~$0.18 (GPT-4) + alta latência
+
+def analyze_sentiment_batch(reviews: List[str]) -> List[str]:
+    """✅ Abordagem eficiente: batch em uma chamada"""
+    # Formata todos os reviews em um único prompt
+    reviews_formatted = "\n".join(
+        f"{i+1}. {review}"
+        for i, review in enumerate(reviews)
+    )
+
+    prompt = f"""
+Classifique o sentimento de cada review abaixo como Positivo, Negativo ou Neutro.
+
+Reviews:
+{reviews_formatted}
+
+Responda APENAS no formato:
 1. [Sentimento]
 2. [Sentimento]
-...
+(etc.)
 """
-response = llm.generate(prompt)
-# Custo: 1 × overhead de chamada
+
+    response = llm.generate(prompt, max_tokens=500)
+
+    # Parse da resposta
+    sentiments = [
+        line.split(". ")[1].strip()
+        for line in response.strip().split("\n")
+        if line.strip()
+    ]
+
+    return sentiments
+
+# Custo para 100 reviews:
+# - 1 chamada (sem overhead múltiplo)
+# - 1 × latência
+# - ~1,500 tokens input (batch formatting é mais eficiente)
+# - ~200 tokens output
+# Total: ~$0.06 (GPT-4) + baixa latência
+# Economia: 67% + 100× mais rápido!
 ```
 
-**Quando funciona bem**: Tarefas idênticas/similares (classificação, tradução, sumarização)
-**Limitação**: Context window pode limitar batch size
+**Limitações do batch processing**:
 
-#### 4. Prompt Compression
+- **Context window**: Batches muito grandes podem exceder o limite
+- **Parsing**: Necessário extrair resultados individuais da resposta
+- **Falhas parciais**: Se uma tarefa falha, pode afetar o batch inteiro
 
-Reduza tokens desnecessários sem perder informação:
+**Tamanho de batch recomendado**:
 
 ```python
-# ❌ Prompt verboso (150 tokens)
-prompt = """
-I would like you to please analyze the following code snippet very carefully
-and provide me with a detailed explanation of what exactly this code does,
-including any potential issues or problems that you might identify, and also
-please suggest some improvements that could make it better:
+def calculate_optimal_batch_size(
+    avg_item_tokens: int,
+    context_window: int = 8000,
+    safety_margin: float = 0.3
+) -> int:
+    """
+    Calcula tamanho ótimo de batch baseado em tokens disponíveis.
 
-def calculate(x, y):
-    return x + y
+    Args:
+        avg_item_tokens: Tokens médios por item
+        context_window: Context window do modelo
+        safety_margin: Margem de segurança (30% reservado para prompt structure)
+    """
+    available_tokens = int(context_window * (1 - safety_margin))
+    return max(1, available_tokens // avg_item_tokens)
+
+# Exemplo para GPT-4 (8K context)
+batch_size = calculate_optimal_batch_size(
+    avg_item_tokens=50,  # Review médio tem 50 tokens
+    context_window=8000
+)
+print(f"Batch size recomendado: {batch_size}")  # ~110 reviews por batch
+```
+
+#### Estratégia 4: Compressão de Prompts
+
+Tokens desperdiçados aumentam custos desnecessariamente. Aprenda a comunicar a mesma informação com menos tokens.
+
+**Técnicas de compressão**:
+
+```python
+# ❌ Prompt verboso (220 tokens)
+prompt_verbose = """
+Olá! Eu gostaria muito que você pudesse, por gentileza, analisar o código
+Python que eu vou fornecer logo abaixo com bastante atenção e cuidado.
+Por favor, me dê uma explicação bem detalhada sobre o que exatamente este
+código faz, passo a passo. Além disso, se você conseguir identificar
+quaisquer problemas, bugs, ou questões de performance que possam existir
+no código, eu agradeceria muito se você pudesse apontá-los. E também,
+se possível, gostaria que você sugerisse algumas melhorias que poderiam
+tornar este código melhor, mais eficiente, ou mais legível.
+
+Aqui está o código:
+
+def calculate_total(items):
+    total = 0
+    for item in items:
+        total = total + item
+    return total
+
+Muito obrigado pela ajuda!
 """
 
-# ✅ Prompt comprimido (50 tokens)
-prompt = """
-Analyze this code, identify issues, and suggest improvements:
+# ✅ Prompt comprimido (45 tokens - redução de 80%!)
+prompt_compressed = """
+Analise este código Python. Identifique problemas e sugira melhorias:
 
-def calculate(x, y):
-    return x + y
+def calculate_total(items):
+    total = 0
+    for item in items:
+        total = total + item
+    return total
 """
 ```
 
-**Técnicas de compressão**:
-- Remove palavras de cortesia ("por favor", "você poderia")
-- Use listas em vez de parágrafos
-- Abreviações comuns (mas cuidado com clareza)
-- Evite instruções redundantes
+**Checklist de compressão**:
+
+1. **Remova cortesias**: "por favor", "gostaria que", "seria possível"
+2. **Use imperativo**: "Analise" em vez de "Eu gostaria que você analisasse"
+3. **Elimine redundâncias**: "Identifique problemas" já implica "se houver"
+4. **Prefira listas a parágrafos**:
+   ```python
+   # Antes (verboso)
+   "Analise considerando: primeiro a performance, depois a legibilidade,
+   e também a manutenibilidade do código"
+
+   # Depois (compacto)
+   "Analise: performance, legibilidade, manutenibilidade"
+   ```
+
+5. **Evite exemplos desnecessários**: Se o modelo já entende, não precisa de 3 exemplos
+
+**Economia estimada**: 20-40% de redução em tokens de input, especialmente em prompts de sistema e instruções
 
 ### Otimização de Latência
 
