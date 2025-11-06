@@ -46,23 +46,35 @@ jobs:
         run: |
           quarto install tinytex
 
+      - name: Configure TinyTeX repository
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          # Usa mirror CTAN confiável e atualiza tlmgr
+          tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
+          tlmgr update --self --all || echo "tlmgr update failed, continuing..."
+
       - name: Install LaTeX packages for Portuguese
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
-          tlmgr update --self
-          tlmgr install \
-            babel-portuges \
-            hyphen-portuguese \
-            collection-langportuguese \
-            koma-script \
-            fancyvrb \
-            framed \
-            tcolorbox \
-            environ \
-            trimspaces \
-            pgf \
-            booktabs
+          # Retry logic para instalação de pacotes
+          for i in {1..3}; do
+            echo "Tentativa $i de instalar pacotes LaTeX..."
+            tlmgr install \
+              babel-portuges \
+              hyphen-portuguese \
+              collection-langportuguese \
+              koma-script \
+              fancyvrb \
+              framed \
+              tcolorbox \
+              environ \
+              trimspaces \
+              pgf \
+              booktabs && break || {
+                echo "Falha na tentativa $i, aguardando 10s..."
+                sleep 10
+              }
+          done
 
       - name: Render book
         run: |
