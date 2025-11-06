@@ -178,29 +178,27 @@ jobs:
           echo "TinyTeX: $(which pdflatex)"
           echo "Quarto: $(quarto --version)"
           
-          # Renderiza com timeout por comando (usa timeout do sistema)
+          # Renderiza (sem timeout wrapper para evitar problemas de captura de erro)
           echo "=== Iniciando renderização do PDF ==="
-          timeout 25m quarto render book/ --to pdf --verbose 2>&1 | tee /tmp/quarto-render.log &
+          set +e  # Desabilita exit on error temporariamente
+          quarto render book/ --to pdf --verbose 2>&1 | tee /tmp/quarto-render.log
+          RENDER_EXIT=$?
+          set -e  # Re-habilita exit on error
           
-          # PID do processo de renderização
-          RENDER_PID=$!
-          
-          # Aguarda conclusão ou timeout
-          if wait $RENDER_PID; then
-            echo "✓ Renderização concluída"
-          else
-            EXIT_CODE=$?
-            if [ $EXIT_CODE -eq 124 ]; then
-              echo "✗ Timeout: Renderização demorou mais de 25 minutos"
-              echo "=== Últimas 100 linhas do log ==="
-              tail -100 /tmp/quarto-render.log
-            else
-              echo "✗ Erro no render (exit code: $EXIT_CODE)"
-              echo "=== Log completo ==="
-              cat /tmp/quarto-render.log
-            fi
+          # Verifica resultado
+          if [ $RENDER_EXIT -ne 0 ]; then
+            echo ""
+            echo "✗ Erro no render (exit code: $RENDER_EXIT)"
+            echo "=== Últimas 50 linhas do log ==="
+            tail -50 /tmp/quarto-render.log
+            echo ""
+            echo "=== Estrutura de diretórios ==="
+            ls -la book/ || true
+            ls -la book/_book/ 2>/dev/null || echo "Diretório _book não foi criado"
             exit 1
           fi
+          
+          echo "✓ Renderização concluída com sucesso"
 
       - name: Restore Quarto config
         if: always()
@@ -215,12 +213,39 @@ jobs:
       - name: Verify PDF generation
         run: |
           echo "=== Verificando arquivos gerados ==="
+          
+          # Lista diretório book/ primeiro
+          echo "Conteúdo de book/:"
+          ls -la book/ || echo "Diretório book/ não encontrado"
+          
+          # Verifica se _book foi criado
+          if [ ! -d "book/_book/" ]; then
+            echo "✗ Diretório book/_book/ não foi criado!"
+            echo "=== Últimas 100 linhas do log de renderização ==="
+            tail -100 /tmp/quarto-render.log 2>/dev/null || echo "Log não encontrado"
+            exit 1
+          fi
+          
+          echo ""
+          echo "Conteúdo de book/_book/:"
           ls -lh book/_book/
+          
+          # Verifica PDF
           if [ -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
+            echo ""
             echo "✓ PDF gerado com sucesso!"
             ls -lh book/_book/Dominando-Agentes-de-IA.pdf
+            
+            # Verifica tamanho mínimo (deve ter pelo menos 100KB)
+            PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
+            if [ $PDF_SIZE -lt 102400 ]; then
+              echo "⚠ Aviso: PDF muito pequeno ($PDF_SIZE bytes), pode estar incompleto"
+            fi
           else
+            echo ""
             echo "✗ PDF não foi gerado!"
+            echo "Arquivos encontrados em book/_book/:"
+            find book/_book/ -type f -name "*.pdf" || echo "Nenhum PDF encontrado"
             exit 1
           fi
 
