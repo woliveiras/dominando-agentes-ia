@@ -401,9 +401,9 @@ config_factual = {
 
 ## Context Window: Gerenciamento de Memória
 
-O **context window** (ou **context length**) é o número máximo de tokens que o modelo consegue processar de uma vez, incluindo tanto o prompt de entrada quanto a resposta gerada.
+O *context window* (ou *context length*) é o número máximo de tokens que o modelo consegue processar de uma vez, incluindo tanto o prompt de entrada quanto a resposta gerada.
 
-### Limites por Modelo
+Exemplos de context windows em modelos populares:
 
 | Modelo | Context Window | Notas |
 |--------|----------------|-------|
@@ -417,7 +417,9 @@ O **context window** (ou **context length**) é o número máximo de tokens que 
 
 ### O Problema do Context Window
 
-**Situação comum**:
+O maior desafio com context windows é que, em conversações longas ou tarefas complexas, o histórico pode crescer rapidamente e exceder o limite do modelo. Afinal, cada mensagem adiciona tokens ao contexto.
+
+Exemplo:
 
 ```python
 # Conversação com histórico crescente
@@ -432,14 +434,23 @@ messages = [
 ]
 
 # Após 10 rodadas: histórico pode ter 8K+ tokens
-# Problema: Próxima chamada pode exceder context window!
+# Problema: Próxima chamada pode exceder o context window!
 ```
 
-### Estratégias de Gerenciamento
+Devido a isso, precisamos de estratégias para gerenciar o contexto eficientemente.
 
-#### 1. Sliding Window (Janela Deslizante)
+### Estratégias de Gerenciamento de Contexto
 
-Mantém apenas as N mensagens mais recentes:
+Para manter o contexto dentro do limite, podemos usar várias técnicas. Aqui veremos exemplos de 4 abordagens comuns:
+
+- **Sliding Window (Janela Deslizante)**
+- **Summarization (Sumarização)**
+- **Token-Based Trimming (Corte por Tokens)**
+- **Hybrid: Summarization + Sliding Window**
+
+#### Sliding Window (Janela Deslizante)
+
+Mantém apenas as **N** mensagens mais recentes no histórico:
 
 ```python
 def sliding_window(messages, max_messages=10):
@@ -453,7 +464,7 @@ messages = sliding_window(conversation_history, max_messages=8)
 ```
 
 **Prós**: Simples, preserva contexto recente
-**Contras**: Perde informações antigas que podem ser relevantes
+**Contras**: Perde informações antigas que podem ser relevantes para a interação atual
 
 #### 2. Summarization (Sumarização)
 
@@ -523,7 +534,7 @@ def trim_to_token_limit(messages, max_tokens=15000, model="gpt-4"):
 
 #### 4. Hybrid: Summarization + Sliding Window
 
-Combina as duas abordagens:
+Combina as duas abordagens, sumarizando mensagens antigas e mantendo uma janela recente completa:
 
 ```python
 def hybrid_context_management(messages, max_tokens=15000, window_size=6):
@@ -549,11 +560,11 @@ def hybrid_context_management(messages, max_tokens=15000, window_size=6):
 ```
 
 **Prós**: Melhor de dois mundos
-**Contras**: Mais complexo, custo de sumarização
+**Contras**: Mais complexo, custo de sumarização pode aumentar bastante
 
-### Best Practices para Context Management
+### Melhores Práticas para Gerenciamento de Context Window
 
-1. **Monitore token usage**:
+1. **Monitore o uso de tokens**:
    ```python
    import tiktoken
 
@@ -599,24 +610,87 @@ def hybrid_context_management(messages, max_tokens=15000, window_size=6):
 
 ## Otimização de Custo e Latência
 
-### Estrutura de Custos
+Quando você move um sistema com LLMs de prova de conceito para produção, dois fatores se tornam críticos: **custo** e **latência**. Aplicações em escala podem processar milhões de tokens por dia, e cada token tem um custo associado. Além disso, usuários esperam respostas rápidas, latência alta afeta diretamente a experiência. E, para complicar ainda mais as nossas vidas, sistemas agênticos frequentemente exigem múltiplas chamadas a LLMs por interação, multiplicando tanto custo quanto latência.
 
-Modelos LLM cobram por **tokens processados**:
+Nesta seção, vamos explorar como entender, medir e otimizar ambos os aspectos.
+
+### Entendendo o Custo por Token
+
+A maioria dos provedores de LLM cobra por tokens processados, separando **input tokens** (o que você envia) e **output tokens** (o que o modelo gera). Output tokens geralmente custam mais, pois exigem mais processamento.
+
+**Exemplo real de precificação** (valores aproximados):
+
+| Modelo | Input (`$/1K tokens`) | Output (`$/1K tokens`) | Context Window |
+|--------|---------------------|----------------------|----------------|
+| GPT-3.5 Turbo | $0.0015 | $0.002 | 16K |
+| GPT-4 | $0.03 | $0.06 | 8K |
+| GPT-4 Turbo | $0.01 | $0.03 | 128K |
+| Claude 3 Haiku | $0.00025 | $0.00125 | 200K |
+| Claude 3.5 Sonnet | $0.003 | $0.015 | 200K |
+| Claude 3 Opus | $0.015 | $0.075 | 200K |
+
+Vamos calcular o custo de uma conversação típica:
 
 ```python
-# Exemplo: GPT-4 (preços aproximados em jan 2024)
-input_cost_per_1k_tokens = 0.03   # USD
-output_cost_per_1k_tokens = 0.06  # USD
+# Cenário: Assistente de código usando GPT-4
+config_exemplo = {
+    "input_tokens": 1500,   # Prompt + histórico de conversação
+    "output_tokens": 500,   # Código gerado + explicação
+    "input_cost_per_1k": 0.03,
+    "output_cost_per_1k": 0.06
+}
 
-# Conversação típica
-input_tokens = 1500   # Prompt + histórico
-output_tokens = 500   # Resposta gerada
+# Cálculo do custo
+def calcular_custo(input_tokens, output_tokens, input_cost, output_cost):
+    custo_input = (input_tokens / 1000) * input_cost
+    custo_output = (output_tokens / 1000) * output_cost
+    custo_total = custo_input + custo_output
 
-cost = (input_tokens / 1000 * 0.03) + (output_tokens / 1000 * 0.06)
-# = 0.045 + 0.030 = $0.075 por chamada
+    return {
+        "custo_input": custo_input,
+        "custo_output": custo_output,
+        "custo_total": custo_total
+    }
+
+resultado = calcular_custo(
+    input_tokens=1500,
+    output_tokens=500,
+    input_cost=0.03,
+    output_cost=0.06
+)
+
+print(f"Custo por chamada: ${resultado['custo_total']:.4f}")
+# Saída: Custo por chamada: $0.0750
 ```
 
-**Para 100K chamadas por mês**: $0.075 × 100,000 = **$7,500/mês**
+**Projeção de custos em escala**:
+
+```python
+# Diferentes volumes de uso
+volumes = {
+    "Startup (1K chamadas/dia)": 30_000,      # ~1 mês
+    "Growth (10K chamadas/dia)": 300_000,     # ~1 mês
+    "Enterprise (100K chamadas/dia)": 3_000_000  # ~1 mês
+}
+
+custo_por_chamada = 0.075  # do exemplo acima
+
+for cenario, chamadas_mes in volumes.items():
+    custo_mensal = chamadas_mes * custo_por_chamada
+    print(f"{cenario}: ${custo_mensal:,.2f}/mês")
+
+# Saída:
+# Startup (1K chamadas/dia): $2,250.00/mês
+# Growth (10K chamadas/dia): $22,500.00/mês
+# Enterprise (100K chamadas/dia): $225,000.00/mês
+```
+
+A diferença entre usar GPT-3.5 Turbo ($0.00175 média) e GPT-4 ($0.045 média) em escala enterprise seria:
+
+- GPT-3.5: ~$5,250/mês
+- GPT-4: ~$135,000/mês
+
+**Diferença**: $129,750/mês - mais de **25x mais caro**!
 
 ### Estratégias de Redução de Custo
 
