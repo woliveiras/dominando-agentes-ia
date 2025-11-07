@@ -22,10 +22,14 @@ sandbox/
 │   ├── 02-tokenization-analysis.py
 │   ├── 03-llm-as-judge.py
 │   └── README.md
-└── chapter-04/          # Dominando LLMs na Prática
-    ├── 01-prometheus-metrics.py
-    ├── 02-load-balancer.py
-    ├── 03-distributed-tracing.py
+├── chapter-04/          # Fundamentos de Prompting e Raciocínio
+│   └── README.md
+├── chapter-05/          # Dominando LLMs na Prática
+│   ├── 01-prometheus-metrics.py
+│   ├── 02-load-balancer.py
+│   ├── 03-distributed-tracing.py
+│   └── README.md
+└── chapter-06/          # Embeddings e Representação Semântica
     └── README.md
 ```
 
@@ -149,7 +153,28 @@ python 03-llm-as-judge.py
 
 ---
 
-### Capítulo 4: Dominando LLMs na Prática
+### Capítulo 4: Fundamentos de Prompting e Raciocínio
+
+**Tópicos**: Zero-shot, Few-shot, Many-shot ICL, Chain-of-Thought, Self-Consistency
+
+**Instalação:**
+```bash
+uv pip install anthropic openai sentence-transformers scikit-learn
+```
+
+**Execução:**
+```bash
+cd chapter-04
+
+# Exemplos em desenvolvimento
+# Consulte o README do capítulo para mais informações
+```
+
+**📖 README detalhado**: [chapter-04/README.md](chapter-04/README.md)
+
+---
+
+### Capítulo 5: Dominando LLMs na Prática
 
 **Tópicos**: Observabilidade, Load Balancing, Distributed Tracing
 
@@ -161,7 +186,7 @@ uv pip install prometheus-client openai anthropic opentelemetry-api \
 
 **Execução:**
 ```bash
-cd chapter-04
+cd chapter-05
 
 # Sistema de métricas com Prometheus
 python 01-prometheus-metrics.py
@@ -174,7 +199,28 @@ python 02-load-balancer.py
 python 03-distributed-tracing.py
 ```
 
-**📖 README detalhado**: [chapter-04/README.md](chapter-04/README.md)
+**📖 README detalhado**: [chapter-05/README.md](chapter-05/README.md)
+
+---
+
+### Capítulo 6: Embeddings e Representação Semântica
+
+**Tópicos**: Embeddings, Semantic Search, Vector Databases, Chunking
+
+**Instalação:**
+```bash
+# Em desenvolvimento
+```
+
+**Execução:**
+```bash
+cd chapter-06
+
+# Exemplos em desenvolvimento
+# Consulte o README do capítulo para mais informações
+```
+
+**📖 README detalhado**: [chapter-06/README.md](chapter-06/README.md)
 
 ---
 
@@ -185,7 +231,9 @@ Os exemplos foram projetados para serem executados em ordem:
 1. **Capítulo 1**: Fundamentos (arquitetura Transformer)
 2. **Capítulo 2**: Treinamento (curadoria de dados, tokenizers)
 3. **Capítulo 3**: Fine-Tuning (adaptação de modelos)
-4. **Capítulo 4**: Produção (observabilidade, otimização)
+4. **Capítulo 4**: Prompting (ICL, Chain-of-Thought)
+5. **Capítulo 5**: Produção (observabilidade, otimização)
+6. **Capítulo 6**: Embeddings (representações vetoriais, semantic search)
 
 Cada capítulo constrói sobre o conhecimento do anterior.
 
@@ -400,6 +448,6 @@ Exemplos criados para o livro **"Dominando Agentes de IA"**.
 
 ---
 
-**Última atualização**: 2025-01-06  
-**Versão**: 1.0.0
+**Última atualização**: 2025-01-07  
+**Versão**: 1.1.0
 

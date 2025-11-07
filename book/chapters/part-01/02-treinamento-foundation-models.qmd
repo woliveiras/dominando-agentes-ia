@@ -1470,234 +1470,126 @@ Isso tem uma implicação prática: se você está fazendo fine-tuning, muitas v
 
 **O Fenômeno da Emergência**
 
-Um dos fenômenos mais surpreendentes, e ainda não completamente compreendidos, dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas** [@wei2022emergent]. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
+Um dos fenômenos mais surpreendentes dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas** [@wei2022emergent]. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
 
 Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas "mais quente ou mais fria", é qualitativamente diferente (líquido vs. vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em "qualidade", mas em **quais tarefas conseguem realizar**.
 
-Entre as capacidades emergentes mais documentadas na literatura, destacam-se: **In-Context Learning** (aprender de exemplos no prompt sem atualizar pesos), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo explícito), e **Instruction Following** (seguir instruções complexas em linguagem natural). Existem outras capacidades emergentes importantes como raciocínio multi-hop, aritmética complexa, e decomposição de tarefas, mas focaremos nas três primeiras por sua relevância direta para construção de agentes de IA.
+Entre as capacidades emergentes mais documentadas destacam-se: **In-Context Learning** (aprender de exemplos no prompt), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo), e **Instruction Following** (seguir instruções complexas). Estas capacidades são fundamentais para construir agentes de IA eficazes.
 
-### In-Context Learning (ICL)
+### In-Context Learning: Aprendizado Sem Atualizar Pesos
 
-ICL consiste na capacidade do modelo aprender novas tarefas a partir de poucos exemplos no próprio prompt, **sem atualizar pesos** [@brown2020language]. Isso é surpreendente porque o modelo foi treinado apenas para prever o próximo token, mas consegue "aprender" a partir de exemplos fornecidos no contexto.
+**O que é ICL?**
 
-Exemplo: 
+In-Context Learning (ICL) é a capacidade do modelo aprender novas tarefas a partir de poucos exemplos fornecidos no próprio prompt, **sem atualizar pesos do modelo** [@brown2020language]. Imagine que você mostra 3 exemplos de tradução inglês→francês no prompt, e o modelo "aprende" o padrão e traduz corretamente uma quarta frase—mesmo que nunca tenha sido explicitamente treinado para "seguir exemplos no contexto".
 
-```python
-# Prompt com 3 exemplos de tradução
-prompt = """
-Traduza inglês para francês:
-English: Hello
-French: Bonjour
+Exemplo conceitual:
 
-English: Good morning
-French: Bonjour
-
-English: Thank you
-French: Merci
-
-English: How are you?
-French:"""
-
-# Modelo "aprende" o padrão e completa corretamente
-output = "Comment allez-vous?"
+```
+Input: [Exemplo 1] [Exemplo 2] [Exemplo 3] [Nova Tarefa]
+Output: Modelo generaliza o padrão e resolve a nova tarefa
 ```
 
-Isso é surpreendente porque, durante o treinamento, o modelo nunca viu a tarefa de "seguir um padrão de poucos exemplos". Ele só foi treinado para prever o próximo token. Mas de alguma forma, essa capacidade de *meta-aprendizado* emerge em modelos maiores.
+**Por que ICL é surpreendente?**
 
-**Variantes de ICL**:
+Durante o treinamento, o modelo só viu a tarefa de "prever o próximo token". Nunca foi treinado explicitamente para:
 
-- **Zero-shot**: Nenhum exemplo, apenas a instrução ("Traduza para francês: Hello")
+- Detectar padrões em sequências de exemplos
+- Generalizar de poucos exemplos (few-shot learning)
+- Aplicar padrões aprendidos no contexto a novos casos
+
+No entanto, essa capacidade de **meta-aprendizado** emerge em modelos grandes (~10B+ parâmetros). Modelos menores não exibem ICL de forma consistente.
+
+**Variantes de ICL**
+
+ICL se manifesta em três formas principais:
+
+- **Zero-shot**: Apenas instrução, sem exemplos ("Traduza para francês: Hello")
 - **Few-shot**: Poucos exemplos (1-10) antes da tarefa real
-- **Many-shot**: Muitos exemplos (10-100+) para tarefas complexas
+- **Many-shot**: Muitos exemplos (10-100+) explorando o context window completo
 
-```python
-# Few-shot ICL: Classificação de sentimento
-prompt = """
-Classifique o sentimento:
-Texto: "Esse filme é incrível!" → Positivo
-Texto: "Péssimo atendimento." → Negativo
-Texto: "Adorei essa experiência!" → """
+No Capítulo 4, você aprenderá como usar cada variante efetivamente, incluindo estratégias de seleção e ordenação de exemplos.
 
-output = "Positivo"  # Modelo generaliza o padrão
-```
+### Chain-of-Thought: Raciocínio Explícito Passo-a-Passo
 
-### Chain-of-Thought Reasoning (CoT)
+**O que é CoT?**
 
-CoT consiste na capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito [@wei2022chain]. Esta é uma das descobertas mais impactantes para construção de agentes de IA, pois permite decompor problemas complexos em etapas **verificáveis** (o que é muito importante para conseguirmos debugar erros em produção).
+Chain-of-Thought (CoT) é a capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito [@wei2022chain]. Em vez de gerar a resposta final diretamente, o modelo "mostra o trabalho"—decompondo o problema em etapas intermediárias verificáveis.
 
-**O Problema do Raciocínio em LLMs**
+**O Problema do Raciocínio Direto**
 
-LLMs são treinados para prever o próximo token diretamente. Para problemas simples isso funciona:
+LLMs são treinados para prever o próximo token. Para problemas simples que podem ser "memorizados" isso funciona (`"2 + 2 =" → "4"`). Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente frequentemente falha.
 
-```python
-"2 + 2 =" → "4"  # Resposta memorizada
-```
+Exemplo: "Roger tem 5 bolas. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?"
 
-Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente falha:
+- **Modelo pequeno (~1B)**: "8" (errado—tentou "adivinhar" sem raciocinar)
+- **Modelo grande (~70B) com CoT**: Gera raciocínio passo-a-passo correto até chegar em "11"
 
-```python
-# Sem CoT (falha)
-prompt = "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?"
-output = "8"  # ERRADO (deveria ser 11)
+Veja as imagens abaixo comparando um modelo pequeno ([gemma3:270m-it-fp16](https://ollama.com/library/gemma3:270m-it-fp16)) que falha vs. um modelo grande ([gpt-oss:20b](https://ollama.com/library/gpt-oss:20b)) que raciocina corretamente:
 
-# Por que falhou? O modelo tentou "pular" para a resposta sem raciocinar:
-# 5 bolas + 2 latas = 7? ou 5 + 3 = 8? Sem espaço para trabalhar, o modelo chuta.
-```
+![Exemplo de falha de raciocínio em modelo pequeno. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada, então ele compra \(2 \times 3 = 6\) bolas. Hoje ele tem \(5 - 6 = -1\) bolas."](./images/cot-fail-small.png)
 
-Veja os exemplos a seguir: na primeira imagem, eu usei um modelo pequeno, o [gemma3:270m-it-fp16](https://ollama.com/library/gemma3:270m-it-fp16), que não tem capacidade de raciocínio avançado. Na segunda imagem, usei o [gpt-oss:20b](https://ollama.com/library/gpt-oss:20b), que é capaz de raciocinar passo a passo.
+![Exemplo de raciocínio passo a passo em modelo grande. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas, e cada lata contém 3 bolas. Quantidade comprada: \(2 \times 3 = 6\) bolas. Total agora: \(5 + 6 = 11\) bolas. **Resposta:** 11 bolas de tênis."](./images/cot-success-large.png)
 
-![Exemplo de falha de raciocínio em modelo pequeno. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada, então ele compra \(2 \times 3 = 6\) bolas.
-Hoje ele tem \(5 - 6 = -1\) bolas."](./images/cot-fail-small.png)
+**Por que CoT funciona?**
 
-![Exemplo de raciocínio passo a passo em modelo grande. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas, e cada lata contém 3 bolas. Quantidade comprada: \(2 \times 3 = 6\) bolas.  Total agora: \(5 + 6 = 11\) bolas. **Resposta:** 11 bolas de tênis."](./images/cot-success-large.png)
+Duas hipóteses principais explicam o sucesso de CoT:
 
-Chain-of-Thought força o modelo a "mostrar o trabalho", criando espaço no contexto para raciocínio intermediário:
+1. **Espaço de Trabalho Intermediário**: Gerando tokens intermediários, o modelo cria "espaço para pensar" em vez de comprimir todo o raciocínio em uma única predição
+2. **Padrão de Treinamento**: Dados de treinamento incluem tutoriais, explicações matemáticas, provas—exemplos de raciocínio passo-a-passo. CoT ativa esse padrão aprendido
 
-```python
-# Com CoT (sucesso)
-prompt = """Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?
-Vamos pensar passo a passo:
-1. Roger começa com 5 bolas
-2. Ele compra 2 latas
-3. Cada lata tem 3 bolas, então 2 × 3 = 6 bolas
-4. Total: 5 + 6 = 11 bolas
-Resposta: 11"""
+@wei2022chain descobriram que simplesmente adicionar **"Let's think step by step"** ao prompt melhora significativamente a acurácia em tarefas de raciocínio:
 
-# Agora o modelo tem "espaço de trabalho" para raciocinar corretamente!
-```
+- **GSM8K (problemas matemáticos)**: +35% de acurácia (17% → 52% em PaLM 540B)
+- **SVAMP (word problems aritméticos)**: +28% de acurácia (64% → 92%)
+- **AQuA (álgebra)**: +40% de acurácia
 
-No exemplo com o gpt-oss:20b, podemos ver o raciocínio do modelo:
+**Implicações para Agentes de IA**
 
-> The user writes in Portuguese: "Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada. Quantas bolas tem agora?" So the problem: Roger has 5 tennis balls, buys 2 cans of 3 balls each. So 2 * 3 = 6. 5 + 6 = 11. So answer: 11 balls. Should respond in Portuguese: "Ele tem 11 bolas de tênis agora." Should explain steps. That is straightforward.
+CoT é fundamental para agentes porque:
 
-Perceba que o modelo ainda traduziu a pergunta para inglês internamente, fez o raciocínio, e depois respondeu em português. Isso mostra que o modelo está realmente "entendendo" o problema e aplicando raciocínio.
+- Permite **decomposição** de tarefas complexas em etapas gerenciáveis
+- Torna o raciocínio **inspecionável** e **debugável** (essencial em produção)
+- Habilita **validação** de etapas intermediárias antes de continuar
+- Possibilita **auditoria** através de logs de raciocínio
 
-**A Descoberta do Prompt "Mágico"**
+No Capítulo 4, você dominará técnicas práticas de CoT: zero-shot vs. few-shot CoT, self-consistency, e quando aplicar cada variante.
 
-@wei2022chain descobriram que simplesmente adicionar **"Vamos pensar passo a passo"** ou **"Let's think step by step"** ao prompt melhora a performance em tarefas de raciocínio em modelos grandes:
+### Instruction Following: Execução de Instruções Complexas
 
-- **GSM8K (math problems)**: +35% de acurácia (de ~17% para ~52% em PaLM 540B)^[Valores específicos do paper original: Standard prompting alcançou 17.9% de acurácia, enquanto CoT alcançou 52.5% no dataset GSM8K usando PaLM 540B [@wei2022chain].]
-- **SVAMP (arithmetic word problems)**: +28% de acurácia (de ~64% para ~92% em PaLM 540B)^[No dataset SVAMP, standard prompting obteve 64.3% enquanto CoT obteve 92.5% [@wei2022chain].]
-- **StrategyQA (commonsense reasoning)**: +17% de acurácia
-- **AQuA (algebra)**: +40% de acurácia
+**O que é Instruction Following?**
 
-Temos duas hipóteses principais para explicar por que CoT funciona assim tão bem:
+Instruction Following é a capacidade de interpretar e executar instruções complexas em linguagem natural, incluindo:
 
-1. **Espaço de Trabalho Intermediário**: CoT cria tokens intermediários onde o modelo pode "pensar". Sem isso, o modelo precisa comprimir todo o raciocínio em uma única predição de token.
-1. **Padrão de Treinamento**: Dados de treinamento incluem muitos exemplos de raciocínio passo-a-passo (tutoriais, explicações, provas matemáticas). CoT ativa esse padrão aprendido.
+- Instruções multi-etapa ("Primeiro faça X, depois Y, então Z")
+- Condicionais ("Se houver erro, reporte; caso contrário, aprove")
+- Restrições de formato ("Responda em JSON", "Use no máximo 3 frases")
 
-**Variantes de CoT**
+**Por que é surpreendente?**
 
-Temos algumas formas diferentes de aplicar CoT, como Zero-Shot CoT, Few-Shot CoT, e Self-Consistency.
-
-**Zero-Shot CoT**: Apenas adicionar "Let's think step by step" sem exemplos:
-
-```python
-prompt = "Q: [problema]\nA: Let's think step by step."
-```
-
-**Few-Shot CoT**: Fornecer exemplos de raciocínio antes do problema:
-
-```python
-prompt = """
-Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas tem?
-A: Tom começa com 3. Ele compra 2. 3 + 2 = 5. Resposta: 5.
-
-Q: Sarah tem 10 balas. Ela come 3. Quantas sobram?
-A: Sarah começa com 10. Ela come 3. 10 - 3 = 7. Resposta: 7.
-
-Q: [seu problema]
-A:
-"""
-```
-
-**Self-Consistency**: Gerar múltiplas cadeias de raciocínio e usar voting majoritário:
-
-```python
-# Gera 5 respostas diferentes com CoT
-outputs = [
-    "11",  # caminho de raciocínio 1
-    "11",  # caminho de raciocínio 2
-    "12",  # caminho de raciocínio 3 (erro)
-    "11",  # caminho de raciocínio 4
-    "11"   # caminho de raciocínio 5
-]
-final_answer = mode(outputs)  # 11 (maioria)
-```
-
-Self-consistency adiciona mais ~10-20% de acurácia em problemas difíceis, mas custa 5-10× mais tokens.
-
-CoT tem algumas limitações importantes, que precisamos considerar ao aplicá-lo em nossos agentes:
-
-1. **Não funciona para modelos muito pequenos**: Requer pelo menos ~10B parâmetros para emergir de forma confiável
-1. **Pode inventar passos plausíveis mas incorretos**: O modelo pode "alucinar" raciocínio que parece correto mas contém erros lógicos
-1. **Custo aumentado**: Cada problema gera 50-200 tokens a mais de raciocínio intermediário
-1. **Não garante correção**: CoT melhora significativamente, mas não resolve 100% dos problemas
-
-**Implicação para Agentes**
-
-CoT é fundamental para agentes de IA porque:
-
-- Permite decomposição de tarefas complexas
-- Torna o raciocínio **inspecionável** e **debugável**
-- Possibilita validação de etapas intermediárias
-- Habilita correção de curso durante execução
-- Possibilita guardar log de raciocínio para auditoria
-
-Veremos isso extensivamente quando implementarmos agentes nos próximos capítulos.
-
-### Instruction Following
-
-*Instruction Following* é a capacidade de seguir instruções complexas expressas em linguagem natural, incluindo instruções multi-etapa, condicionais e restrições. Embora os modelos sejam treinados apenas para prever o próximo token, modelos maiores aprendem a interpretar e executar instruções detalhadas.
-
-Vamos ver um exemplo para ilustrar:
-
-```python
-# Instrução simples
-prompt = "Resuma o seguinte texto em 3 frases: [texto...]"
-# Modelo executa diretamente
-
-# Instrução multi-etapa com condicionais
-prompt = """
-Analise o seguinte código Python:
-1. Se houver problemas de segurança, liste-os com severidade (alta/média/baixa)
-2. Se houver code smells, sugira refatorações específicas
-3. Se o código estiver correto, apenas diga "Código aprovado"
-4. Sempre termine com uma nota de 0-10 para qualidade geral
-
-Código:
-def authenticate(username, password):
-    query = f"SELECT * FROM users WHERE user='{username}' AND pass='{password}'"
-    return db.execute(query)
-"""
-
-# Modelo segue cada etapa na ordem, aplicando condicionais:
-output = """
-1. Problemas de Segurança (ALTA):
-   - SQL Injection: Query concatena strings diretamente sem sanitização
-   - Senha armazenada em texto plano (assume-se pelo código)
-
-2. Refatorações Sugeridas:
-   - Use prepared statements/parameterized queries
-   - Hash senhas com bcrypt ou argon2
-   - Implemente rate limiting contra brute force
-
-3. (Não aplicável - código tem problemas críticos)
-
-4. Nota: 2/10 - Vulnerabilidades críticas de segurança
-"""
-```
-
-O que torna isso notável é o fato de que o modelo não foi treinado em "siga instruções multi-etapa com condicionais". Ele foi treinado apenas em next-token prediction. Mas aprendeu a:
+O modelo foi treinado apenas em next-token prediction—nunca foi explicitamente ensinado a:
 
 - Decompor instruções complexas em sub-tarefas
 - Executar condicionais ("se X então Y, senão Z")
 - Manter contexto e estado entre etapas
-- Formatar saída conforme especificado
+- Formatar saída conforme especificações arbitrárias
 
-Estas capacidades parecem "emergir" quando os modelos atingem certa escala. A hipótese predominante é que elas surgem de generalização de padrões vistos durante o pré-treinamento, mas a ciência exata ainda não é totalmente compreendida.
+No entanto, modelos grandes (~70B+) conseguem seguir instruções extremamente complexas com alta fidelidade. Esta capacidade "emerge" quando os modelos atingem escala suficiente.
 
-Para engenheiros, a implicação prática é que modelos maiores não são apenas "modelos que fazem as mesmas coisas melhor", eles podem ter capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o *fine-tune*.
+**Implicação prática para engenheiros**
+
+Modelos maiores não são apenas "modelos que fazem as mesmas coisas melhor"—eles têm capacidades qualitativamente diferentes. Um modelo de 1B parâmetros pode não conseguir fazer certas tarefas que um modelo de 70B faz facilmente, independentemente de quanto você o fine-tune.
+
+### Por que Capacidades Emergem?
+
+A ciência exata da emergência ainda não é completamente compreendida, mas temos hipóteses principais:
+
+1. **Threshold de Complexidade**: Certas tarefas requerem "circuitos" neurais de tamanho mínimo. Modelos abaixo desse threshold simplesmente não conseguem representar a lógica necessária
+2. **Composição de Habilidades Simples**: Capacidades complexas surgem da composição de padrões mais simples aprendidos durante o treinamento
+3. **Generalização em Escala**: Com mais parâmetros e dados, o modelo aprende padrões mais abstratos que generalizam para tarefas não vistas
+
+**Próximos Passos**
+
+Neste capítulo você compreendeu **o que** são capacidades emergentes e **por que** elas surgem durante o treinamento. No Capítulo 4 (Fundamentos de Prompting e Raciocínio), você dominará **como usar** essas capacidades na prática através de técnicas avançadas de prompt engineering.
 
 ## Exercícios Práticos
 
@@ -2042,7 +1934,7 @@ print("\n💡 Observe que Code Llama tokeniza código mais eficientemente!")
 
 ## Conclusão
 
-Neste capítulo, exploramos os fundamentos de como foundation models são treinados, focando em três pilares essenciais que determinam suas capacidades:
+Neste capítulo, exploramos os fundamentos de como foundation models são treinados, focando em quatro pilares essenciais que determinam suas capacidades:
 
 **1. Self-Supervised Learning e Métricas de Treinamento**
 
@@ -2055,6 +1947,10 @@ Investigamos a composição de datasets modernos (Common Crawl, livros, código,
 **3. Tokenização: A Camada Crítica Entre Texto e Modelo**
 
 Mergulhamos profundamente em como texto é convertido em sequências numéricas que modelos podem processar. Exploramos diferentes estratégias (tokenização por caracteres, palavras, e subword tokenization via BPE e variantes) e suas implicações práticas. Vimos como escolhas de tokenização afetam não apenas eficiência computacional, mas capacidades fundamentais do modelo: aritmética, processamento multilíngue, compreensão de código, e até mesmo custos de API. Aprendemos a treinar tokenizers customizados e avaliar sua qualidade através de métricas como fertility rate.
+
+**4. Capacidades Emergentes: O Fenômeno Surpreendente**
+
+Descobrimos que modelos suficientemente grandes desenvolvem capacidades que nunca foram explicitamente treinadas—um fenômeno chamado emergência. Exploramos três capacidades emergentes fundamentais: **In-Context Learning** (aprender de exemplos no prompt sem atualizar pesos), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo explícito), e **Instruction Following** (executar instruções complexas). Compreendemos por que essas capacidades emergem (thresholds de escala, composição de padrões aprendidos) e suas implicações para construção de agentes. No Capítulo 4, você aprenderá como usar essas capacidades na prática através de técnicas de prompt engineering.
 
 **Aplicação Prática: Por que isso importa para Agentes de IA**
 

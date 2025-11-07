@@ -22,19 +22,511 @@ Ao final deste capítulo, você terá as ferramentas necessárias para guiar LLM
 
 ## In-Context Learning (ICL)
 
-  - Zero-shot: quando o modelo já sabe
-  - Few-shot: aprendendo com exemplos
-  - Many-shot: maximizando o context window
-  - Seleção e ordenação estratégica de exemplos
-  - Dynamic example selection
+No Capítulo 2, você aprendeu sobre ICL como uma **capacidade emergente**: a habilidade surpreendente de modelos grandes aprenderem novas tarefas a partir de exemplos no prompt, sem atualizar pesos. Agora você dominará **como usar ICL na prática** para maximizar a performance de seus agentes.
+
+### Zero-Shot: Quando o Modelo Já Sabe
+
+Zero-shot learning significa dar ao modelo apenas uma **instrução** sem exemplos, confiando que ele já possui o conhecimento necessário da fase de pré-treinamento.
+
+**Quando usar zero-shot:**
+- Tarefas comuns e bem estabelecidas (tradução, resumo, classificação básica)
+- Quando você quer minimizar latência e custo (menos tokens = mais rápido e barato)
+- Quando não há espaço no context window para exemplos
+- Para testar rapidamente se o modelo já sabe fazer a tarefa
+
+**Exemplo de zero-shot efetivo:**
+
+```python
+prompt = """
+Traduza o seguinte texto para francês:
+"Hello, how are you today?"
+"""
+# Modelo: "Bonjour, comment allez-vous aujourd'hui?"
+```
+
+**Armadilhas comuns:**
+```python
+# ❌ Instrução vaga
+prompt = "Traduza isso: Hello"
+# Problema: Traduzir para qual idioma?
+
+# ✅ Instrução clara
+prompt = "Traduza inglês para francês: Hello"
+```
+
+### Few-Shot: Aprendendo com Exemplos
+
+Few-shot learning fornece 1-10 exemplos demonstrando o formato, estilo ou raciocínio desejado. O modelo "aprende" o padrão e aplica na nova tarefa.
+
+**Quando usar few-shot:**
+- Tarefas com formato específico ou não-trivial
+- Quando zero-shot produz resultados inconsistentes
+- Para ensinar estilo ou tom específico
+- Tarefas de domínio específico que não estão bem representadas no pré-treinamento
+
+**Exemplo: Classificação de sentimento customizada**
+
+```python
+# Zero-shot (inconsistente)
+prompt = """
+Classifique o sentimento: "Produto ok, nada de especial"
+"""
+# Pode retornar: "Neutro", "Positivo", "Misto", formato inconsistente
+
+# Few-shot (consistente e preciso)
+prompt = """
+Classifique o sentimento como POSITIVO, NEGATIVO ou NEUTRO:
+
+Texto: "Esse produto é incrível! Superou minhas expectativas."
+Sentimento: POSITIVO
+
+Texto: "Péssima qualidade, não recomendo."
+Sentimento: NEGATIVO
+
+Texto: "Produto ok, nada de especial."
+Sentimento: NEUTRO
+
+Texto: "Adorei a embalagem, mas o produto decepcionou."
+Sentimento:
+"""
+# Modelo: "NEGATIVO" (formato consistente, aprende a dar mais peso ao produto)
+```
+
+**Anatomia de um bom exemplo few-shot:**
+
+1. **Diversidade**: Exemplos devem cobrir casos diferentes (sentimentos positivos/negativos/neutros, edge cases)
+2. **Representatividade**: Exemplos similares aos casos reais que o modelo verá
+3. **Clareza**: Formato consistente entre input e output
+4. **Ordenação**: Exemplos mais relevantes no final (recency bias - modelo dá mais peso aos últimos exemplos)
+
+### Many-Shot: Maximizando o Context Window
+
+Many-shot learning usa 10-100+ exemplos, explorando todo o context window disponível. Especialmente eficaz com modelos de contexto longo (100k+ tokens).
+
+**Quando usar many-shot:**
+- Tarefas muito complexas ou especializadas
+- Quando você tem context window grande disponível (Claude 3.5 Sonnet: 200k tokens)
+- Fine-tuning não é viável (dados insuficientes ou mudanças frequentes)
+- Precisa de alta precisão e tem exemplos de qualidade
+
+**Exemplo: Extração de informações médicas**
+
+```python
+# Com 50 exemplos de relatórios médicos anotados
+prompt = """
+Extraia informações estruturadas do relatório médico:
+
+[Exemplo 1: Relatório → JSON estruturado]
+[Exemplo 2: Relatório → JSON estruturado]
+...
+[Exemplo 50: Relatório → JSON estruturado]
+
+Agora extraia informações deste novo relatório:
+[Relatório atual]
+"""
+```
+
+**Trade-offs de many-shot:**
+- ✅ Maior acurácia em tarefas complexas (+10-30% vs few-shot)
+- ✅ Menos necessidade de fine-tuning
+- ❌ Alto custo por inferência (muitos tokens de input)
+- ❌ Maior latência (mais tokens para processar)
+- ❌ Requer curadoria cuidadosa de exemplos
+
+### Seleção Estratégica de Exemplos
+
+A **qualidade** dos exemplos importa mais que a **quantidade**. Bons exemplos podem superar many-shot mal curado com few-shot bem escolhido.
+
+**Estratégias de seleção:**
+
+**1. Diversidade de Cobertura**
+```python
+# ❌ Exemplos redundantes
+exemplos = [
+    "Excelente produto! → POSITIVO",
+    "Produto maravilhoso! → POSITIVO",
+    "Ótimo produto! → POSITIVO",
+]
+# Todos muito similares, não cobrem edge cases
+
+# ✅ Exemplos diversos
+exemplos = [
+    "Produto excelente! → POSITIVO",
+    "Péssimo, não funciona. → NEGATIVO",
+    "Produto ok, nada especial. → NEUTRO",
+    "Ótimo preço, mas qualidade ruim. → NEGATIVO",  # Edge case: misto
+]
+```
+
+**2. Similaridade Semântica (Dynamic Example Selection)**
+
+Use embeddings para selecionar exemplos mais relevantes para cada input:
+
+```python
+from sentence_transformers import SentenceTransformer
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Banco de exemplos anotados
+exemplos_banco = [
+    {"input": "Produto incrível!", "output": "POSITIVO"},
+    {"input": "Não gostei, péssimo.", "output": "NEGATIVO"},
+    # ... centenas de exemplos
+]
+
+# Input atual
+input_atual = "Adorei a qualidade!"
+
+# Gerar embedding do input
+input_embedding = model.encode(input_atual)
+
+# Calcular similaridade com todos exemplos
+from sklearn.metrics.pairwise import cosine_similarity
+exemplos_embeddings = model.encode([ex["input"] for ex in exemplos_banco])
+similarities = cosine_similarity([input_embedding], exemplos_embeddings)[0]
+
+# Selecionar top-5 exemplos mais similares
+top_indices = similarities.argsort()[-5:][::-1]
+exemplos_selecionados = [exemplos_banco[i] for i in top_indices]
+
+# Construir prompt few-shot com exemplos relevantes
+prompt = construir_prompt_few_shot(exemplos_selecionados, input_atual)
+```
+
+**3. Ordenação (Recency Bias)**
+
+Modelos dão mais peso aos **exemplos finais** do prompt. Ordene estrategicamente:
+
+```python
+# Ordenação ótima:
+# 1. Exemplo "médio" (baseline)
+# 2. Exemplos diversos (cobertura)
+# 3. Exemplo mais similar ao input (recency bias)
+# 4. Input atual
+
+prompt = f"""
+{exemplo_baseline}
+{exemplo_edge_case_1}
+{exemplo_edge_case_2}
+{exemplo_mais_similar_ao_input}  # ← Mais próximo do input atual
+{input_atual}
+"""
+```
+
+### Limitações e Quando ICL Falha
+
+ICL não é sempre a melhor solução:
+
+**Limitações:**
+1. **Não substitui fine-tuning para tarefas altamente especializadas**: ICL aprende padrões, mas não atualiza pesos. Para tarefas muito específicas, fine-tuning ainda é superior
+2. **Custo escalável**: Every request paga pelos tokens dos exemplos
+3. **Contexto limitado**: Even com 200k tokens, há limites práticos
+4. **Sensível à qualidade dos exemplos**: Exemplos ruins → outputs ruins
+
+**Quando preferir fine-tuning ao invés de ICL:**
+- Tarefa muito frequente (amortiza custo de fine-tuning)
+- Precisa de latência mínima (sem exemplos no prompt)
+- Domínio altamente especializado não coberto no pré-treinamento
 
 ## Chain-of-Thought (CoT) Prompting
 
-  - Fundamentos do raciocínio passo-a-passo
-  - Zero-shot CoT: "Let's think step by step"
-  - Few-shot CoT: ensinando com exemplos de raciocínio
-  - Self-consistency: múltiplos caminhos para uma resposta
-  - Quando CoT funciona melhor (e quando não funciona)
+No Capítulo 2, você aprendeu sobre CoT como uma **capacidade emergente**: a habilidade de modelos grandes resolverem problemas complexos através de raciocínio explícito passo-a-passo. Agora você dominará **como aplicar CoT na prática** para maximizar a qualidade de raciocínio em seus agentes.
+
+### Fundamentos do Raciocínio Passo-a-Passo
+
+CoT funciona criando "espaço de trabalho" no contexto onde o modelo pode raciocinar antes de gerar a resposta final. Em vez de pular direto para a conclusão, o modelo explicita o raciocínio intermediário.
+
+**Comparação: Raciocínio Direto vs. Chain-of-Thought**
+
+```python
+# ❌ Raciocínio Direto (frequentemente falha em problemas complexos)
+prompt = """
+Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada.
+Quantas bolas tem agora?
+"""
+# Modelo pequeno: "8" (ERRADO - tentou adivinhar sem raciocinar)
+
+# ✅ Chain-of-Thought (força raciocínio explícito)
+prompt = """
+Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada.
+Quantas bolas tem agora?
+
+Vamos pensar passo a passo:
+"""
+# Modelo grande:
+# "1. Roger começa com 5 bolas
+#  2. Ele compra 2 latas
+#  3. Cada lata tem 3 bolas, então 2 × 3 = 6 bolas compradas
+#  4. Total: 5 + 6 = 11 bolas
+#  Resposta: 11"
+```
+
+**Por que CoT funciona?**
+
+Relembrando do Capítulo 2, duas razões principais:
+
+1. **Espaço de Trabalho**: Tokens intermediários permitem que o modelo "pense" em vez de comprimir todo o raciocínio em uma única predição
+2. **Padrão Aprendido**: Dados de treinamento contêm muitos exemplos de raciocínio explícito (tutoriais, provas matemáticas), CoT ativa esse padrão
+
+### Zero-Shot CoT: "Let's Think Step by Step"
+
+A descoberta mais surpreendente sobre CoT: simplesmente adicionar **"Let's think step by step"** (ou "Vamos pensar passo a passo") melhora drasticamente a performance, **sem fornecer exemplos**.
+
+**Implementação básica:**
+
+```python
+def zero_shot_cot(problema):
+    prompt = f"""
+{problema}
+
+Let's think step by step.
+"""
+    return llm.generate(prompt)
+
+# Exemplo
+problema = "Se um trem viaja a 80 km/h por 2.5 horas, quantos quilômetros percorre?"
+resposta = zero_shot_cot(problema)
+# "Let's think step by step:
+#  1. Velocidade = 80 km/h
+#  2. Tempo = 2.5 horas
+#  3. Distância = Velocidade × Tempo
+#  4. Distância = 80 × 2.5 = 200 km
+#  Resposta: 200 quilômetros"
+```
+
+**Resultados empíricos (do paper original):**
+
+- **GSM8K (math problems)**: 17% → 52% de acurácia (+35%)
+- **SVAMP (arithmetic word problems)**: 64% → 92% (+28%)
+- **AQuA (algebra)**: ~30% → ~70% (+40%)
+
+**Variantes de prompts zero-shot CoT:**
+
+```python
+# Variante 1: Original
+"Let's think step by step."
+
+# Variante 2: Mais estruturada
+"Let's solve this problem step by step, showing all work:"
+
+# Variante 3: Com verificação
+"Let's think step by step, then double-check our answer:"
+
+# Variante 4: Específica para domínio
+"Let's analyze this code step by step, checking for bugs:"
+```
+
+**Quando zero-shot CoT funciona melhor:**
+- Problemas matemáticos e lógicos
+- Raciocínio de senso comum
+- Análise de código
+- Problemas que requerem múltiplos passos claros
+
+### Few-Shot CoT: Ensinando com Exemplos de Raciocínio
+
+Few-shot CoT fornece **exemplos de raciocínio completo** antes do problema real. O modelo aprende não apenas o formato da resposta, mas **como raciocinar**.
+
+**Estrutura de few-shot CoT:**
+
+```python
+prompt = """
+Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas maçãs tem agora?
+A: Vamos resolver passo a passo:
+1. Tom começa com 3 maçãs
+2. Ele compra 2 maçãs a mais
+3. Total = 3 + 2 = 5 maçãs
+Resposta: 5 maçãs
+
+Q: Sarah tem 10 balas. Ela come 3 e dá 2 para o irmão. Quantas sobram?
+A: Vamos resolver passo a passo:
+1. Sarah começa com 10 balas
+2. Ela come 3, sobram 10 - 3 = 7 balas
+3. Ela dá 2 ao irmão, sobram 7 - 2 = 5 balas
+Resposta: 5 balas
+
+Q: [Seu problema aqui]
+A: Vamos resolver passo a passo:
+"""
+```
+
+**Diferença crucial: Few-Shot ICL vs. Few-Shot CoT**
+
+```python
+# Few-Shot ICL (apenas input-output)
+"""
+Q: 2 + 3 = ?
+A: 5
+
+Q: 7 - 4 = ?
+A: 3
+
+Q: 6 × 2 = ?
+A:
+"""
+# Modelo aprende o padrão, mas não o raciocínio
+
+# Few-Shot CoT (mostra o raciocínio)
+"""
+Q: 2 + 3 = ?
+A: Somando 2 + 3, obtemos 5. Resposta: 5
+
+Q: 7 - 4 = ?
+A: Subtraindo 4 de 7, obtemos 3. Resposta: 3
+
+Q: 6 × 2 = ?
+A:
+"""
+# Modelo aprende a explicitar o raciocínio
+```
+
+**Quando few-shot CoT supera zero-shot:**
+- Problemas com estrutura de raciocínio específica do domínio
+- Quando você quer controlar o **estilo** do raciocínio
+- Tarefas onde zero-shot CoT ainda falha
+- Quando os exemplos podem demonstrar edge cases importantes
+
+### Self-Consistency: Múltiplos Caminhos para uma Resposta
+
+Self-consistency gera **múltiplas cadeias de raciocínio** (com sampling de temperatura > 0) e usa **voting majoritário** para escolher a resposta final.
+
+**Intuição:** Se o mesmo resultado aparece por caminhos de raciocínio diferentes, provavelmente está correto.
+
+**Implementação:**
+
+```python
+def self_consistency_cot(problema, n_samples=5):
+    prompt_base = f"{problema}\n\nLet's think step by step."
+
+    # Gerar múltiplas cadeias de raciocínio
+    respostas = []
+    for _ in range(n_samples):
+        output = llm.generate(
+            prompt_base,
+            temperature=0.7  # Permite diversidade
+        )
+        # Extrair resposta final do raciocínio
+        resposta_final = extrair_resposta(output)
+        respostas.append(resposta_final)
+
+    # Voting majoritário
+    from collections import Counter
+    contagem = Counter(respostas)
+    resposta_mais_comum = contagem.most_common(1)[0][0]
+
+    return resposta_mais_comum
+
+# Exemplo
+problema = "Se 5 máquinas fazem 5 widgets em 5 minutos, quantas máquinas \
+           são necessárias para fazer 100 widgets em 100 minutos?"
+
+# Gera 5 cadeias de raciocínio:
+# Cadeia 1: ... Resposta: 5
+# Cadeia 2: ... Resposta: 5
+# Cadeia 3: ... Resposta: 100 (erro)
+# Cadeia 4: ... Resposta: 5
+# Cadeia 5: ... Resposta: 5
+
+# Voting: 5 aparece 4 vezes, 100 aparece 1 vez
+# Resposta final: 5 ✓
+```
+
+**Ganhos empíricos:**
+- GSM8K: CoT simples (52%) → Self-consistency (58%) (+6%)
+- SVAMP: CoT simples (92%) → Self-consistency (95%) (+3%)
+- Problemas complexos: ganhos maiores (+10-20%)
+
+**Trade-offs:**
+- ✅ Melhora acurácia significativamente
+- ✅ Filtra erros aleatórios através de voting
+- ❌ **Custo:** 5-10× mais caro (múltiplas gerações)
+- ❌ **Latência:** 5-10× mais lento (gerações sequenciais ou paralelas)
+
+**Quando usar self-consistency:**
+- Problemas críticos onde acurácia > custo
+- Decisões de alto impacto (financeiras, médicas, legais)
+- Quando você pode fazer inferências em paralelo
+- Problemas onde o modelo erra inconsistentemente
+
+### Quando CoT Funciona Melhor (e Quando Não Funciona)
+
+**✅ CoT funciona bem para:**
+
+1. **Problemas aritméticos e matemáticos**
+```python
+"Calcule o preço final após 20% de desconto em R$ 150."
+# CoT: 150 × 0.20 = 30, então 150 - 30 = 120
+```
+
+2. **Raciocínio lógico multi-etapa**
+```python
+"Se todos os gatos são mamíferos, e alguns mamíferos voam, alguns gatos voam?"
+# CoT decompõe a lógica passo-a-passo
+```
+
+3. **Análise de código e debugging**
+```python
+"Encontre o bug neste código: [código com erro off-by-one]"
+# CoT rastreia linha por linha
+```
+
+4. **Planejamento e decomposição de tarefas**
+```python
+"Como organizar uma conferência técnica para 200 pessoas?"
+# CoT decompõe em etapas: local, palestrantes, catering, marketing...
+```
+
+**❌ CoT NÃO funciona bem para:**
+
+1. **Tarefas de reconhecimento/classificação simples**
+```python
+# Não precisa de CoT
+"Classifique o sentimento: 'Adorei esse produto!'"
+# Resposta direta: "Positivo" (CoT só adiciona latência/custo)
+```
+
+2. **Geração criativa**
+```python
+# CoT pode matar criatividade
+"Escreva um poema sobre o mar."
+# CoT explícito pode tornar o resultado mecânico
+```
+
+3. **Tarefas que requerem conhecimento factual, não raciocínio**
+```python
+# Modelo sabe ou não sabe, raciocínio não ajuda
+"Qual a capital da Mongólia?"
+# CoT: "Vamos pensar... a capital... deve ser..." → não adiciona valor
+```
+
+4. **Modelos muito pequenos (<10B parâmetros)**
+- Capacidade de CoT é emergente
+- Modelos pequenos podem "imitar" CoT mas raciocinam incorretamente
+
+**Limitações críticas de CoT:**
+
+1. **Alucinação de raciocínio plausível mas incorreto**
+```python
+# Modelo pode gerar raciocínio que PARECE correto mas contém erro sutil
+# Sempre valide etapas críticas programaticamente quando possível
+```
+
+2. **Não garante correção**
+```python
+# CoT melhora significativamente, mas não resolve 100% dos problemas
+# Use self-consistency para problemas críticos
+```
+
+3. **Custo aumentado**
+```python
+# Cada problema gera 50-200+ tokens de raciocínio
+# Considere trade-off: acurácia vs. custo
+```
+
+**Heurística prática:**
+- **Use zero-shot CoT** como padrão para problemas multi-etapa
+- **Use few-shot CoT** quando zero-shot falha ou precisa de estilo específico
+- **Use self-consistency** apenas em decisões críticas (custo 5-10×)
+- **Não use CoT** para tarefas simples de classificação/lookup
 
 ## Técnicas Fundamentais de Reasoning
 
