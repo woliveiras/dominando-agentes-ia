@@ -1,232 +1,792 @@
 # Capítulo 4: Fundamentos de Prompting e Raciocínio {.unnumbered}
 
-Nos capítulos anteriores, você aprendeu como funcionam os Transformers, como foundation models são treinados, e técnicas de fine-tuning e otimização. Com esse conhecimento sobre a **arquitetura** e o **treinamento**, agora é hora de dominar a **interface** principal para interagir com LLMs: **prompts**.
+Nos capítulos anteriores, você dominou os fundamentos técnicos de LLMs: arquitetura Transformer (Capítulo 1), processo de treinamento (Capítulo 2) e técnicas de adaptação via fine-tuning (Capítulo 3). Com esse conhecimento sobre a construção interna dos modelos, agora é essencial dominar a **interface primária** de interação com eles: os **prompts**.
 
-Prompting é a arte e ciência de comunicar-se efetivamente com modelos de linguagem. Um prompt bem construído pode fazer a diferença entre um modelo que gera outputs úteis e um que produz resultados incoerentes ou irrelevantes. Para construir agentes de IA capazes, você precisa dominar essa habilidade fundamental.
+*Prompting* não é simplesmente "escrever instruções" para um modelo de linguagem. É uma disciplina técnica fundamentada em princípios de design de interface, teoria da informação e psicologia cognitiva aplicada a sistemas de IA. Um prompt bem construído pode representar a diferença entre um sistema que opera com 40% de acurácia e outro que alcança 95% na mesma tarefa, usando o mesmo modelo subjacente.
 
-Neste capítulo, você aprenderá:
+> Sim, eu também tinha preconceito com "prompting" até estudar isso de fato e entender sua profundidade técnica.
 
-- Como estruturar prompts efetivos que extraem o máximo dos LLMs
-- Técnicas de in-context learning (zero-shot, few-shot, many-shot)
-- Chain-of-Thought prompting para raciocínio complexo
-- Fundamentos do ReAct para agentes autônomos
+Para engenheiros construindo agentes autônomos, dominar prompting é tão fundamental quanto dominar APIs para desenvolvimento de software tradicional. Agentes de IA são, em essência, sistemas que orquestram prompts complexos através de ciclos de percepção-raciocínio-ação. Sem compreensão profunda de como estruturar instruções, fornecer contexto e guiar raciocínio, é impossível construir agentes confiáveis e robustos.
 
-Ao final deste capítulo, você terá as ferramentas necessárias para guiar LLMs em tarefas complexas e preparar o terreno para construir sistemas de agentes completos.
+Este capítulo estabelece os fundamentos de prompting através de quatro pilares:
 
-## Prompt Engineering Essencial
+1. **Princípios de Estruturação**: Anatomia de prompts efetivos e padrões de organização
+2. **In-Context Learning**: Técnicas zero-shot, few-shot e many-shot para adaptação sem fine-tuning
+3. **Chain-of-Thought Reasoning**: Métodos para raciocínio complexo multi-etapa
+4. **ReAct Framework**: Fundamentos de reasoning + acting para agentes autônomos
 
-  - Anatomia de um bom prompt
-  - System prompts, user prompts e assistant responses
-  - Técnicas de estruturação (markdown, XML, JSON)
-  - Uso de templates e variáveis
+Cada seção combina teoria fundamentada com implementações práticas, progressivamente construindo o conhecimento necessário para sistemas de agentes em produção.
 
-## In-Context Learning (ICL)
+## Anatomia e Estruturação de Prompts
 
-No Capítulo 2, você aprendeu sobre ICL como uma **capacidade emergente**: a habilidade surpreendente de modelos grandes aprenderem novas tarefas a partir de exemplos no prompt, sem atualizar pesos. Agora você dominará **como usar ICL na prática** para maximizar a performance de seus agentes.
+### Componentes de um Bom Prompt
 
-### Zero-Shot: Quando o Modelo Já Sabe
-
-Zero-shot learning significa dar ao modelo apenas uma **instrução** sem exemplos, confiando que ele já possui o conhecimento necessário da fase de pré-treinamento.
-
-**Quando usar zero-shot:**
-- Tarefas comuns e bem estabelecidas (tradução, resumo, classificação básica)
-- Quando você quer minimizar latência e custo (menos tokens = mais rápido e barato)
-- Quando não há espaço no context window para exemplos
-- Para testar rapidamente se o modelo já sabe fazer a tarefa
-
-**Exemplo de zero-shot efetivo:**
+Um prompt eficiente possui uma estrutura clara que separa responsabilidades e facilita a interpretação pelo modelo. A arquitetura típica consiste em cinco componentes principais:
 
 ```python
-prompt = """
-Traduza o seguinte texto para francês:
-"Hello, how are you today?"
-"""
-# Modelo: "Bonjour, comment allez-vous aujourd'hui?"
-```
+# Estrutura canônica de um prompt
+prompt = f"""
+<ROLE>
+Você é um especialista em análise de dados financeiros
+</ROLE>
 
-**Armadilhas comuns:**
-```python
-# ❌ Instrução vaga
-prompt = "Traduza isso: Hello"
-# Problema: Traduzir para qual idioma?
+<TASK>
+Analise o seguinte relatório trimestral e identifique 3 principais riscos financeiros
+</TASK>
 
-# ✅ Instrução clara
-prompt = "Traduza inglês para francês: Hello"
-```
+<CONTEXT>
+Empresa: PoneyCorp
+Setor: Software B2B
+Receita Trimestre: $2.5M (-15% YoY)
+Burn Rate: $800K/mês
+Runway: 8 meses
+</CONTEXT>
 
-### Few-Shot: Aprendendo com Exemplos
+<FORMAT>
+Para cada risco, forneça:
+1. Descrição (máximo 50 palavras)
+2. Severidade (Baixa/Média/Alta/Crítica)
+3. Recomendação de mitigação (máximo 100 palavras)
+</FORMAT>
 
-Few-shot learning fornece 1-10 exemplos demonstrando o formato, estilo ou raciocínio desejado. O modelo "aprende" o padrão e aplica na nova tarefa.
-
-**Quando usar few-shot:**
-- Tarefas com formato específico ou não-trivial
-- Quando zero-shot produz resultados inconsistentes
-- Para ensinar estilo ou tom específico
-- Tarefas de domínio específico que não estão bem representadas no pré-treinamento
-
-**Exemplo: Classificação de sentimento customizada**
-
-```python
-# Zero-shot (inconsistente)
-prompt = """
-Classifique o sentimento: "Produto ok, nada de especial"
-"""
-# Pode retornar: "Neutro", "Positivo", "Misto", formato inconsistente
-
-# Few-shot (consistente e preciso)
-prompt = """
-Classifique o sentimento como POSITIVO, NEGATIVO ou NEUTRO:
-
-Texto: "Esse produto é incrível! Superou minhas expectativas."
-Sentimento: POSITIVO
-
-Texto: "Péssima qualidade, não recomendo."
-Sentimento: NEGATIVO
-
-Texto: "Produto ok, nada de especial."
-Sentimento: NEUTRO
-
-Texto: "Adorei a embalagem, mas o produto decepcionou."
-Sentimento:
-"""
-# Modelo: "NEGATIVO" (formato consistente, aprende a dar mais peso ao produto)
-```
-
-**Anatomia de um bom exemplo few-shot:**
-
-1. **Diversidade**: Exemplos devem cobrir casos diferentes (sentimentos positivos/negativos/neutros, edge cases)
-2. **Representatividade**: Exemplos similares aos casos reais que o modelo verá
-3. **Clareza**: Formato consistente entre input e output
-4. **Ordenação**: Exemplos mais relevantes no final (recency bias - modelo dá mais peso aos últimos exemplos)
-
-### Many-Shot: Maximizando o Context Window
-
-Many-shot learning usa 10-100+ exemplos, explorando todo o context window disponível. Especialmente eficaz com modelos de contexto longo (100k+ tokens).
-
-**Quando usar many-shot:**
-- Tarefas muito complexas ou especializadas
-- Quando você tem context window grande disponível (Claude 3.5 Sonnet: 200k tokens)
-- Fine-tuning não é viável (dados insuficientes ou mudanças frequentes)
-- Precisa de alta precisão e tem exemplos de qualidade
-
-**Exemplo: Extração de informações médicas**
-
-```python
-# Com 50 exemplos de relatórios médicos anotados
-prompt = """
-Extraia informações estruturadas do relatório médico:
-
-[Exemplo 1: Relatório → JSON estruturado]
-[Exemplo 2: Relatório → JSON estruturado]
-...
-[Exemplo 50: Relatório → JSON estruturado]
-
-Agora extraia informações deste novo relatório:
-[Relatório atual]
+<CONSTRAINTS>
+- Foque apenas em dados quantitativos apresentados
+- Não faça suposições sobre causas externas
+- Priorize riscos de liquidez sobre riscos estratégicos
+</CONSTRAINTS>
 """
 ```
 
-**Trade-offs de many-shot:**
-- ✅ Maior acurácia em tarefas complexas (+10-30% vs few-shot)
-- ✅ Menos necessidade de fine-tuning
-- ❌ Alto custo por inferência (muitos tokens de input)
-- ❌ Maior latência (mais tokens para processar)
-- ❌ Requer curadoria cuidadosa de exemplos
+**Justificativa técnica para cada componente:**
 
-### Seleção Estratégica de Exemplos
+1. **ROLE (Contexto de Especialização)**: Ativa padrões específicos aprendidos durante pré-treinamento. Modelos expostos a milhões de documentos técnicos desenvolvem representações internas de "como especialistas de domínio X se comunicam". Especificar role alinha a distribuição de saída com esses padrões.
 
-A **qualidade** dos exemplos importa mais que a **quantidade**. Bons exemplos podem superar many-shot mal curado com few-shot bem escolhido.
+2. **TASK (Objetivo Explícito)**: Define o objetivo de otimização para geração. Sem task explícita, modelo pode gerar continuações plausíveis mas irrelevantes (predição de próximo token não garante utilidade).
 
-**Estratégias de seleção:**
+3. **CONTEXT (Informação Necessária)**: Fornece informação não disponível nos pesos do modelo. Foundation models possuem conhecimento geral, mas não dados específicos da sua aplicação.
 
-**1. Diversidade de Cobertura**
-```python
-# ❌ Exemplos redundantes
-exemplos = [
-    "Excelente produto! → POSITIVO",
-    "Produto maravilhoso! → POSITIVO",
-    "Ótimo produto! → POSITIVO",
-]
-# Todos muito similares, não cobrem edge cases
+4. **FORMAT (Estrutura de Saída)**: Especifica schema de resposta. Crucial para parsing programático e integração em pipelines. Reduz variabilidade de formato em ~80% [@anthropic-api-reference].
 
-# ✅ Exemplos diversos
-exemplos = [
-    "Produto excelente! → POSITIVO",
-    "Péssimo, não funciona. → NEGATIVO",
-    "Produto ok, nada especial. → NEUTRO",
-    "Ótimo preço, mas qualidade ruim. → NEGATIVO",  # Edge case: misto
-]
+5. **CONSTRAINTS (Restrições e Guardrails)**: Define limites operacionais. Modelos tendem a "extrapolar" além do contexto fornecido (alucinação). Constraints explícitas reduzem esse comportamento.
+
+### Técnicas de Marcação Estrutural
+
+A escolha do formato de marcação impacta diretamente a interpretabilidade pelo modelo. Três abordagens são dominantes para diferentes casos de uso: Markdown, XML e JSON.
+
+#### Markdown
+
+A linguagem de marcação Markdown é amplamente utilizada devido à sua simplicidade e legibilidade humana. É ideal para prompts destinados a usuários finais ou quando a clareza visual é prioritária.
+
+```markdown
+# Análise de Sentimento
+
+## Tarefa
+Classifique o sentimento do texto como POSITIVO, NEGATIVO ou NEUTRO.
+
+## Exemplos
+**Texto**: "Produto excelente, recomendo!"  
+**Sentimento**: POSITIVO
+
+**Texto**: "Qualidade terrível, não funciona."  
+**Sentimento**: NEGATIVO
+
+## Input
+**Texto**: "Produto ok, nada de especial."  
+**Sentimento**:
 ```
 
-**2. Similaridade Semântica (Dynamic Example Selection)**
+**Vantagens**: Alta legibilidade humana, bem representado em dados de treinamento (documentação técnica, READMEs).
 
-Use embeddings para selecionar exemplos mais relevantes para cada input:
+**Desvantagens**: Parsing pode ser ambíguo para estruturas muito complexas.
+
+#### XML (Recomendado para Estrutura Hierárquica)
+
+A linguagem XML oferece uma estrutura hierárquica clara, ideal para prompts que exigem múltiplos níveis de aninhamento ou extração de dados estruturados.
+
+```xml
+<prompt>
+  <task>Extrair informações estruturadas de texto legal</task>
+  <document>
+    <type>contrato</type>
+    <content>
+    O CONTRATANTE, empresa XYZ LTDA, CNPJ 12.345.678/0001-90,
+    contrata os serviços de consultoria pelo período de 12 meses...
+    </content>
+  </document>
+  <extraction_schema>
+    <field name="contratante" type="string"/>
+    <field name="cnpj" type="string" pattern="XX.XXX.XXX/XXXX-XX"/>
+    <field name="duracao_meses" type="integer"/>
+  </extraction_schema>
+</prompt>
+```
+
+**Vantagens**: Hierarquia clara, parsing não-ambíguo, suporte nativo no Claude [@anthropic-api-reference].
+
+**Desvantagens**: Verbosidade aumenta contagem de tokens (15-30% mais tokens que Markdown equivalente).
+
+#### JSON (Recomendado para Integração Programática)
+
+JSON é ideal para prompts que exigem integração direta com sistemas de software, APIs ou quando a saída precisa ser parseada programaticamente.
+
+```json
+{
+  "role": "data_analyst",
+  "task": "time_series_forecasting",
+  "data": {
+    "historical": [120, 135, 148, 152, 160],
+    "frequency": "monthly",
+    "unit": "thousands_usd"
+  },
+  "parameters": {
+    "horizon": 3,
+    "confidence_interval": 0.95
+  },
+  "output_format": {
+    "predictions": "array[float]",
+    "confidence_bounds": "object{lower: array, upper: array}"
+  }
+}
+```
+
+**Vantagens**: Parsing trivial, integração direta com código, validação via JSON Schema.
+
+**Desvantagens**: Legibilidade reduzida para prompts complexos, modelos podem gerar JSON mal-formado (requer validação), sintaxe estrita (vírgulas, aspas) propensa a erros.
+
+#### Escolha de Formato: Matriz de Decisão
+
+A escolha do formato de marcação deve considerar múltiplos fatores técnicos e operacionais:
+
+| Critério | Markdown | XML | JSON |
+|----------|----------|-----|------|
+| **Legibilidade Humana** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
+| **Parsing Programático** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
+| **Hierarquia Complexa** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Eficiência de Tokens** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Robustez (Geração)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| **Suporte Nativo LLM** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (Claude) | ⭐⭐⭐ |
+
+::: {.callout-note title="Metodologia de Avaliação"}
+As avaliações desta tabela baseiam-se em:
+
+1. **Legibilidade Humana**: Análise qualitativa de facilidade de leitura/edição
+2. **Parsing Programático**: Complexidade de implementação (regex vs. parsers nativos)
+3. **Hierarquia Complexa**: Capacidade de representar estruturas aninhadas (3+ níveis)
+4. **Eficiência de Tokens**: Medições empíricas em prompts equivalentes (seção seguinte)
+5. **Robustez (Geração)**: Taxa de erros sintáticos observados em outputs de GPT-4/Claude (dados internos, não publicados)
+6. **Suporte Nativo LLM**: Documentação oficial de APIs (XML explicitamente otimizado no Claude [@anthropic-api-reference])
+
+**Limitação:** Não há benchmarks públicos sistematizando essas dimensões. Avaliações refletem práticas observadas em produção, mas podem variar por caso de uso específico.
+:::
+
+**Heurísticas de seleção:**
+
+**Use Markdown quando:**
+
+- Prompt será lido/editado por humanos frequentemente
+- Estrutura é simples (1-2 níveis de hierarquia)
+- Integração com documentação existente (READMEs, wikis)
+- Minimização de tokens é prioritária
+- Formato de saída é texto livre ou semi-estruturado
+
+**Exemplo:** Prompts para usuários finais, documentação técnica, instruções de sistema.
+
+**Use XML quando:**
+
+- Hierarquia profunda e complexa (3+ níveis)
+- Extração estruturada de múltiplos campos aninhados
+- Claude é o modelo primário (suporte nativo otimizado)
+- Necessidade de atributos e metadados (XML attributes)
+- Parsing não-ambíguo é crítico
+
+**Exemplo:** Extração de entidades de documentos legais, parsing de relatórios técnicos complexos.
+
+**Use JSON quando:**
+
+- Saída será consumida diretamente por APIs/código
+- Validação via schema é necessária (JSON Schema)
+- Integração com sistemas existentes (REST APIs)
+- Tipos de dados precisam ser preservados (números, booleanos, arrays)
+- Pipeline de processamento requer formato padronizado
+
+**Exemplo:** Agentes que interagem com APIs, sistemas de extração de dados, integração com databases.
+
+#### Comparação Prática: Mesmo Prompt em Três Formatos
+
+Para ilustrar as diferenças, considere a mesma tarefa de extração de informações implementada nos três formatos:
+
+**Markdown:**
+
+```markdown
+# Tarefa: Extração de Dados de Produto
+
+Extraia as seguintes informações do texto:
+
+- **Nome**: Nome completo do produto
+- **Preço**: Valor em BRL (apenas número)
+- **Desconto**: Percentual de desconto (se houver)
+- **Avaliação**: Estrelas de 1-5
+
+## Texto de Entrada:
+"Smartphone XPhone Pro - R$ 2.499,00 (20% OFF) ⭐⭐⭐⭐⭐"
+
+## Saída:
+```
+
+**XML:**
+
+```xml
+<task>
+  <description>Extração de Dados de Produto</description>
+  <fields>
+    <field name="nome" type="string" description="Nome completo do produto"/>
+    <field name="preco" type="float" description="Valor em BRL"/>
+    <field name="desconto" type="int" optional="true" description="Percentual"/>
+    <field name="avaliacao" type="int" min="1" max="5" description="Estrelas"/>
+  </fields>
+  <input>
+    Smartphone XPhone Pro - R$ 2.499,00 (20% OFF) ⭐⭐⭐⭐⭐
+  </input>
+  <output_format>
+    <produto>
+      <nome>...</nome>
+      <preco>...</preco>
+      <desconto>...</desconto>
+      <avaliacao>...</avaliacao>
+    </produto>
+  </output_format>
+</task>
+```
+
+**JSON:**
+
+```json
+{
+  "task": "product_extraction",
+  "schema": {
+    "nome": {"type": "string", "required": true},
+    "preco": {"type": "number", "required": true, "unit": "BRL"},
+    "desconto": {"type": "integer", "required": false, "range": [0, 100]},
+    "avaliacao": {"type": "integer", "required": true, "range": [1, 5]}
+  },
+  "input": "Smartphone XPhone Pro - R$ 2.499,00 (20% OFF) ⭐⭐⭐⭐⭐",
+  "output_example": {
+    "nome": "Smartphone XPhone Pro",
+    "preco": 2499.00,
+    "desconto": 20,
+    "avaliacao": 5
+  }
+}
+```
+
+**Análise comparativa:**
+
+| Aspecto | Markdown | XML | JSON |
+|---------|----------|-----|------|
+| **Tokens** | ~120 | ~180 (+50%) | ~150 (+25%) |
+| **Tempo para escrever** | 2-3 min | 4-5 min | 3-4 min |
+| **Parsing (Python)** | Regex complexo | `xml.etree` | `json.loads()` |
+| **Manutenção** | Simples | Média | Simples |
+| **Validação** | Manual | XML Schema | JSON Schema |
+
+::: {.callout-tip title="Recomendação Geral"}
+Para a maioria dos casos de uso em agentes de IA:
+
+1. **Comece com Markdown** (simplicidade, tokens, legibilidade)
+2. **Migre para JSON** se precisar de parsing robusto ou integração com APIs
+3. **Use XML** apenas para hierarquias muito complexas ou quando usar Claude
+
+Evite otimização prematura, Markdown resolve a maioria dos casos eficientemente.
+:::
+
+### Sistema de Templates e Variáveis
+
+Para sistemas em produção, prompts raramente são estáticos. Normalmente misturamos componentes fixos (instruções, formato) com dados dinâmicos que podem ser entradas de usuários, dados de outros sistemas, ou algum contexto adicional que recuperamos de algum lugar.
+
+Templates parametrizados permitem reutilização e manutenção de um mesmo prompt para múltiplos casos de uso, simplesmente substituindo variáveis conforme necessário.
+
+Exemplo:
+
+```python
+from string import Template
+
+# Template base para classificação
+CLASSIFICATION_TEMPLATE = Template("""
+Classifique o seguinte $entity_type segundo as categorias: $categories.
+
+$entity_type: "$entity"
+
+Critérios de Classificação:
+$criteria
+
+Categoria:
+""")
+
+# Uso
+prompt = CLASSIFICATION_TEMPLATE.substitute(
+    entity_type="documento legal",
+    entity="Contrato de prestação de serviços...",
+    categories="CONTRATO, PROCURAÇÃO, ALVARÁ, CERTIDÃO",
+    criteria="""
+    - CONTRATO: Acordo bilateral com obrigações
+    - PROCURAÇÃO: Delegação de poderes
+    - ALVARÁ: Autorização governamental
+    - CERTIDÃO: Documento comprobatório
+    """
+)
+```
+
+**Vantagens de templates:**
+
+1. **Manutenibilidade**: Alterações em um lugar propagam para todos os usos
+2. **Testabilidade**: Variações de prompts podem ser testadas sistematicamente
+3. **Versionamento**: Templates podem ser versionados como código
+4. **Reutilização**: Mesmo template serve múltiplos domínios com parametrização
+
+### Templating em Produção
+
+Em sistemas de produção reais, normalmente escolhemos alguma ferramenta que nos ajude a gerenciar templates de forma eficiente. As opções mais comuns em 2024-2025 são:
+
+**Mais comuns (2024-2025):**
+
+- **LangChain PromptTemplate**: Framework especializado para LLMs
+- **f-strings Python**: Simplicidade para casos básicos
+- **Mustache/Handlebars**: São exemplos de ferramentas agnósticas a linguagem de programação
+- **Jinja2**: É um sistema de template amplamente usado em aplicações web, mas também é usado quando já presente no stack (Flask, Ansible)
+
+Vamos ver exemplos práticos de cada abordagem.
+
+#### Exemplos de Templating
+
+**LangChain PromptTemplate:**
+
+```python
+# uv pip install langchain-core
+
+from langchain_core.prompts import PromptTemplate
+
+# Template simples
+template = PromptTemplate.from_template("""
+Analise o seguinte {doc_type}:
+
+{content}
+
+Forneça análise focando em: {focus_areas}
+""")
+
+prompt = template.format(
+    doc_type="relatório financeiro",
+    content="Receita Q3: $2.5M...",
+    focus_areas="liquidez, crescimento, eficiência operacional"
+)
+```
+
+**Alternativa: f-strings para casos simples:**
+
+```python
+def build_analysis_prompt(doc_type: str, content: str, focus_areas: list[str], examples: list[dict] | None = None) -> str:
+    """
+    Constrói prompt de análise com exemplos opcionais.
+    
+    Args:
+        doc_type: Tipo de documento
+        content: Conteúdo a analisar
+        focus_areas: Áreas de foco
+        examples: Exemplos opcionais de análises anteriores
+    """
+    prompt_parts = [f"Analise o seguinte {doc_type}:\n\n{content}\n"]
+    
+    if examples:
+        prompt_parts.append("\nExemplos de análises anteriores:")
+        for i, ex in enumerate(examples, 1):
+            prompt_parts.append(f"{i}. {ex['summary']}")
+            prompt_parts.append(f"   Conclusão: {ex['conclusion']}\n")
+    
+    focus_str = ", ".join(focus_areas)
+    prompt_parts.append(f"\nForneça análise focando em: {focus_str}")
+    
+    return "\n".join(prompt_parts)
+
+# Uso
+prompt = build_analysis_prompt(
+    doc_type="relatório financeiro",
+    content="Receita Q3: $2.5M...",
+    focus_areas=["liquidez", "crescimento", "eficiência operacional"],
+    examples=[
+        {"summary": "Q2 análise", "conclusion": "Crescimento sustentável"},
+        {"summary": "Q1 análise", "conclusion": "Burn rate elevado"}
+    ]
+)
+```
+
+## In-Context Learning: Adaptação sem Atualização de Pesos
+
+In-Context Learning (ICL) representa uma das capacidades emergentes mais significativas de Large Language Models [@brown2020language]. Conforme discutido no Capítulo 2, ICL permite que modelos adaptem seu comportamento para novas tarefas através de exemplos fornecidos no prompt, sem necessidade de *gradient descent* ou atualização de parâmetros.
+
+Esta seção explora as três modalidades principais de ICL: *Zero-Shot*, *Few-Shot* e *Many-Shot* Learning. Veremos suas fundamentações teóricas, limitações práticas e heurísticas para seleção de abordagem.
+
+### Zero-Shot Learning: Transferência de Conhecimento Implícito
+
+Zero-shot learning explora o conhecimento adquirido durante pré-treinamento para realizar tarefas sem exemplos explícitos. O modelo mapeia a instrução para padrões vistos em dados de treinamento.
+
+**Formulação:**
+
+Dado um modelo $M$ com parâmetros $\theta$ fixos e uma tarefa $T$ descrita por instrução $I$, zero-shot learning busca:
+
+$$
+\hat{y} = \arg\max_{y} P(y | I, x; \theta)
+$$
+
+onde $x$ é o input e $y$ a saída desejada, sem exemplos $(x_i, y_i)$ da tarefa $T$.
+
+**Em termos práticos:** O modelo recebe apenas uma **descrição textual da tarefa** (a instrução $I$) e o **input específico** ($x$), sem ver nenhum exemplo de como a tarefa deve ser executada. Ele deve "adivinhar" a saída correta baseando-se exclusivamente no que aprendeu durante o pré-treinamento. É como pedir a alguém para executar uma tarefa nova explicando apenas verbalmente o que fazer, sem mostrar nenhum exemplo concreto.
+
+Por exemplo, ao pedir "Classifique o sentimento deste texto: 'Adorei o produto!'", o modelo:
+
+1. Interpreta a instrução "Classifique o sentimento"
+2. Mapeia para padrões similares vistos em treinamento (reviews, análises de sentimento em textos)
+3. Gera a resposta mais provável: "Positivo"
+
+Faça um teste no Ollama, execute o prompt acima e veja como cada modelo responde!
+
+Vamos ver uma implementação simples de *zero-shot classification* para ilustrar:
+
+```python
+def zero_shot_classify(text: str, categories: list[str]) -> str:
+    """
+    Classificação zero-shot usando instrução explícita.
+    
+    Args:
+        text: Texto a classificar
+        categories: Lista de categorias possíveis
+    
+    Returns:
+        Categoria prevista
+    """
+    prompt = f"""
+Classifique o seguinte texto em uma das categorias: {', '.join(categories)}
+
+Texto: "{text}"
+
+Categoria:"""
+    
+    response = llm.generate(prompt, temperature=0.0)
+    return response.strip()
+
+# Exemplo
+categorias = ["SPAM", "URGENTE", "INFORMATIVO", "MARKETING"]
+texto = "Última chance! Desconto de 70% apenas hoje!"
+resultado = zero_shot_classify(texto, categorias)
+# Output esperado: "MARKETING"
+```
+
+**Quando zero-shot é suficiente:**
+
+1. **Tarefas bem estabelecidas**: Tradução, sumarização, Q&A factual
+2. **Vocabulário comum**: Tarefas descritas em termos familiares ao modelo
+3. **Baixa ambiguidade**: Critérios de decisão objetivos e universais
+4. **Restrições de latência**: Minimizar tokens de input reduz tempo de inferência
+
+**Limitações conhecidas:**
+
+1. **Inconsistência de formato**: Sem exemplos, formato de saída pode variar
+2. **Interpretação ambígua**: Instruções podem ser mal interpretadas
+3. **Conhecimento de cauda longa**: Tarefas de domínio específico falham frequentemente
+
+::: {.callout-note title="Trade-off Latência vs. Acurácia"}
+Zero-shot minimiza tokens de input (tipicamente 50-200 tokens vs. 500-2000 em few-shot), resultando em:
+
+- **Latência**: 2-5× mais rápido
+- **Custo**: 3-10× mais barato
+- **Acurácia**: Frequentemente 10-30% inferior em tarefas complexas
+
+Decisão deve basear-se em trade-off explícito entre performance e custo operacional.
+:::
+
+### Few-Shot Learning: Demonstração por Exemplos
+
+Few-shot learning fornece exemplos demonstrativos ($k$ exemplos, tipicamente $2 \leq k \leq 10$) que especificam formato, estilo e critérios de decisão.
+
+**Formulação:**
+
+Dado conjunto de exemplos $\mathcal{E} = \{(x_1, y_1), ..., (x_k, y_k)\}$ da tarefa $T$:
+
+$$
+\hat{y} = \arg\max_{y} P(y | \mathcal{E}, x; \theta)
+$$
+
+O modelo aprende o mapeamento $x \rightarrow y$ através de pattern matching nos exemplos.
+
+**Em termos práticos:** Few-shot learning funciona mostrando ao modelo alguns **exemplos do que você quer** antes de fazer a pergunta real. É como ensinar alguém a preencher um formulário mostrando 2-3 exemplos já preenchidos. O modelo reconhece o padrão nos exemplos (input → output, formato, estilo de resposta) e aplica esse mesmo padrão ao novo caso.
+
+Por exemplo, para classificar sentimento:
+
+- **Exemplo 1**: "Produto excelente!" → POSITIVO
+- **Exemplo 2**: "Péssima qualidade." → NEGATIVO  
+- **Exemplo 3**: "Produto ok." → NEUTRO
+- **Seu caso**: "Adorei a qualidade!" → ?
+
+O modelo vê que você quer classificações em MAIÚSCULAS, com uma palavra só, baseado no tom do texto. Ele aplica esse padrão e responde: "POSITIVO".
+
+**Implementação com seleção dinâmica:**
 
 ```python
 from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+class FewShotSelector:
+    """
+    Seletor dinâmico de exemplos few-shot baseado em similaridade semântica.
+    """
+    
+    def __init__(self, example_bank: list[dict], k: int = 5):
+        """
+        Args:
+            example_bank: Lista de dicts com 'input' e 'output'
+            k: Número de exemplos a selecionar
+        """
+        self.example_bank = example_bank
+        self.k = k
+        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        # Pré-computar embeddings
+        inputs = [ex['input'] for ex in example_bank]
+        self.embeddings = self.encoder.encode(inputs)
+    
+    def select_examples(self, query: str) -> list[dict]:
+        """
+        Seleciona k exemplos mais similares ao query.
+        
+        Args:
+            query: Input atual para classificar
+        
+        Returns:
+            Lista de k exemplos mais relevantes
+        """
+        query_embedding = self.encoder.encode([query])
+        similarities = cosine_similarity(query_embedding, self.embeddings)[0]
+        
+        # Top-k índices
+        top_k_indices = np.argsort(similarities)[-self.k:][::-1]
+        
+        return [self.example_bank[i] for i in top_k_indices]
+    
+    def build_prompt(self, query: str, task_description: str) -> str:
+        """
+        Constrói prompt few-shot com exemplos selecionados.
+        """
+        examples = self.select_examples(query)
+        
+        prompt_parts = [task_description, ""]
+        
+        for ex in examples:
+            prompt_parts.append(f"Input: {ex['input']}")
+            prompt_parts.append(f"Output: {ex['output']}")
+            prompt_parts.append("")
+        
+        prompt_parts.append(f"Input: {query}")
+        prompt_parts.append("Output:")
+        
+        return "\n".join(prompt_parts)
 
-# Banco de exemplos anotados
-exemplos_banco = [
-    {"input": "Produto incrível!", "output": "POSITIVO"},
-    {"input": "Não gostei, péssimo.", "output": "NEGATIVO"},
-    # ... centenas de exemplos
+# Uso
+bank = [
+    {"input": "Produto excelente!", "output": "POSITIVO"},
+    {"input": "Péssima qualidade.", "output": "NEGATIVO"},
+    {"input": "Produto ok.", "output": "NEUTRO"},
+    {"input": "Melhor compra que fiz!", "output": "POSITIVO"},
+    {"input": "Não recomendo.", "output": "NEGATIVO"},
+    # ... mais exemplos
 ]
 
-# Input atual
-input_atual = "Adorei a qualidade!"
-
-# Gerar embedding do input
-input_embedding = model.encode(input_atual)
-
-# Calcular similaridade com todos exemplos
-from sklearn.metrics.pairwise import cosine_similarity
-exemplos_embeddings = model.encode([ex["input"] for ex in exemplos_banco])
-similarities = cosine_similarity([input_embedding], exemplos_embeddings)[0]
-
-# Selecionar top-5 exemplos mais similares
-top_indices = similarities.argsort()[-5:][::-1]
-exemplos_selecionados = [exemplos_banco[i] for i in top_indices]
-
-# Construir prompt few-shot com exemplos relevantes
-prompt = construir_prompt_few_shot(exemplos_selecionados, input_atual)
+selector = FewShotSelector(bank, k=3)
+prompt = selector.build_prompt(
+    query="Adorei a qualidade!",
+    task_description="Classifique o sentimento como POSITIVO, NEGATIVO ou NEUTRO:"
+)
 ```
 
-**3. Ordenação (Recency Bias)**
+**Resultados empíricos**
 
-Modelos dão mais peso aos **exemplos finais** do prompt. Ordene estrategicamente:
+Em estudos comparativos [@brown2020language], few-shot learning consistentemente supera zero-shot em tarefas complexas. Foram usados os benchmarks SuperGLUE, TriviaQA e PIQA e os ganhos observados foram:
+
+| Tarefa | Zero-Shot | Few-Shot (k=10) | Ganho |
+|--------|-----------|-----------------|-------|
+| SuperGLUE | 51.3% | 71.8% | +20.5% |
+| TriviaQA | 64.3% | 71.2% | +6.9% |
+| PIQA | 70.2% | 82.3% | +12.1% |
+
+### Many-Shot Learning: Explorando Context Windows Longos
+
+Many-shot learning ($k > 10$, frequentemente $50 \leq k \leq 500$) explora context windows de modelos de contexto longo (100k+ tokens) para aproximar performance de fine-tuning.
+
+**Fundamentação teórica:**
+
+Com $k$ suficientemente grande, ICL pode aproximar fine-tuning via gradient descent implícito no espaço de atenção [@akyurek2022learning]. 
+
+**Formulação:**
+
+$$
+\lim_{k \to \infty} P_{\text{ICL}}(y | \mathcal{E}_k, x) \approx P_{\text{FT}}(y | x; \theta')
+$$
+
+Onde $\theta'$ são parâmetros após fine-tuning em $\mathcal{E}$.
+
+**Em termos práticos:** Many-shot learning envolve fornecer ao modelo uma grande quantidade de exemplos diretamente no prompt, aproveitando a enorme capacidade de context window dos modelos modernos. Isso permite que o modelo "aprenda" o comportamento desejado observando muitos exemplos, sem a necessidade de ajustar seus pesos.
+
+**Implementação para context windows longos:**
 
 ```python
-# Ordenação ótima:
-# 1. Exemplo "médio" (baseline)
-# 2. Exemplos diversos (cobertura)
-# 3. Exemplo mais similar ao input (recency bias)
-# 4. Input atual
+class ManyShotPromptBuilder:
+    """
+    Construtor de prompts many-shot com gerenciamento de context window.
+    """
+    
+    def __init__(self, max_tokens: int = 100_000):
+        self.max_tokens = max_tokens
+    
+    def build_prompt(
+        self,
+        examples: list[dict],
+        query: str,
+        task_description: str,
+        tokenizer
+    ) -> str:
+        """
+        Constrói prompt many-shot respeitando limite de tokens.
+        
+        Args:
+            examples: Lista completa de exemplos disponíveis
+            query: Input atual
+            task_description: Descrição da tarefa
+            tokenizer: Tokenizer para contagem de tokens
+        
+        Returns:
+            Prompt otimizado para context window
+        """
+        # Tokens reservados para task description e query
+        overhead = len(tokenizer.encode(task_description + query)) + 100
+        available_tokens = self.max_tokens - overhead
+        
+        # Adicionar exemplos até preencher context window
+        selected_examples = []
+        current_tokens = 0
+        
+        for ex in examples:
+            ex_text = f"Input: {ex['input']}\nOutput: {ex['output']}\n\n"
+            ex_tokens = len(tokenizer.encode(ex_text))
+            
+            if current_tokens + ex_tokens > available_tokens:
+                break
+            
+            selected_examples.append(ex_text)
+            current_tokens += ex_tokens
+        
+        # Construir prompt final
+        prompt = task_description + "\n\n"
+        prompt += "".join(selected_examples)
+        prompt += f"Input: {query}\nOutput:"
+        
+        return prompt, len(selected_examples)
 
-prompt = f"""
-{exemplo_baseline}
-{exemplo_edge_case_1}
-{exemplo_edge_case_2}
-{exemplo_mais_similar_ao_input}  # ← Mais próximo do input atual
-{input_atual}
-"""
+# Uso
+builder = ManyShotPromptBuilder(max_tokens=128_000)  # Claude 3.5 Sonnet
+prompt, n_examples = builder.build_prompt(
+    examples=large_example_bank,  # 500+ exemplos
+    query="Novo input para classificar",
+    task_description="Classifique documentos legais...",
+    tokenizer=tiktoken.get_encoding("cl100k_base")
+)
+
+print(f"Prompt construído com {n_examples} exemplos")
 ```
 
-### Limitações e Quando ICL Falha
+**Trade-offs de many-shot:**
 
-ICL não é sempre a melhor solução:
+| Aspecto | Many-Shot | Few-Shot | Fine-Tuning |
+|---------|-----------|----------|-------------|
+| **Acurácia** | Alta (85-95%) | Média (70-85%) | Muito Alta (90-98%) |
+| **Custo por chamada** | Alto ($0.50-$5.00) | Baixo ($0.01-$0.10) | Muito Baixo ($0.005-$0.02) |
+| **Latência** | Alta (5-15s) | Baixa (0.5-2s) | Muito Baixa (0.2-1s) |
+| **Adaptabilidade** | Imediata | Imediata | Requer retreino |
+| **Manutenção** | Simples | Simples | Complexa |
 
-**Limitações:**
-1. **Não substitui fine-tuning para tarefas altamente especializadas**: ICL aprende padrões, mas não atualiza pesos. Para tarefas muito específicas, fine-tuning ainda é superior
-2. **Custo escalável**: Every request paga pelos tokens dos exemplos
-3. **Contexto limitado**: Even com 200k tokens, há limites práticos
-4. **Sensível à qualidade dos exemplos**: Exemplos ruins → outputs ruins
+::: {.callout-warning title="Quando Many-Shot NÃO Compensa"}
+Many-shot é economicamente viável apenas quando:
 
-**Quando preferir fine-tuning ao invés de ICL:**
-- Tarefa muito frequente (amortiza custo de fine-tuning)
-- Precisa de latência mínima (sem exemplos no prompt)
-- Domínio altamente especializado não coberto no pré-treinamento
+1. **Volumetria baixa**: < 1000 chamadas/dia (custo de fine-tuning não amortiza)
+2. **Dados em evolução**: Exemplos mudam frequentemente (fine-tuning seria retreinado constantemente)
+3. **Múltiplas tarefas**: Mesmo context window serve tarefas diferentes
+
+Para aplicações de alto volume (> 10k chamadas/dia), fine-tuning apresenta ROI superior em 2-4 semanas.
+:::
+
+### Seleção de Estratégia ICL: Heurísticas Práticas
+
+A decisão entre zero-shot, few-shot, many-shot ou até mesmo fine-tuning não é binária. Ela depende de múltiplos fatores técnicos e de negócio que devem ser avaliados em conjunto.
+
+**Matriz de decisão por critério:**
+
+| Critério | Zero-Shot | Few-Shot | Many-Shot |
+|----------|-----------|----------|-----------|
+| **Volume de Chamadas** | Alto (>10k/dia) | Médio (1k-10k/dia) | Baixo (<1k/dia) |
+| **Acurácia Necessária** | Baixa-Média (60-80%) | Média-Alta (70-90%) | Muito Alta (85-95%) |
+| **Latência Tolerável** | Crítica (<500ms) | Moderada (500ms-2s) | Alta (2s-15s) |
+| **Custo por Chamada** | Muito Baixo (<$0.01) | Baixo ($0.01-$0.10) | Alto ($0.50-$5.00) |
+| **Frequência de Mudança de Dados** | Alta (diária/semanal) | Moderada (mensal) | Baixa (semestral/anual) |
+
+::: {.callout-tip title="Interpretando a Tabela"}
+**Exemplo prático:** Se você tem uma aplicação com 5k chamadas/dia, precisa de 85% de acurácia, tolera até 3s de latência e pode gastar até $0.50/chamada, a tabela sugere **Few-Shot** (volume médio) ou **Many-Shot** (acurácia alta + budget OK + latência tolerável).
+
+Para decisões limítrofes entre múltiplas estratégias, use a árvore de decisão abaixo para desempate.
+:::
+
+**Árvore de decisão para seleção:**
+
+A árvore abaixo prioriza os fatores na ordem: **volume → acurácia → custo/latência**, com fine-tuning sendo recomendado sempre que o volume justifica o investimento inicial.
+
+```{mermaid}
+graph TD
+    A[Tarefa Nova] --> B{Volume > 10k/dia?}
+    B -->|Sim| C[Fine-Tuning]
+    B -->|Não| D{Acurácia > 90%?}
+    D -->|Sim| E{Budget > $1/chamada?}
+    E -->|Sim| F[Many-Shot]
+    E -->|Não| C
+    D -->|Não| G{Latência < 500ms?}
+    G -->|Sim| H[Zero-Shot]
+    G -->|Não| I[Few-Shot]
+    
+    style C fill:#ffcccc
+    style F fill:#ffffcc
+    style H fill:#ccffcc
+    style I fill:#ccf
+```
+
+**Como usar a árvore:**
+
+1. **Comece sempre avaliando volume**: Se você tem >10k chamadas/dia, fine-tuning provavelmente será mais econômico em 2-4 semanas de operação (ROI positivo)
+
+2. **Se volume for baixo/médio, avalie acurácia**: 
+   - Acurácia >90% geralmente requer many-shot ou fine-tuning
+   - Few-shot e zero-shot ficam tipicamente entre 60-85%
+
+3. **Considere trade-offs de custo vs. latência**:
+   - Zero-shot: mais rápido e barato, mas menos preciso
+   - Few-shot: equilíbrio entre custo, latência e acurácia
+   - Many-shot: mais caro e lento, mas aproxima fine-tuning
+
+4. **Valide com dados reais**: Esta árvore é heurística. Sempre teste com seu dataset e métricas específicas antes de escalar para produção.
+
+::: {.callout-warning title="Limitação da Heurística"}
+Esta árvore assume:
+- Dados de qualidade razoável (limpos, representativos)
+- Task bem definida (clear input-output mapping)
+- Modelo moderno (GPT-4, Claude 3+, Gemini Pro)
+
+Para tarefas ambíguas, dados ruidosos ou modelos menores, os limites de acurácia podem ser diferentes.
+:::
 
 ## Chain-of-Thought (CoT) Prompting
 
@@ -239,14 +799,14 @@ CoT funciona criando "espaço de trabalho" no contexto onde o modelo pode racioc
 **Comparação: Raciocínio Direto vs. Chain-of-Thought**
 
 ```python
-# ❌ Raciocínio Direto (frequentemente falha em problemas complexos)
+# Raciocínio Direto (frequentemente falha em problemas complexos)
 prompt = """
 Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada.
 Quantas bolas tem agora?
 """
 # Modelo pequeno: "8" (ERRADO - tentou adivinhar sem raciocinar)
 
-# ✅ Chain-of-Thought (força raciocínio explícito)
+# Chain-of-Thought (força raciocínio explícito)
 prompt = """
 Roger tem 5 bolas de tênis. Ele compra 2 latas de 3 bolas cada.
 Quantas bolas tem agora?
@@ -296,27 +856,50 @@ resposta = zero_shot_cot(problema)
 
 **Resultados empíricos (do paper original):**
 
-- **GSM8K (math problems)**: 17% → 52% de acurácia (+35%)
-- **SVAMP (arithmetic word problems)**: 64% → 92% (+28%)
-- **AQuA (algebra)**: ~30% → ~70% (+40%)
+- **GSM8K (problemas matemáticos)**: 17% → 52% de acurácia (+35%)
+- **SVAMP (problemas de palavras aritméticas)**: 64% → 92% (+28%)
+- **AQuA (álgebra)**: ~30% → ~70% (+40%)
 
-**Variantes de prompts zero-shot CoT:**
+**Variantes de Prompts Zero-Shot CoT**
 
+A frase mágica "Let's think step by step" tem várias **variantes eficazes** que podem funcionar melhor dependendo do domínio e tipo de problema:
+
+**1. Variante Original (uso geral)**
 ```python
-# Variante 1: Original
-"Let's think step by step."
-
-# Variante 2: Mais estruturada
-"Let's solve this problem step by step, showing all work:"
-
-# Variante 3: Com verificação
-"Let's think step by step, then double-check our answer:"
-
-# Variante 4: Específica para domínio
-"Let's analyze this code step by step, checking for bugs:"
+prompt = f"{problema}\n\nLet's think step by step."
+# ou em português: "Vamos pensar passo a passo."
 ```
+**Quando usar:** Padrão para problemas matemáticos, lógicos e de raciocínio geral.
+
+**2. Variante Estruturada (maior controle)**
+```python
+prompt = f"{problema}\n\nLet's solve this problem step by step, showing all work:"
+# ou: "Vamos resolver este problema passo a passo, mostrando todo o trabalho:"
+```
+**Quando usar:** Quando você precisa de raciocínio explícito detalhado (ex: debugging, provas matemáticas).
+
+**3. Variante com Verificação (maior acurácia)**
+```python
+prompt = f"{problema}\n\nLet's think step by step, then double-check our answer:"
+# ou: "Vamos pensar passo a passo e depois verificar nossa resposta:"
+```
+**Quando usar:** Problemas críticos onde erro é caro (cálculos financeiros, dosagens médicas).
+
+**4. Variante Específica de Domínio (melhor contexto)**
+```python
+# Para código
+prompt = f"{codigo}\n\nLet's analyze this code step by step, checking for bugs:"
+
+# Para dados
+prompt = f"{dados}\n\nLet's analyze this data step by step, looking for patterns:"
+
+# Para lógica
+prompt = f"{argumento}\n\nLet's evaluate this argument step by step, checking validity:"
+```
+**Quando usar:** Quando o domínio específico tem jargão ou padrões de raciocínio particulares.
 
 **Quando zero-shot CoT funciona melhor:**
+
 - Problemas matemáticos e lógicos
 - Raciocínio de senso comum
 - Análise de código
@@ -324,12 +907,12 @@ resposta = zero_shot_cot(problema)
 
 ### Few-Shot CoT: Ensinando com Exemplos de Raciocínio
 
-Few-shot CoT fornece **exemplos de raciocínio completo** antes do problema real. O modelo aprende não apenas o formato da resposta, mas **como raciocinar**.
+Few-shot CoT fornece **exemplos de raciocínio completo** antes do problema real. O modelo aprende não apenas o formato da resposta, mas como "raciocinar".
 
 **Estrutura de few-shot CoT:**
 
 ```python
-prompt = """
+prompt = f"""
 Q: Tom tem 3 maçãs. Ele compra mais 2. Quantas maçãs tem agora?
 A: Vamos resolver passo a passo:
 1. Tom começa com 3 maçãs
@@ -344,15 +927,17 @@ A: Vamos resolver passo a passo:
 3. Ela dá 2 ao irmão, sobram 7 - 2 = 5 balas
 Resposta: 5 balas
 
-Q: [Seu problema aqui]
+Q: {problema}
 A: Vamos resolver passo a passo:
 """
 ```
 
-**Diferença crucial: Few-Shot ICL vs. Few-Shot CoT**
+### Diferença Critical: Few-Shot ICL vs. Few-Shot CoT
 
+A distinção entre Few-Shot ICL (In-Context Learning) e Few-Shot CoT (Chain-of-Thought) é fundamental para escolher a abordagem correta em seus agentes. Ambos fornecem exemplos, mas **o que você mostra nos exemplos** determina o comportamento do modelo.
+
+**Few-Shot ICL (apenas input-output):**
 ```python
-# Few-Shot ICL (apenas input-output)
 """
 Q: 2 + 3 = ?
 A: 5
@@ -363,9 +948,12 @@ A: 3
 Q: 6 × 2 = ?
 A:
 """
-# Modelo aprende o padrão, mas não o raciocínio
+# O modelo aprende o PADRÃO (formato de pergunta → resposta),
+# mas NÃO aprende o PROCESSO de raciocínio.
+```
 
-# Few-Shot CoT (mostra o raciocínio)
+**Few-Shot CoT (mostra o raciocínio):**
+```python
 """
 Q: 2 + 3 = ?
 A: Somando 2 + 3, obtemos 5. Resposta: 5
@@ -376,159 +964,139 @@ A: Subtraindo 4 de 7, obtemos 3. Resposta: 3
 Q: 6 × 2 = ?
 A:
 """
-# Modelo aprende a explicitar o raciocínio
+# O modelo aprende COMO RACIOCINAR explicitamente,
+# não apenas qual formato seguir.
 ```
 
+**Resultado empírico:**
+
+Em problemas aritméticos de palavras (GSM8K), a diferença é boa:
+
+- **Few-Shot ICL**: ~35% de acurácia
+- **Few-Shot CoT**: ~65% de acurácia (+30%)
+
+O custo adicional de CoT (2-3× mais tokens) frequentemente compensa pela redução de erros e necessidade de retrabalho.
+
 **Quando few-shot CoT supera zero-shot:**
+
 - Problemas com estrutura de raciocínio específica do domínio
 - Quando você quer controlar o **estilo** do raciocínio
 - Tarefas onde zero-shot CoT ainda falha
 - Quando os exemplos podem demonstrar edge cases importantes
 
+**Quando usar cada abordagem:**
+
+| Aspecto | Few-Shot ICL | Few-Shot CoT |
+|---------|--------------|--------------|
+| **Tipo de tarefa** | Classificação, extração, formato | Raciocínio multi-etapa, matemática, análise |
+| **Complexidade** | Simples, direta | Complexa, requer decomposição |
+| **Tokens usados** | Baixo (~50-100/exemplo) | Alto (~100-300/exemplo) |
+| **Acurácia em problemas simples** | Alta (80-90%) | Similar, mas mais caro |
+| **Acurácia em problemas complexos** | Baixa-Média (50-70%) | Alta (75-90%) |
+| **Custo** | Menor | Maior (2-3× mais tokens) |
+
 ### Self-Consistency: Múltiplos Caminhos para uma Resposta
 
 Self-consistency gera **múltiplas cadeias de raciocínio** (com sampling de temperatura > 0) e usa **voting majoritário** para escolher a resposta final.
 
-**Intuição:** Se o mesmo resultado aparece por caminhos de raciocínio diferentes, provavelmente está correto.
+A ideia por trás desta abordagem é que se o mesmo resultado aparece por caminhos de raciocínio diferentes, provavelmente está correto.
 
-**Implementação:**
+**Implementação básica:**
 
 ```python
+from collections import Counter
+import re
+
 def self_consistency_cot(problema, n_samples=5):
+    """
+    Gera múltiplas cadeias de raciocínio e retorna resposta por voting.
+    
+    Args:
+        problema: Problema a resolver
+        n_samples: Número de cadeias independentes a gerar
+    """
     prompt_base = f"{problema}\n\nLet's think step by step."
-
-    # Gerar múltiplas cadeias de raciocínio
+    
     respostas = []
-    for _ in range(n_samples):
-        output = llm.generate(
-            prompt_base,
-            temperature=0.7  # Permite diversidade
-        )
-        # Extrair resposta final do raciocínio
-        resposta_final = extrair_resposta(output)
-        respostas.append(resposta_final)
-
+    for i in range(n_samples):
+        # Gera cadeia de raciocínio com temperatura > 0 para diversidade
+        output = llm.generate(prompt_base, temperature=0.7)
+        
+        # Extrai apenas a resposta final (número, categoria, etc.)
+        # Exemplo: "Resposta: 5" → "5"
+        resposta = extrair_numero_final(output)
+        respostas.append(resposta)
+    
     # Voting majoritário
-    from collections import Counter
     contagem = Counter(respostas)
-    resposta_mais_comum = contagem.most_common(1)[0][0]
+    resposta_final, votos = contagem.most_common(1)[0]
+    
+    return resposta_final
 
-    return resposta_mais_comum
-
-# Exemplo
-problema = "Se 5 máquinas fazem 5 widgets em 5 minutos, quantas máquinas \
-           são necessárias para fazer 100 widgets em 100 minutos?"
-
-# Gera 5 cadeias de raciocínio:
-# Cadeia 1: ... Resposta: 5
-# Cadeia 2: ... Resposta: 5
-# Cadeia 3: ... Resposta: 100 (erro)
-# Cadeia 4: ... Resposta: 5
-# Cadeia 5: ... Resposta: 5
-
-# Voting: 5 aparece 4 vezes, 100 aparece 1 vez
-# Resposta final: 5 ✓
+def extrair_numero_final(texto):
+    """Extrai número da resposta final (implementação simplificada)."""
+    # Procura por "Resposta: X" ou último número no texto
+    match = re.search(r'Resposta:\s*(\d+)', texto)
+    if match:
+        return int(match.group(1))
+    # Fallback: último número encontrado
+    numeros = re.findall(r'\d+', texto)
+    return int(numeros[-1]) if numeros else None
 ```
 
-**Ganhos empíricos:**
+Se você não entende o que o `Counter` faz, aqui está uma explicação rápida: é uma classe do módulo `collections` que conta a frequência de elementos em um iterável. No nosso caso, estamos usando para contar quantas vezes cada resposta apareceu nas cadeias de raciocínio.
+
+```python
+respostas = [5, 5, 100, 5, 5]
+
+# Passo 1: Counter cria dicionário de frequências
+contagem = Counter(respostas)
+# contagem = Counter({5: 4, 100: 1})
+
+# Passo 2: most_common(1) retorna lista com tupla do mais comum
+mais_comum = contagem.most_common(1)
+# mais_comum = [(5, 4)]
+
+# Passo 3: [0] pega a primeira tupla
+tupla = mais_comum[0]
+# tupla = (5, 4)
+
+# Passo 4: Desempacota
+resposta_final, votos = tupla
+# resposta_final = 5
+# votos = 4
+```
+
+**Por que self-consistency funciona:**
+
+1. **Diversidade de caminhos**: `temperature=0.7` faz o modelo gerar raciocínios diferentes
+2. **Erros não-sistemáticos**: Erros aleatórios aparecem em apenas algumas cadeias
+3. **Voting filtra outliers**: Resposta correta tende a aparecer mais vezes
+4. **Confiança mensurável**: Proporção de votos indica certeza (4/5 = 80%)
+
+Nos estudos originais, self-consistency mostrou ganhos significativos:
+
 - GSM8K: CoT simples (52%) → Self-consistency (58%) (+6%)
 - SVAMP: CoT simples (92%) → Self-consistency (95%) (+3%)
 - Problemas complexos: ganhos maiores (+10-20%)
 
-**Trade-offs:**
-- ✅ Melhora acurácia significativamente
-- ✅ Filtra erros aleatórios através de voting
-- ❌ **Custo:** 5-10× mais caro (múltiplas gerações)
-- ❌ **Latência:** 5-10× mais lento (gerações sequenciais ou paralelas)
+Porém, o custo e latência aumentam proporcionalmente ao número de amostras.
+
+**Resumo rápido de self-consistency:**
+
+-  Melhora acurácia significativamente
+-  Filtra erros aleatórios através de voting
+- **Custo:** 5-10× mais caro (múltiplas gerações)
+- **Latência:** 5-10× mais lento (gerações sequenciais ou paralelas)
 
 **Quando usar self-consistency:**
-- Problemas críticos onde acurácia > custo
+
+- Problemas críticos onde acurácia é mais importante que o custo
 - Decisões de alto impacto (financeiras, médicas, legais)
 - Quando você pode fazer inferências em paralelo
 - Problemas onde o modelo erra inconsistentemente
 
-### Quando CoT Funciona Melhor (e Quando Não Funciona)
-
-**✅ CoT funciona bem para:**
-
-1. **Problemas aritméticos e matemáticos**
-```python
-"Calcule o preço final após 20% de desconto em R$ 150."
-# CoT: 150 × 0.20 = 30, então 150 - 30 = 120
-```
-
-2. **Raciocínio lógico multi-etapa**
-```python
-"Se todos os gatos são mamíferos, e alguns mamíferos voam, alguns gatos voam?"
-# CoT decompõe a lógica passo-a-passo
-```
-
-3. **Análise de código e debugging**
-```python
-"Encontre o bug neste código: [código com erro off-by-one]"
-# CoT rastreia linha por linha
-```
-
-4. **Planejamento e decomposição de tarefas**
-```python
-"Como organizar uma conferência técnica para 200 pessoas?"
-# CoT decompõe em etapas: local, palestrantes, catering, marketing...
-```
-
-**❌ CoT NÃO funciona bem para:**
-
-1. **Tarefas de reconhecimento/classificação simples**
-```python
-# Não precisa de CoT
-"Classifique o sentimento: 'Adorei esse produto!'"
-# Resposta direta: "Positivo" (CoT só adiciona latência/custo)
-```
-
-2. **Geração criativa**
-```python
-# CoT pode matar criatividade
-"Escreva um poema sobre o mar."
-# CoT explícito pode tornar o resultado mecânico
-```
-
-3. **Tarefas que requerem conhecimento factual, não raciocínio**
-```python
-# Modelo sabe ou não sabe, raciocínio não ajuda
-"Qual a capital da Mongólia?"
-# CoT: "Vamos pensar... a capital... deve ser..." → não adiciona valor
-```
-
-4. **Modelos muito pequenos (<10B parâmetros)**
-- Capacidade de CoT é emergente
-- Modelos pequenos podem "imitar" CoT mas raciocinam incorretamente
-
-**Limitações críticas de CoT:**
-
-1. **Alucinação de raciocínio plausível mas incorreto**
-```python
-# Modelo pode gerar raciocínio que PARECE correto mas contém erro sutil
-# Sempre valide etapas críticas programaticamente quando possível
-```
-
-2. **Não garante correção**
-```python
-# CoT melhora significativamente, mas não resolve 100% dos problemas
-# Use self-consistency para problemas críticos
-```
-
-3. **Custo aumentado**
-```python
-# Cada problema gera 50-200+ tokens de raciocínio
-# Considere trade-off: acurácia vs. custo
-```
-
-**Heurística prática:**
-- **Use zero-shot CoT** como padrão para problemas multi-etapa
-- **Use few-shot CoT** quando zero-shot falha ou precisa de estilo específico
-- **Use self-consistency** apenas em decisões críticas (custo 5-10×)
-- **Não use CoT** para tarefas simples de classificação/lookup
-
-## Técnicas Fundamentais de Reasoning
+## Técnicas de Reasoning
 
   - ReAct: Reasoning + Acting (introdução básica)
   - Self-reflection patterns
@@ -536,26 +1104,282 @@ problema = "Se 5 máquinas fazem 5 widgets em 5 minutos, quantas máquinas \
 
 ## Exercícios Práticos
 
-### Exercício 1: Few-Shot Classifier
+Este capítulo inclui três exercícios práticos completos, disponíveis em `sandbox/chapter-04/`. Cada exercício combina teoria com implementação executável, permitindo experimentação hands-on com as técnicas apresentadas.
+
+::: {.callout-tip title="Instalação"}
+Antes de executar os exercícios, instale as dependências:
+```bash
+uv pip install sentence-transformers scikit-learn numpy
+```
+
+Navegue para o diretório correto:
+```bash
+cd book/sandbox/chapter-04
+```
+:::
+
+### Exercício 1: Few-Shot Dynamic Classifier
+
+**Arquivo:** `sandbox/chapter-04/01-few-shot-classifier.py`  
+**Dataset:** `datasets/sentiment_examples.jsonl`
+
+**Objetivo:** Implementar um classificador de sentimento usando few-shot learning com **seleção dinâmica de exemplos** baseada em similaridade semântica.
+
+**Conceitos aplicados:**
+- In-Context Learning (ICL)
+- Embeddings para seleção de exemplos relevantes
+- Comparação empírica: seleção aleatória vs. semântica
+
+**O que você vai construir:**
+
+```python
+class FewShotSelector:
+    """Seleciona dinamicamente os k exemplos mais relevantes."""
+    
+    def select_similar(self, query: str, k: int = 3) -> List[Dict]:
+        """Seleciona exemplos por similaridade de cosseno."""
+        query_emb = self.model.encode([query])[0]
+        similarities = cosine_similarity([query_emb], self.embeddings)[0]
+        top_indices = np.argsort(similarities)[-k:][::-1]
+        return [self.examples[i] for i in top_indices]
+```
+
+**Resultado esperado:**
+
+```
+Avaliação: Seleção Aleatória
+Acurácia: 65.0% (13/20)
+
+Avaliação: Seleção Semântica
+Acurácia: 85.0% (17/20)
+
+Melhoria com seleção semântica: +20.0%
+```
+
+**Desafios adicionais:**
+1. Experimente diferentes valores de `k` (3, 5, 10 exemplos)
+2. Compare modelos de embedding (all-MiniLM-L6-v2 vs. multilingual-e5-base)
+3. Implemente diversidade nos exemplos (evitar redundância)
+
+**Questões para reflexão:**
+- Por que seleção semântica supera seleção aleatória?
+- Quando seleção aleatória pode ser preferível? (dica: custo computacional)
+- Como implementar cache de embeddings para reduzir latência?
+
+---
 
 ### Exercício 2: Chain-of-Thought Math Solver
 
+**Arquivo:** `sandbox/chapter-04/02-cot-math-solver.py`  
+**Dataset:** `datasets/math_problems.jsonl`
+
+**Objetivo:** Implementar solver de problemas matemáticos comparando três abordagens: **zero-shot CoT**, **few-shot CoT** e **self-consistency**.
+
+**Conceitos aplicados:**
+- Zero-shot CoT: "Let's think step by step"
+- Few-shot CoT: exemplos com raciocínio explícito
+- Self-consistency: voting majoritário com múltiplas cadeias
+- Análise de trade-offs: acurácia vs. custo vs. latência
+
+**O que você vai construir:**
+
+```python
+def self_consistency_solve(
+    problem: str, 
+    n_samples: int = 5
+) -> Tuple[str, float]:
+    """
+    Gera N soluções independentes e retorna resposta por voting.
+    
+    Returns:
+        (resposta_final, confiança)
+    """
+    answers = []
+    for _ in range(n_samples):
+        reasoning = generate_cot(problem, temperature=0.7)
+        answer = extract_answer(reasoning)
+        answers.append(answer)
+    
+    # Voting majoritário
+    most_common = Counter(answers).most_common(1)[0]
+    confidence = most_common[1] / n_samples
+    
+    return most_common[0], confidence
+```
+
+**Resultado esperado:**
+
+```
+Zero-Shot CoT:
+Acurácia: 60.0% (9/15)
+Custo estimado: $0.003
+
+Few-Shot CoT:
+Acurácia: 73.3% (11/15)
+Custo estimado: $0.005
+
+Self-Consistency (N=5):
+Acurácia: 86.7% (13/15)
+Custo estimado: $0.025
+Confiança média: 0.85
+```
+
+**Desafios adicionais:**
+1. Implemente extração robusta de resposta numérica (regex aprimorado)
+2. Adicione detecção de contradições no raciocínio
+3. Compare "Think step by step" vs. "Solve carefully" vs. outros prompts
+4. Meça token usage real e calcule custo exato (se usar APIs)
+
+**Questões para reflexão:**
+- Self-consistency vale 5× no custo para seu caso de uso?
+- Como detectar quando o modelo está "adivinhando" vs. raciocinando?
+- Quando CoT piora a performance? (dica: tarefas muito simples)
+
+---
+
 ### Exercício 3: Simple ReAct Agent
+
+**Arquivo:** `sandbox/chapter-04/03-simple-react-agent.py`
+
+**Objetivo:** Implementar agente ReAct básico com três ferramentas: **calculadora**, **API de temperatura** e **conversor de moeda**.
+
+**Conceitos aplicados:**
+- ReAct framework (Reasoning + Acting)
+- Parsing de Pensamento/Ação/Observação
+- Tool registry e dispatching
+- Loop iterativo com limite de passos (evitar loops infinitos)
+
+**O que você vai construir:**
+
+```python
+class ReactAgent:
+    """Agente ReAct com ferramentas."""
+    
+    def run(self, question: str, max_iterations: int = 5) -> str:
+        """
+        Loop Pensamento-Ação-Observação.
+        
+        1. Gera Pensamento (reasoning)
+        2. Escolhe Ação (tool + argumentos)
+        3. Executa tool → Observação
+        4. Repete até resposta final ou limite
+        """
+        for i in range(max_iterations):
+            thought, action = self._simulate_reasoning(question, history)
+            observation = self._execute_action(action)
+            
+            if self._is_final_answer(thought):
+                return thought
+        
+        return "Limite de iterações atingido."
+```
+
+**Ferramentas implementadas:**
+- `calculator(expression)`: Avalia expressões matemáticas
+- `get_temperature(city)`: Retorna temperatura (mock API)
+- `convert_currency(amount, from, to)`: Converte moedas (mock API)
+
+**Resultado esperado:**
+
+```
+Pergunta: Qual a temperatura em São Paulo?
+
+[Iteração 1]
+Pensamento: Preciso obter informações sobre temperatura
+Ação: get_temperature("São Paulo")
+Observação: 28°C
+
+[Iteração 2]
+Pensamento: Tenho a informação necessária
+Resposta Final: A temperatura em São Paulo é 28°C.
+```
+
+**Desafios adicionais:**
+1. Adicione retry logic quando parsing de Ação falha
+2. Implemente detecção de loops (agente repete mesma ação)
+3. Adicione logging estruturado (JSON) para debugging
+4. Compare ReAct vs. raciocínio direto (sem ferramentas)
+
+**Questões para reflexão:**
+- Quando ReAct é superior a raciocínio direto?
+- Como lidar com ferramentas que falham intermitentemente?
+- Como escalar de 3 ferramentas para 50+? (arquitetura modular)
+
+---
+
+::: {.callout-important title="Simulação vs. Produção"}
+Os exercícios usam **simulação de LLMs** para permitir execução sem API keys. Para produção:
+
+```python
+# Substituir simulate_llm_response() por:
+from openai import OpenAI
+
+client = OpenAI(api_key="sua-api-key")
+
+response = client.chat.completions.create(
+    model="gpt-4-turbo-preview",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.7
+)
+
+output = response.choices[0].message.content
+```
+
+Veja `sandbox/chapter-04/README.md` para exemplos completos com OpenAI e Anthropic.
+:::
+
+---
 
 ## Conclusão
 
-Neste capítulo, você dominou as técnicas fundamentais de prompting e raciocínio que são essenciais para trabalhar com LLMs e construir agentes de IA eficazes.
+Neste capítulo, você dominou os fundamentos técnicos de prompting e raciocínio que são essenciais para construir sistemas de agentes de IA robustos e eficazes em produção.
 
 **O que você aprendeu:**
 
-- **Prompt Engineering**: Como estruturar prompts efetivos usando markdown, XML e JSON
-- **In-Context Learning**: Zero-shot, few-shot e many-shot learning para adaptar modelos sem fine-tuning
-- **Chain-of-Thought**: Como ensinar modelos a raciocinar passo-a-passo em problemas complexos
-- **ReAct**: Fundamentos de reasoning + acting para agentes autônomos
-- **Self-Reflection**: Como modelos podem melhorar suas próprias respostas
+**1. Estruturação de Prompts:**
+- Anatomia de prompts efetivos: ROLE, TASK, CONTEXT, FORMAT, CONSTRAINTS
+- Técnicas de marcação: Markdown, XML, JSON (e quando usar cada uma)
+- Templates com Jinja2 para produção escalável
 
-Essas técnicas formam a **base conceitual e prática** para todos os sistemas de agentes que construiremos nos próximos capítulos. Dominar prompting não é opcional para quem trabalha com agentes de IA - é a linguagem fundamental de comunicação com LLMs.
+**2. In-Context Learning (ICL):**
+- **Zero-shot**: $P(y | I, x; \theta)$ - quando usar e limitações
+- **Few-shot**: $P(y | \mathcal{E}, x; \theta)$ - seleção dinâmica de exemplos via embeddings
+- **Many-shot**: Aproximação de gradient descent, gerenciamento de context window
+- Trade-offs: custo, latência, acurácia para cada estratégia
 
-No próximo capítulo (Capítulo 5: Dominando LLMs na Prática), aplicaremos esse conhecimento explorando configurações avançadas de geração (temperature, top-p, etc.), otimização de context window, e estratégias de custo/latência para sistemas em produção.
+**3. Chain-of-Thought (CoT):**
+- Zero-shot CoT: "Let's think step by step" para raciocínio emergente
+- Few-shot CoT: exemplos com raciocínio explícito
+- Self-consistency: voting majoritário para maior robustez (+5-15% acurácia, 5× custo)
+- Quando CoT funciona (raciocínio matemático, planejamento) e quando falha
 
-Prepare-se para colocar todo esse conhecimento em prática!
+**4. ReAct Framework:**
+- Padrão Pensamento-Ação-Observação para agentes autônomos
+- Integração de ferramentas externas (calculadora, APIs, databases)
+- Fundamentos para sistemas multi-agentes (Parte II do livro)
+
+**Implementações práticas:**
+- **Exercício 1**: Classificador few-shot com seleção dinâmica (+20% acurácia)
+- **Exercício 2**: Math solver com CoT e self-consistency (86% acurácia)
+- **Exercício 3**: Agente ReAct básico com três ferramentas
+
+---
+
+**Próximos passos:**
+
+Estas técnicas formam a **base conceitual** para todos os sistemas de agentes que construiremos nas próximas partes do livro:
+
+- **Capítulo 5 (Dominando LLMs na Prática)**: Configurações avançadas (temperature, top-p), otimização de context window, estratégias de custo/latência para produção
+- **Parte II (Construindo Sistemas de Agentes)**: RAG, tool calling, orquestração, comunicação multi-agente
+- **Parte III (Arquitetura e Produção)**: Verificação, guardrails, segurança, deployment, avaliação
+
+::: {.callout-tip title="Aprofundamento"}
+Para dominar prompting além do essencial:
+
+1. **Experimente os exercícios**: Código executável em `sandbox/chapter-04/`
+2. **Leia os papers citados**: Brown et al. 2020 (GPT-3), Wei et al. 2022 (CoT), Yao et al. 2022 (ReAct)
+3. **Teste em seu domínio**: Adapte exemplos para suas aplicações específicas
+4. **Meça sistematicamente**: Acurácia, custo, latência - optimize com dados, não intuição
+:::
+
+Prompting é a **linguagem de comunicação** com LLMs. Dominar essa linguagem não é opcional para quem constrói agentes de IA - é a diferença entre sistemas que funcionam ocasionalmente e sistemas que operam com confiabilidade em produção.
