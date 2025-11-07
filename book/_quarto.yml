@@ -5,6 +5,9 @@ book:
   title: "Dominando Agentes de IA"
   author: "William Oliveira"
   date: ""
+  license: "CC BY-NC-SA 4.0"
+  repo-url: https://github.com/woliveiras/dominando-agentes-ia
+  repo-actions: [edit, issue]
   chapters:
     - index.qmd
     - chapters/00-sobre-autor.qmd
