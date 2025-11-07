@@ -116,201 +116,40 @@ A tokenização exata depende de como o modelo foi treinado e qual vocabulário 
 
 #### Experimentando Tokenização na Prática
 
-Vamos ver como diferentes modelos tokenizam texto usando a biblioteca `transformers` da Hugging Face. 
-
-Execute este código em sua máquina para experimentar:
+Vamos ver como diferentes modelos tokenizam texto usando a biblioteca `transformers` da Hugging Face:
 
 ```python
-# Instale a biblioteca primeiro:
-# uv pip install transformers
-#
-################################################################################
-#
-# Rode este comando para verificar sua GPU:
-# nvidia-smi
-#
-################################################################################
-#
-# Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.
-# Para rodar sem GPU, faça o seguinte:
-# uv pip install torch --index-url https://download.pytorch.org/whl/cpu
-# uv pip install transformers
-#
-################################################################################
-#
-# Ref.: https://huggingface.co/docs/transformers/en/installation#installation
-
 from transformers import AutoTokenizer
 
-# Texto de exemplo
-texto = """
-A inteligência artificial está revolucionando a forma como construímos 
-sistemas de software. Os foundation models representam uma mudança 
-fundamental no paradigma de machine learning.
-"""
+# Carregar tokenizer
+tokenizer = AutoTokenizer.from_pretrained("gpt2")
 
-# Vamos testar com diferentes modelos
+# Tokenizar uma palavra
+palavra = "inteligência"
+tokens = tokenizer.tokenize(palavra)
+print(tokens)  # ['intel', 'ig', 'Ãª', 'nc', 'ia'] - 5 tokens
 
-# 1. GPT-2 (usa BPE)
-print("=" * 60)
-print("GPT-2 Tokenization (BPE)")
-print("=" * 60)
-tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
-tokens_gpt2 = tokenizer_gpt2.tokenize(texto)
-print(f"Número de tokens: {len(tokens_gpt2)}")
-print(f"Primeiros 20 tokens: {tokens_gpt2[:20]}")
-print(f"IDs dos tokens: {tokenizer_gpt2.encode(texto)[:20]}")
-
-# 2. BERT (usa WordPiece)
-print("\n" + "=" * 60)
-print("BERT Tokenization (WordPiece)")
-print("=" * 60)
-tokenizer_bert = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
-tokens_bert = tokenizer_bert.tokenize(texto)
-print(f"Número de tokens: {len(tokens_bert)}")
-print(f"Primeiros 20 tokens: {tokens_bert[:20]}")
-print(f"IDs dos tokens: {tokenizer_bert.encode(texto)[:20]}")
-
-# 3. XLM-RoBERTa (usa SentencePiece)
-print("\n" + "=" * 60)
-print("XLM-RoBERTa Tokenization (SentencePiece)")
-print("=" * 60)
-tokenizer_xlm = AutoTokenizer.from_pretrained("xlm-roberta-base")
-tokens_xlm = tokenizer_xlm.tokenize(texto)
-print(f"Número de tokens: {len(tokens_xlm)}")
-print(f"Primeiros 20 tokens: {tokens_xlm[:20]}")
-print(f"IDs dos tokens: {tokenizer_xlm.encode(texto)[:20]}")
-
-# Exemplo detalhado: tokenizar palavra por palavra
-print("\n" + "=" * 60)
-print("Tokenização Palavra por Palavra (GPT-2)")
-print("=" * 60)
-palavras = ["inteligência", "artificial", "revolucionando", "software"]
-for palavra in palavras:
-    tokens = tokenizer_gpt2.tokenize(palavra)
-    ids = tokenizer_gpt2.encode(palavra, add_special_tokens=False)
-    print(f"\n'{palavra}':")
-    print(f"  Tokens: {tokens}")
-    print(f"  IDs: {ids}")
-    print(f"  Número de tokens: {len(tokens)}")
-
-# Demonstrar decodificação (tokens → texto)
-# O processo inverso: converter IDs numéricos de volta para texto
-print("\n" + "=" * 60)
-print("Decodificação: Tokens → Texto")
-print("=" * 60)
-# Pega os primeiros 5 tokens de "inteligência artificial" e reconstrói o texto
-texto_decodificado = tokenizer_gpt2.decode(
-    tokenizer_gpt2.encode("inteligência artificial")[:5]
-)
-print(f"Texto original: 'inteligência artificial'")
-print(f"Tokens: {tokenizer_gpt2.tokenize('inteligência artificial')[:5]}")
-print(f"Texto decodificado: '{texto_decodificado}'")
-
-# Comparação de eficiência entre idiomas
-# Modelos treinados em inglês geralmente tokenizam português menos eficientemente
-print("\n" + "=" * 60)
-print("Comparação: Português vs Inglês")
-print("=" * 60)
+# Comparar eficiência entre idiomas
 texto_pt = "A inteligência artificial está revolucionando o mundo."
 texto_en = "Artificial intelligence is revolutionizing the world."
 
-# Tokeniza a mesma frase em dois idiomas
-tokens_pt = tokenizer_gpt2.tokenize(texto_pt)
-tokens_en = tokenizer_gpt2.tokenize(texto_en)
-
-print(f"Português: '{texto_pt}'")
-print(f"  Tokens: {len(tokens_pt)} - {tokens_pt}")
-print(f"\nInglês: '{texto_en}'")
-print(f"  Tokens: {len(tokens_en)} - {tokens_en}")
-# Note como português requer mais tokens (custo maior em APIs)
-print(f"\nEficiência: Inglês usa ~{len(tokens_pt)/len(tokens_en):.2f}x menos tokens")
+tokens_pt = tokenizer.tokenize(texto_pt)  # 17 tokens
+tokens_en = tokenizer.tokenize(texto_en)  # 9 tokens
+# Português usa ~1.89x mais tokens que inglês!
 ```
 
-O resultado será similar a este:
+**Principais observações:**
 
-```bash
-============================================================
-GPT-2 Tokenization (BPE)
-============================================================
-Número de tokens: 54
-Primeiros 20 tokens: ['Ċ', 'A', 'Ġintel', 'ig', 'Ãª', 'nc', 'ia', 'Ġartificial', 'Ġest', 'Ã¡', 'Ġrevol', 'uc', 'ion', 'ando', 'Ġa', 'Ġform', 'a', 'Ġcom', 'o', 'Ġconst']
-IDs dos tokens: [198, 32, 33649, 328, 25792, 10782, 544, 11666, 1556, 6557, 35891, 1229, 295, 25440, 257, 1296, 64, 401, 78, 1500]
+- Diferentes algoritmos (BPE, WordPiece, SentencePiece) tokenizam de formas distintas
+- Modelos treinados em inglês tokenizam português menos eficientemente
+- Mais tokens = maior custo em APIs que cobram por token
+- A escolha do tokenizer afeta performance e custos em produção
 
-============================================================
-BERT Tokenization (WordPiece)
-============================================================
-Número de tokens: 37
-Primeiros 20 tokens: ['A', 'intel', '##ig', '##ência', 'artificial', 'está', 'rev', '##olu', '##ciona', '##ndo', 'a', 'forma', 'como', 'con', '##stru', '##ím', '##os', 'sistemas', 'de', 'software']
-IDs dos tokens: [101, 138, 82493, 11142, 14328, 36866, 11559, 86095, 34522, 96458, 10605, 169, 11041, 10225, 10173, 42461, 18246, 10310, 24757, 10104]
-
-============================================================
-XLM-RoBERTa Tokenization (SentencePiece)
-============================================================
-Número de tokens: 30
-Primeiros 20 tokens: ['▁A', '▁inteligência', '▁artificial', '▁está', '▁revolucion', 'ando', '▁a', '▁forma', '▁como', '▁constru', 'í', 'mos', '▁sistemas', '▁de', '▁software', '.', '▁Os', '▁foundation', '▁models', '▁representa']
-IDs dos tokens: [0, 62, 237859, 66733, 1570, 153359, 3448, 10, 1483, 533, 38783, 430, 840, 42274, 8, 10975, 5, 2027, 137374, 115774]
-
-============================================================
-Tokenização Palavra por Palavra (GPT-2)
-============================================================
-
-'inteligência':
-  Tokens: ['intel', 'ig', 'Ãª', 'nc', 'ia']
-  IDs: [48779, 328, 25792, 10782, 544]
-  Número de tokens: 5
-
-'artificial':
-  Tokens: ['art', 'ificial']
-  IDs: [433, 9542]
-  Número de tokens: 2
-
-'revolucionando':
-  Tokens: ['re', 'vol', 'uc', 'ion', 'ando']
-  IDs: [260, 10396, 1229, 295, 25440]
-  Número de tokens: 5
-
-'software':
-  Tokens: ['software']
-  IDs: [43776]
-  Número de tokens: 1
-
-============================================================
-Decodificação: Tokens → Texto
-============================================================
-Texto original: 'inteligência artificial'
-Tokens: ['intel', 'ig', 'Ãª', 'nc', 'ia']
-Texto decodificado: 'inteligência'
-
-============================================================
-Comparação: Português vs Inglês
-============================================================
-Português: 'A inteligência artificial está revolucionando o mundo.'
-  Tokens: 17 - ['A', 'Ġintel', 'ig', 'Ãª', 'nc', 'ia', 'Ġartificial', 'Ġest', 'Ã¡', 'Ġrevol', 'uc', 'ion', 'ando', 'Ġo', 'Ġmund', 'o', '.']
-
-Inglês: 'Artificial intelligence is revolutionizing the world.'
-  Tokens: 9 - ['Art', 'ificial', 'Ġintelligence', 'Ġis', 'Ġrevolution', 'izing', 'Ġthe', 'Ġworld', '.']
-
-Eficiência: Inglês usa ~1.89x menos tokens
-```
-
-::: {.callout-note}
-# Executando o Código
-Para executar este exemplo:
-
-1. Instale a biblioteca: `pip install transformers`
-2. Execute o script Python: `uv run <script.py>`
-3. Na primeira execução, os modelos serão baixados automaticamente (pode levar alguns minutos)
-
-Observe como:
-
-- Diferentes modelos tokenizam o mesmo texto de formas distintas
-- Palavras em português tendem a gerar mais tokens que em inglês
-- Sub-palavras são identificadas automaticamente (ex: "intelig" + "ência")
-- Cada token tem um ID numérico único no vocabulário do modelo
+::: {.callout-tip}
+# Exemplo Completo Executável
+Para um exemplo detalhado que compara GPT-2, BERT e XLM-RoBERTa, demonstra decodificação e analisa eficiência entre idiomas, veja o @sec-exemplo-tokenizacao na seção de Exemplos de Código Completos.
 :::
 
-Este exemplo prático demonstra como a tokenização funciona "nos bastidores" dos foundation models que você usará para construir agentes.
 
 ### Tipos de Tokens
 
@@ -353,8 +192,6 @@ Ao trabalhar com LLMs em produção, sempre monitore o número de tokens nas sua
 Agora que compreendemos o que são tokens, podemos prosseguir para entender como a arquitetura Transformer processa essas unidades fundamentais para criar representações ricas e contextualizadas do texto.
 
 ## A Arquitetura Transformer: O Coração dos Foundation Models
-
-### Atenção é tudo o que você precisa
 
 A arquitetura Transformer representa uma grande evolução sobre as arquiteturas sequenciais que a precederam. *Recurrent neural networks (RNNs)* e suas variantes como *Long short-term memory (LSTMs)* processam sequências token por token, mantendo um estado oculto que carrega informação contextual. Esta abordagem tem duas limitações críticas: (1) o processamento sequencial impede a paralelização durante o treinamento, tornando o processo extremamente lento para sequências longas, e (2) o estado oculto fixo cria um gargalo de informação, dificultando o aprendizado de dependências de longo alcance.
 
@@ -513,52 +350,26 @@ Esse é o mecanismo de self-attention em ação. Cada token na sequência faz is
 Agora que entendemos a metáfora, vamos ver como isso funciona na implementação real. Q, K e V não são propriedades mágicas dos tokens, eles são obtidos através de **projeções lineares aprendidas**:
 
 ```python
-import torch
-import torch.nn as nn
-
+# Estrutura básica do mecanismo de self-attention
 class SelfAttention(nn.Module):
     def __init__(self, d_model, d_k):
         super().__init__()
-        # Matrizes de projeção aprendidas durante treinamento
-        # Essas matrizes transformam embeddings em queries, keys e values
-        self.W_Q = nn.Linear(d_model, d_k)  # Projeta para "o que buscar"
-        self.W_K = nn.Linear(d_model, d_k)  # Projeta para "o que oferecer"
-        self.W_V = nn.Linear(d_model, d_k)  # Projeta para "a informação"
-        self.d_k = d_k  # Dimensão das keys (usado para normalização)
+        self.W_Q = nn.Linear(d_model, d_k)  # Projeta para queries
+        self.W_K = nn.Linear(d_model, d_k)  # Projeta para keys
+        self.W_V = nn.Linear(d_model, d_k)  # Projeta para values
+        self.d_k = d_k
 
     def forward(self, X):
-        """
-        Calcula self-attention sobre a sequência de entrada.
-        
-        Args:
-            X: (batch, seq_len, d_model) - embeddings de entrada
-        
-        Returns:
-            (batch, seq_len, d_k) - representações contextualizadas
-        """
-        # Passo 1: Projetar X em espaços Q, K, V
-        # Cada token é transformado em 3 representações diferentes
-        Q = self.W_Q(X)  # (batch, seq_len, d_k) - "Perguntas"
-        K = self.W_K(X)  # (batch, seq_len, d_k) - "Chaves"
-        V = self.W_V(X)  # (batch, seq_len, d_k) - "Valores"
-
-        # Passo 2: Computar attention scores (similaridade entre Q e K)
-        # @ é multiplicação matricial: cada query compara com todas as keys
+        Q, K, V = self.W_Q(X), self.W_K(X), self.W_V(X)
         scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
-        # scores: (batch, seq_len, seq_len) - matriz de similaridades
-        # Dividimos por √d_k para evitar valores muito grandes
-
-        # Passo 3: Aplicar softmax para obter pesos de atenção
-        # Transforma scores em probabilidades que somam 1
         attention_weights = torch.softmax(scores, dim=-1)
-        # attention_weights[i][j] = quanto o token i presta atenção no token j
-
-        # Passo 4: Ponderar valores V pelos pesos de atenção
-        # Cada token recebe uma combinação ponderada de todos os valores
-        output = attention_weights @ V  # (batch, seq_len, d_k)
-
-        return output
+        return attention_weights @ V
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para a implementação completa com documentação detalhada de cada passo, veja o @sec-exemplo-self-attention.
+:::
 
 **O que cada matriz aprende:**
 
@@ -843,90 +654,38 @@ Para uma sequência de 1.000 tokens, você recalcula K e V para o primeiro token
 A observação chave é: em geração autoregressiva com máscara causal, **K e V dos tokens anteriores nunca mudam**. Apenas o novo token precisa ter seus K e V calculados.
 
 ```python
+# Conceito de KV-Cache: armazenar K e V calculados previamente
 class KVCachedAttention(nn.Module):
     def __init__(self, d_model, d_k, d_v):
         super().__init__()
-        # Matrizes de projeção (mesmas do SelfAttention)
         self.W_Q = nn.Linear(d_model, d_k)
         self.W_K = nn.Linear(d_model, d_k)
         self.W_V = nn.Linear(d_model, d_v)
-        self.d_k = d_k
-
-        # Cache para armazenar K e V de tokens já processados
-        # Isso evita recomputar K e V toda vez que geramos um novo token
-        self.k_cache = None  # Shape: (batch, seq_len, d_k)
-        self.v_cache = None  # Shape: (batch, seq_len, d_v)
+        self.k_cache = None  # Armazena keys anteriores
+        self.v_cache = None  # Armazena values anteriores
 
     def forward(self, x, use_cache=True):
-        """
-        Processa novo token usando cache de K e V anteriores.
-        
-        Args:
-            x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa
-            use_cache: se True, usa e atualiza o cache
-        """
-        batch_size = x.size(0)
+        Q_new, K_new, V_new = self.W_Q(x), self.W_K(x), self.W_V(x)
 
-        # Passo 1: Compute Q, K, V APENAS para o novo token
-        # Economiza computação pois não recalcula tokens anteriores
-        Q_new = self.W_Q(x)  # (batch, 1, d_k) - Query do novo token
-        K_new = self.W_K(x)  # (batch, 1, d_k) - Key do novo token
-        V_new = self.W_V(x)  # (batch, 1, d_v) - Value do novo token
-
-        # Passo 2: Combinar novo K/V com cache existente
         if use_cache and self.k_cache is not None:
-            # Concatena K e V novos com os já computados anteriormente
-            K = torch.cat([self.k_cache, K_new], dim=1)  # (batch, seq_len+1, d_k)
-            V = torch.cat([self.v_cache, V_new], dim=1)  # (batch, seq_len+1, d_v)
+            K = torch.cat([self.k_cache, K_new], dim=1)  # Reutiliza cache!
+            V = torch.cat([self.v_cache, V_new], dim=1)
         else:
-            # Primeira iteração ou cache desabilitado
-            K = K_new
-            V = V_new
+            K, V = K_new, V_new
 
-        # Passo 3: Atualiza cache para a próxima iteração
         if use_cache:
-            # Detach evita acumular gradientes desnecessários no cache
-            self.k_cache = K.detach()
-            self.v_cache = V.detach()
+            self.k_cache, self.v_cache = K.detach(), V.detach()
 
-        # Passo 4: Compute attention usando K e V completos (incluindo cache)
         scores = (Q_new @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
-
-        # Máscara causal não é necessária aqui pois Q_new é apenas o último token
-        # que naturalmente só atende a tokens anteriores + ele mesmo
-
-        attention_weights = torch.softmax(scores, dim=-1)
-        output = attention_weights @ V  # (batch, 1, d_v)
-
-        return output
-
-    def clear_cache(self):
-        """Limpa cache entre diferentes gerações (importante entre prompts)"""
-        self.k_cache = None
-        self.v_cache = None
+        return torch.softmax(scores, dim=-1) @ V
 ```
 
-**Geração com KV-Cache:**
+::: {.callout-note}
+# Implementação e Exemplo de Uso Completos
+Para a implementação completa com documentação e exemplo de uso em geração autoregressiva, veja o @sec-exemplo-kv-cache.
+:::
 
-```python
-# Exemplo de como usar KV-Cache na prática
-model = TransformerWithKVCache(...)
-prompt_tokens = tokenize("Era uma vez")
 
-# Fase 1: Encode prompt completo (sem cache ainda)
-output = model(prompt_tokens, use_cache=False)
-
-# Fase 2: Geração autoregressiva (com cache)
-# Aqui é onde KV-Cache realmente economiza computação
-generated_tokens = []
-for _ in range(max_new_tokens):
-    # Processa APENAS o último token gerado
-    # K e V dos tokens anteriores vêm do cache
-    next_token_logits = model(last_token, use_cache=True)
-    next_token = sample(next_token_logits)  # Escolhe próximo token
-    generated_tokens.append(next_token)
-    last_token = next_token  # Prepara para próxima iteração
-```
 
 **Ganhos Computacionais:**
 
@@ -1193,60 +952,34 @@ graph LR
 
 ```python
 class MoELayer(nn.Module):
+    """Mixture of Experts com roteamento dinâmico."""
     def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
         super().__init__()
-        # Cria múltiplos experts (cada um é uma FFN independente)
-        # Cada expert pode se especializar em diferentes tipos de conteúdo
-        self.experts = nn.ModuleList([
-            FFN(d_model, d_ff) for _ in range(num_experts)
-        ])
-        # Router: rede neural que decide quais experts usar para cada token
+        self.experts = nn.ModuleList([FFN(d_model, d_ff) for _ in range(num_experts)])
         self.router = nn.Linear(d_model, num_experts)
-        self.top_k = top_k  # Quantos experts ativar por token (geralmente 2)
+        self.top_k = top_k
 
     def forward(self, x):
-        """
-        Processa tokens através de experts selecionados dinamicamente.
-        
-        Args:
-            x: (batch, seq_len, d_model) - tokens de entrada
-        
-        Returns:
-            (batch, seq_len, d_model) - tokens processados por experts
-        """
-        
-        # Passo 1: Router computa scores para cada expert
-        # Para cada token, determina quão relevante é cada expert
-        router_logits = self.router(x)  # (batch, seq_len, num_experts)
-        router_probs = torch.softmax(router_logits, dim=-1)
-
-        # Passo 2: Seleciona top-k experts por token
-        # Em vez de usar todos os 8 experts, usa apenas os 2 melhores
+        # Router decide quais experts usar
+        router_probs = torch.softmax(self.router(x), dim=-1)
         top_k_probs, top_k_indices = torch.topk(router_probs, self.top_k, dim=-1)
-        # Normaliza probabilidades dos top-k para somarem 1
-        top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
 
-        # Passo 3: Processa cada token pelos seus top-k experts
+        # Processa tokens pelos top-k experts selecionados
         output = torch.zeros_like(x)
         for i in range(self.top_k):
-            # Índice do i-ésimo melhor expert para cada token
             expert_idx = top_k_indices[:, :, i]
-            # Peso (probabilidade) deste expert
             expert_prob = top_k_probs[:, :, i:i+1]
-
-            # Roteamento dinâmico: diferentes tokens vão para diferentes experts
-            # Um token sobre Python pode ir para Expert 1, sobre medicina para Expert 3
             for expert_id, expert in enumerate(self.experts):
-                # Máscara: quais tokens devem usar este expert?
                 mask = (expert_idx == expert_id)
                 if mask.any():
-                    # Processa tokens pela FFN do expert
-                    expert_output = expert(x)
-                    # Adiciona saída ponderada pela probabilidade do router
-                    output += expert_output * expert_prob * mask.unsqueeze(-1)
-
+                    output += expert(x) * expert_prob * mask.unsqueeze(-1)
         return output
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para a implementação completa com documentação detalhada de cada passo do roteamento, veja o @sec-exemplo-moe.
+:::
 
 **Exemplo Real - [Mixtral 8x7B](https://huggingface.co/mistralai/Mixtral-8x7B-v0.1):**
 
@@ -1461,65 +1194,25 @@ Modelos *decoder-only* como GPT usam atenção **causal** (autoregressiva). Cada
 A máscara causal é implementada como uma matriz triangular inferior que bloqueia a atenção em tokens futuros. Aqui está como isso funciona:
 
 ```python
-import torch
-
 def create_causal_mask(seq_len):
-    """
-    Cria máscara causal para impedir atenção em tokens futuros.
-    Essencial para modelos *decoder-only* (GPT-like) que não podem "trapacear"
-    olhando para o futuro durante o treinamento.
-    
-    Args:
-        seq_len: comprimento da sequência
-    
-    Returns:
-        mask: matriz (seq_len, seq_len) com 0s onde permitido, -inf onde bloqueado
-    """
-    # Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima
-    # Cada linha representa um token, cada coluna um token que pode ser visto
+    """Cria máscara triangular para impedir atenção em tokens futuros."""
     mask = torch.tril(torch.ones(seq_len, seq_len))
-
-    # Na prática, usamos -inf para posições bloqueadas antes do softmax
-    # Quando somamos -inf ao attention score, softmax transforma em ~0
-    # Isso garante que softmax(score + mask) ≈ 0 para posições futuras
-    mask = mask.masked_fill(mask == 0, float('-inf'))  # Posições bloqueadas = -inf
-    mask = mask.masked_fill(mask == 1, 0.0)            # Posições permitidas = 0
-
+    mask = mask.masked_fill(mask == 0, float('-inf'))
+    mask = mask.masked_fill(mask == 1, 0.0)
     return mask
 
-# Visualização para seq_len=5 (antes de aplicar -inf):
-# [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo
-#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1
-#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2
-#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3
-#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4
-
-# Aplicação na atenção:
 def masked_attention(Q, K, V, mask):
-    """
-    Calcula atenção com máscara causal aplicada.
-    
-    Args:
-        Q, K, V: queries, keys, values
-        mask: máscara causal criada por create_causal_mask()
-    
-    Returns:
-        output com atenção causal aplicada
-    """
+    """Aplica atenção com máscara causal."""
     d_k = Q.size(-1)
-    # Calcula scores de atenção normalizados
     scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k))
-
-    # Adiciona máscara antes do softmax
-    # scores + mask onde mask=-inf para posições bloqueadas
-    # Isso faz com que essas posições tenham probabilidade ~0 após softmax
-    scores = scores + mask
-
-    # Softmax transforma -inf em ~0, efetivamente bloqueando atenção futura
-    attention_weights = torch.softmax(scores, dim=-1)
-
-    return attention_weights @ V
+    scores = scores + mask  # Adiciona -inf para posições futuras
+    return torch.softmax(scores, dim=-1) @ V
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para a implementação completa com documentação detalhada e visualizações, veja o @sec-exemplo-causal-mask.
+:::
 
 **Por que isso importa:**
 
@@ -1582,3 +1275,386 @@ Neste capítulo, exploramos os fundamentos dos Transformers, a arquitetura que r
 Entendemos também como embeddings posicionais resolvem a limitação fundamental de *permutation-invariance* dos Transformers, e exploramos as três variantes principais de arquiteturas: *encoder-only*, *decoder-only* e *encoder-decoder*, cada uma adequada para diferentes tipos de tarefas.
 
 Este conhecimento é essencial para os próximos capítulos, onde exploraremos como esses modelos são treinados em escala massiva, como são adaptados para tarefas específicas, e como construir agentes que aproveitam suas capacidades de forma eficaz e confiável.
+
+## Exemplos de Código Completos
+
+Esta seção contém implementações completas e executáveis dos principais conceitos apresentados neste capítulo. Use estes exemplos como referência para experimentação e aprofundamento.
+
+### Exemplo 1: Experimentando Tokenização com Diferentes Modelos {#sec-exemplo-tokenizacao}
+
+Este exemplo demonstra como diferentes modelos tokenizam texto usando a biblioteca `transformers` da Hugging Face.
+
+```python
+# Instale a biblioteca primeiro:
+# uv pip install transformers
+#
+################################################################################
+#
+# Rode este comando para verificar sua GPU:
+# nvidia-smi
+#
+################################################################################
+#
+# Se não tiver GPU, tudo bem, o código ainda funcionará, só será mais lento.
+# Para rodar sem GPU, faça o seguinte:
+# uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+# uv pip install transformers
+#
+################################################################################
+#
+# Ref.: https://huggingface.co/docs/transformers/en/installation#installation
+
+from transformers import AutoTokenizer
+
+# Texto de exemplo
+texto = """
+A inteligência artificial está revolucionando a forma como construímos
+sistemas de software. Os foundation models representam uma mudança
+fundamental no paradigma de machine learning.
+"""
+
+# Vamos testar com diferentes modelos
+
+# 1. GPT-2 (usa BPE)
+print("=" * 60)
+print("GPT-2 Tokenization (BPE)")
+print("=" * 60)
+tokenizer_gpt2 = AutoTokenizer.from_pretrained("gpt2")
+tokens_gpt2 = tokenizer_gpt2.tokenize(texto)
+print(f"Número de tokens: {len(tokens_gpt2)}")
+print(f"Primeiros 20 tokens: {tokens_gpt2[:20]}")
+print(f"IDs dos tokens: {tokenizer_gpt2.encode(texto)[:20]}")
+
+# 2. BERT (usa WordPiece)
+print("\n" + "=" * 60)
+print("BERT Tokenization (WordPiece)")
+print("=" * 60)
+tokenizer_bert = AutoTokenizer.from_pretrained("bert-base-multilingual-cased")
+tokens_bert = tokenizer_bert.tokenize(texto)
+print(f"Número de tokens: {len(tokens_bert)}")
+print(f"Primeiros 20 tokens: {tokens_bert[:20]}")
+print(f"IDs dos tokens: {tokenizer_bert.encode(texto)[:20]}")
+
+# 3. XLM-RoBERTa (usa SentencePiece)
+print("\n" + "=" * 60)
+print("XLM-RoBERTa Tokenization (SentencePiece)")
+print("=" * 60)
+tokenizer_xlm = AutoTokenizer.from_pretrained("xlm-roberta-base")
+tokens_xlm = tokenizer_xlm.tokenize(texto)
+print(f"Número de tokens: {len(tokens_xlm)}")
+print(f"Primeiros 20 tokens: {tokens_xlm[:20]}")
+print(f"IDs dos tokens: {tokenizer_xlm.encode(texto)[:20]}")
+
+# Exemplo detalhado: tokenizar palavra por palavra
+print("\n" + "=" * 60)
+print("Tokenização Palavra por Palavra (GPT-2)")
+print("=" * 60)
+palavras = ["inteligência", "artificial", "revolucionando", "software"]
+for palavra in palavras:
+    tokens = tokenizer_gpt2.tokenize(palavra)
+    ids = tokenizer_gpt2.encode(palavra, add_special_tokens=False)
+    print(f"\n'{palavra}':")
+    print(f"  Tokens: {tokens}")
+    print(f"  IDs: {ids}")
+    print(f"  Número de tokens: {len(tokens)}")
+
+# Demonstrar decodificação (tokens → texto)
+# O processo inverso: converter IDs numéricos de volta para texto
+print("\n" + "=" * 60)
+print("Decodificação: Tokens → Texto")
+print("=" * 60)
+# Pega os primeiros 5 tokens de "inteligência artificial" e reconstrói o texto
+texto_decodificado = tokenizer_gpt2.decode(
+    tokenizer_gpt2.encode("inteligência artificial")[:5]
+)
+print(f"Texto original: 'inteligência artificial'")
+print(f"Tokens: {tokenizer_gpt2.tokenize('inteligência artificial')[:5]}")
+print(f"Texto decodificado: '{texto_decodificado}'")
+
+# Comparação de eficiência entre idiomas
+# Modelos treinados em inglês geralmente tokenizam português menos eficientemente
+print("\n" + "=" * 60)
+print("Comparação: Português vs Inglês")
+print("=" * 60)
+texto_pt = "A inteligência artificial está revolucionando o mundo."
+texto_en = "Artificial intelligence is revolutionizing the world."
+
+# Tokeniza a mesma frase em dois idiomas
+tokens_pt = tokenizer_gpt2.tokenize(texto_pt)
+tokens_en = tokenizer_gpt2.tokenize(texto_en)
+
+print(f"Português: '{texto_pt}'")
+print(f"  Tokens: {len(tokens_pt)} - {tokens_pt}")
+print(f"\nInglês: '{texto_en}'")
+print(f"  Tokens: {len(tokens_en)} - {tokens_en}")
+# Note como português requer mais tokens (custo maior em APIs)
+print(f"\nEficiência: Inglês usa ~{len(tokens_pt)/len(tokens_en):.2f}x menos tokens")
+```
+
+### Exemplo 2: Implementação de Self-Attention {#sec-exemplo-self-attention}
+
+Implementação completa do mecanismo de self-attention com matrizes de projeção aprendidas.
+
+```python
+import torch
+import torch.nn as nn
+
+class SelfAttention(nn.Module):
+    def __init__(self, d_model, d_k):
+        super().__init__()
+        # Matrizes de projeção aprendidas durante treinamento
+        # Essas matrizes transformam embeddings em queries, keys e values
+        self.W_Q = nn.Linear(d_model, d_k)  # Projeta para "o que buscar"
+        self.W_K = nn.Linear(d_model, d_k)  # Projeta para "o que oferecer"
+        self.W_V = nn.Linear(d_model, d_k)  # Projeta para "a informação"
+        self.d_k = d_k  # Dimensão das keys (usado para normalização)
+
+    def forward(self, X):
+        """
+        Calcula self-attention sobre a sequência de entrada.
+
+        Args:
+            X: (batch, seq_len, d_model) - embeddings de entrada
+
+        Returns:
+            (batch, seq_len, d_k) - representações contextualizadas
+        """
+        # Passo 1: Projetar X em espaços Q, K, V
+        # Cada token é transformado em 3 representações diferentes
+        Q = self.W_Q(X)  # (batch, seq_len, d_k) - "Perguntas"
+        K = self.W_K(X)  # (batch, seq_len, d_k) - "Chaves"
+        V = self.W_V(X)  # (batch, seq_len, d_k) - "Valores"
+
+        # Passo 2: Computar attention scores (similaridade entre Q e K)
+        # @ é multiplicação matricial: cada query compara com todas as keys
+        scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
+        # scores: (batch, seq_len, seq_len) - matriz de similaridades
+        # Dividimos por √d_k para evitar valores muito grandes
+
+        # Passo 3: Aplicar softmax para obter pesos de atenção
+        # Transforma scores em probabilidades que somam 1
+        attention_weights = torch.softmax(scores, dim=-1)
+        # attention_weights[i][j] = quanto o token i presta atenção no token j
+
+        # Passo 4: Ponderar valores V pelos pesos de atenção
+        # Cada token recebe uma combinação ponderada de todos os valores
+        output = attention_weights @ V  # (batch, seq_len, d_k)
+
+        return output
+```
+
+### Exemplo 3: KV-Cache para Geração Autoregressiva {#sec-exemplo-kv-cache}
+
+Implementação de KV-Cache que evita recomputação durante geração token-por-token.
+
+```python
+class KVCachedAttention(nn.Module):
+    def __init__(self, d_model, d_k, d_v):
+        super().__init__()
+        # Matrizes de projeção (mesmas do SelfAttention)
+        self.W_Q = nn.Linear(d_model, d_k)
+        self.W_K = nn.Linear(d_model, d_k)
+        self.W_V = nn.Linear(d_model, d_v)
+        self.d_k = d_k
+
+        # Cache para armazenar K e V de tokens já processados
+        # Isso evita recomputar K e V toda vez que geramos um novo token
+        self.k_cache = None  # Shape: (batch, seq_len, d_k)
+        self.v_cache = None  # Shape: (batch, seq_len, d_v)
+
+    def forward(self, x, use_cache=True):
+        """
+        Processa novo token usando cache de K e V anteriores.
+
+        Args:
+            x: (batch, 1 ou seq_len, d_model) - novo token ou sequência completa
+            use_cache: se True, usa e atualiza o cache
+        """
+        batch_size = x.size(0)
+
+        # Passo 1: Compute Q, K, V APENAS para o novo token
+        # Economiza computação pois não recalcula tokens anteriores
+        Q_new = self.W_Q(x)  # (batch, 1, d_k) - Query do novo token
+        K_new = self.W_K(x)  # (batch, 1, d_k) - Key do novo token
+        V_new = self.W_V(x)  # (batch, 1, d_v) - Value do novo token
+
+        # Passo 2: Combinar novo K/V com cache existente
+        if use_cache and self.k_cache is not None:
+            # Concatena K e V novos com os já computados anteriormente
+            K = torch.cat([self.k_cache, K_new], dim=1)  # (batch, seq_len+1, d_k)
+            V = torch.cat([self.v_cache, V_new], dim=1)  # (batch, seq_len+1, d_v)
+        else:
+            # Primeira iteração ou cache desabilitado
+            K = K_new
+            V = V_new
+
+        # Passo 3: Atualiza cache para a próxima iteração
+        if use_cache:
+            # Detach evita acumular gradientes desnecessários no cache
+            self.k_cache = K.detach()
+            self.v_cache = V.detach()
+
+        # Passo 4: Compute attention usando K e V completos (incluindo cache)
+        scores = (Q_new @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(self.d_k))
+
+        # Máscara causal não é necessária aqui pois Q_new é apenas o último token
+        # que naturalmente só atende a tokens anteriores + ele mesmo
+
+        attention_weights = torch.softmax(scores, dim=-1)
+        output = attention_weights @ V  # (batch, 1, d_v)
+
+        return output
+
+    def clear_cache(self):
+        """Limpa cache entre diferentes gerações (importante entre prompts)"""
+        self.k_cache = None
+        self.v_cache = None
+```
+
+**Exemplo de uso do KV-Cache:**
+
+```python
+# Exemplo de como usar KV-Cache na prática
+model = TransformerWithKVCache(...)
+prompt_tokens = tokenize("Era uma vez")
+
+# Fase 1: Encode prompt completo (sem cache ainda)
+output = model(prompt_tokens, use_cache=False)
+
+# Fase 2: Geração autoregressiva (com cache)
+# Aqui é onde KV-Cache realmente economiza computação
+generated_tokens = []
+for _ in range(max_new_tokens):
+    # Processa APENAS o último token gerado
+    # K e V dos tokens anteriores vêm do cache
+    next_token_logits = model(last_token, use_cache=True)
+    next_token = sample(next_token_logits)  # Escolhe próximo token
+    generated_tokens.append(next_token)
+    last_token = next_token  # Prepara para próxima iteração
+```
+
+### Exemplo 4: Máscara Causal para Modelos Decoder-Only {#sec-exemplo-causal-mask}
+
+Implementação de máscara causal que impede atenção em tokens futuros.
+
+```python
+import torch
+
+def create_causal_mask(seq_len):
+    """
+    Cria máscara causal para impedir atenção em tokens futuros.
+    Essencial para modelos decoder-only (GPT-like) que não podem "trapacear"
+    olhando para o futuro durante o treinamento.
+
+    Args:
+        seq_len: comprimento da sequência
+
+    Returns:
+        mask: matriz (seq_len, seq_len) com 0s onde permitido, -inf onde bloqueado
+    """
+    # Matriz triangular inferior: 1s abaixo e na diagonal, 0s acima
+    # Cada linha representa um token, cada coluna um token que pode ser visto
+    mask = torch.tril(torch.ones(seq_len, seq_len))
+
+    # Na prática, usamos -inf para posições bloqueadas antes do softmax
+    # Quando somamos -inf ao attention score, softmax transforma em ~0
+    # Isso garante que softmax(score + mask) ≈ 0 para posições futuras
+    mask = mask.masked_fill(mask == 0, float('-inf'))  # Posições bloqueadas = -inf
+    mask = mask.masked_fill(mask == 1, 0.0)            # Posições permitidas = 0
+
+    return mask
+
+# Visualização para seq_len=5 (antes de aplicar -inf):
+# [[1, 0, 0, 0, 0],   Token 0 só vê ele mesmo
+#  [1, 1, 0, 0, 0],   Token 1 vê tokens 0-1
+#  [1, 1, 1, 0, 0],   Token 2 vê tokens 0-2
+#  [1, 1, 1, 1, 0],   Token 3 vê tokens 0-3
+#  [1, 1, 1, 1, 1]]   Token 4 vê todos tokens 0-4
+
+# Aplicação na atenção:
+def masked_attention(Q, K, V, mask):
+    """
+    Calcula atenção com máscara causal aplicada.
+
+    Args:
+        Q, K, V: queries, keys, values
+        mask: máscara causal criada por create_causal_mask()
+
+    Returns:
+        output com atenção causal aplicada
+    """
+    d_k = Q.size(-1)
+    # Calcula scores de atenção normalizados
+    scores = (Q @ K.transpose(-2, -1)) / torch.sqrt(torch.tensor(d_k))
+
+    # Adiciona máscara antes do softmax
+    # scores + mask onde mask=-inf para posições bloqueadas
+    # Isso faz com que essas posições tenham probabilidade ~0 após softmax
+    scores = scores + mask
+
+    # Softmax transforma -inf em ~0, efetivamente bloqueando atenção futura
+    attention_weights = torch.softmax(scores, dim=-1)
+
+    return attention_weights @ V
+```
+
+### Exemplo 5: Mixture of Experts (MoE) Layer {#sec-exemplo-moe}
+
+Implementação conceitual de uma camada MoE com roteamento dinâmico.
+
+```python
+class MoELayer(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
+        super().__init__()
+        # Cria múltiplos experts (cada um é uma FFN independente)
+        # Cada expert pode se especializar em diferentes tipos de conteúdo
+        self.experts = nn.ModuleList([
+            FFN(d_model, d_ff) for _ in range(num_experts)
+        ])
+        # Router: rede neural que decide quais experts usar para cada token
+        self.router = nn.Linear(d_model, num_experts)
+        self.top_k = top_k  # Quantos experts ativar por token (geralmente 2)
+
+    def forward(self, x):
+        """
+        Processa tokens através de experts selecionados dinamicamente.
+
+        Args:
+            x: (batch, seq_len, d_model) - tokens de entrada
+
+        Returns:
+            (batch, seq_len, d_model) - tokens processados por experts
+        """
+
+        # Passo 1: Router computa scores para cada expert
+        # Para cada token, determina quão relevante é cada expert
+        router_logits = self.router(x)  # (batch, seq_len, num_experts)
+        router_probs = torch.softmax(router_logits, dim=-1)
+
+        # Passo 2: Seleciona top-k experts por token
+        # Em vez de usar todos os 8 experts, usa apenas os 2 melhores
+        top_k_probs, top_k_indices = torch.topk(router_probs, self.top_k, dim=-1)
+        # Normaliza probabilidades dos top-k para somarem 1
+        top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
+
+        # Passo 3: Processa cada token pelos seus top-k experts
+        output = torch.zeros_like(x)
+        for i in range(self.top_k):
+            # Índice do i-ésimo melhor expert para cada token
+            expert_idx = top_k_indices[:, :, i]
+            # Peso (probabilidade) deste expert
+            expert_prob = top_k_probs[:, :, i:i+1]
+
+            # Roteamento dinâmico: diferentes tokens vão para diferentes experts
+            # Um token sobre Python pode ir para Expert 1, sobre medicina para Expert 3
+            for expert_id, expert in enumerate(self.experts):
+                # Máscara: quais tokens devem usar este expert?
+                mask = (expert_idx == expert_id)
+                if mask.any():
+                    # Processa tokens pela FFN do expert
+                    expert_output = expert(x)
+                    # Adiciona saída ponderada pela probabilidade do router
+                    output += expert_output * expert_prob * mask.unsqueeze(-1)
+
+        return output
+```
