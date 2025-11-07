@@ -1,84 +1,1078 @@
 # Capítulo 6: Embeddings e Representação Semântica {.unnumbered}
 
-## O que são Embeddings?
+Nos capítulos anteriores, mencionamos embeddings em diversos contextos: no Capítulo 1, vimos como Transformers geram representações vetoriais através de camadas de atenção; no Capítulo 3, discutimos como fine-tuning ajusta esses vetores para tarefas específicas; no Capítulo 4, utilizamos embeddings implicitamente quando LLMs processam prompts. Agora é hora de aprofundar: como essas representações vetoriais realmente funcionam, como escolher entre dezenas de modelos disponíveis, e como construir sistemas de busca e recuperação que alimentarão os agentes da Parte II.
 
-  - De texto para números: a necessidade de representações vetoriais
-  - Diferença entre one-hot encoding, TF-IDF e embeddings densos
-  - Como embeddings capturam significado semântico
-  - Propriedades emergentes: analogias e relações matemáticas
-  - Dimensionalidade típica e trade-offs
+Neste capítulo, exploraremos o conceito de **embeddings** em profundidade e suas aplicações práticas, passando desde o que são embeddings, suas propriedades matemáticas, até a arquitetura dos modelos mais avançados disponíveis hoje.
+
+### O Que São Embeddings?
+
+**Embeddings** são representações vetoriais densas que codificam significado semântico. Enquanto nos capítulos anteriores focamos em como Transformers processam e geram texto, este capítulo foca em como usar essas representações para tarefas críticas em sistemas de agentes: busca semântica, recuperação de documentos relevantes, e seleção dinâmica de ferramentas.
+
+### Da Esparsidade à Densidade: Uma Breve Retrospectiva
+
+Para apreciar a elegância dos embeddings modernos, vale revisitar brevemente suas predecessoras. Nas abordagens clássicas de NLP, como one-hot encoding, cada palavra era representada por um vetor esparso onde apenas uma posição tinha valor 1 e todas as outras eram 0. Para um vocabulário de 50.000 palavras, isso significava vetores de 50.000 dimensões, onde 49.999 posições eram sempre zero. Essa representação era não apenas computacionalmente ineficiente, mas fundamentalmente limitada: as palavras "rei" e "monarca" eram tão diferentes quanto "rei" e "banana" - não havia noção de similaridade semântica.
+
+TF-IDF (Term Frequency-Inverse Document Frequency) representou um avanço ao considerar a importância relativa das palavras em um corpus [@sparckjones1972statistical]. Palavras comuns como "o" ou "de" recebiam pesos baixos, enquanto termos mais específicos tinham maior peso. No entanto, mesmo TF-IDF permanecia preso em representações esparsas e não capturava relações semânticas complexas.
+
+Os embeddings densos, popularizados pelo Word2Vec [@mikolov2013efficient], revolucionaram o campo ao comprimir informação semântica em vetores densos de dimensões muito menores - tipicamente 256, 512 ou 768 dimensões. A magia dos embeddings está em sua capacidade de capturar significado através de **proximidade geométrica**: palavras semanticamente relacionadas ocupam regiões próximas no espaço vetorial, enquanto conceitos distintos ficam distantes.
+
+### Propriedades Emergentes: Aritmética Semântica
+
+A característica mais fascinante dos embeddings modernos é a emergência de propriedades algébricas que espelham relações conceituais. O exemplo canônico, demonstrado originalmente por Mikolov et al., é a relação vetorial:
+
+```
+vec("rei") - vec("homem") + vec("mulher") ≈ vec("rainha")
+```
+
+Essa propriedade não foi explicitamente programada - ela emergiu naturalmente do processo de treinamento. O modelo aprendeu que a diferença entre "rei" e "homem" codifica o conceito de realeza, e essa diferença pode ser transferida para o domínio feminino. Vejamos isso em prática:
+
+```python
+# Ver implementação completa em sandbox/chapter-06/01-embedding-comparison.py
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Codificar palavras em vetores
+king = model.encode("rei")
+man = model.encode("homem")
+woman = model.encode("mulher")
+queen = model.encode("rainha")
+
+# Operação vetorial: rei - homem + mulher
+result = king - man + woman
+
+# Calcular similaridade com "rainha"
+similarity = np.dot(result, queen) / (np.linalg.norm(result) * np.linalg.norm(queen))
+print(f"Similaridade: {similarity:.4f}")  # Tipicamente > 0.7
+```
+
+Outras relações emergentes incluem geografia ("Paris" - "França" + "Itália" ≈ "Roma"), tempo verbal, plural/singular, e até relações mais abstratas como intensidade emocional.
+
+### Dimensionalidade e Trade-offs
+
+A escolha da dimensionalidade dos embeddings envolve trade-offs fundamentais entre expressividade e eficiência. Vetores de maior dimensão podem capturar nuances semânticas mais sutis, mas a um custo computacional e de memória significativo. Na prática, observamos os seguintes padrões [@neelakantan2022text]:
+
+**Dimensões baixas (128-256):** Adequadas para tarefas simples de classificação ou quando recursos computacionais são limitados. Modelos como `all-MiniLM-L6-v2` (384 dimensões) oferecem excelente custo-benefício para aplicações práticas.
+
+**Dimensões médias (512-768):** O sweet spot para a maioria das aplicações de produção. Modelos como BERT-base (768 dimensões) e OpenAI text-embedding-3-small (1536 dimensões) operam nessa faixa, equilibrando qualidade e performance.
+
+**Dimensões altas (1536-3072):** Reservadas para aplicações que demandam máxima precisão semântica, como busca em documentos técnicos especializados ou quando o custo computacional não é limitante. OpenAI text-embedding-3-large (3072 dimensões) exemplifica essa categoria.
+
+O impacto da dimensionalidade não é apenas computacional - ele afeta diretamente a capacidade do modelo de generalizar. Dimensões excessivas podem levar a overfitting, onde o modelo memoriza o conjunto de treino mas falha em generalizar para novos exemplos. Esse fenômeno é particularmente relevante ao fazer fine-tuning de embeddings em datasets pequenos.
+
+Para quantificar esse trade-off, considere que aumentar dimensionalidade de 384 para 768 dobra o uso de memória e aproximadamente duplica o tempo de inferência, mas tipicamente melhora performance em benchmarks de similaridade semântica em apenas 5-10% [@muennighoff2022mteb]. A decisão deve ser guiada por requisitos específicos da aplicação e constraints de infraestrutura.
 
 ## Arquitetura de Modelos de Embedding
 
-  - Word2Vec: CBOW e Skip-gram (contexto histórico)
-  - Embeddings contextualizados vs. estáticos
-  - Como Transformers geram embeddings (relação com Cap 1)
-  - Sentence-level vs. token-level embeddings
-  - Pooling strategies: CLS token, mean pooling, max pooling
+### Da Estática ao Contexto: Uma Evolução Necessária
+
+Word2Vec [@mikolov2013efficient] marcou um ponto de virada no processamento de linguagem natural ao demonstrar que embeddings densos podiam ser aprendidos de forma não-supervisionada a partir de grandes corpora. A arquitetura oferecia duas abordagens complementares: CBOW (Continuous Bag of Words), que previa uma palavra dado seu contexto, e Skip-gram, que fazia o oposto - previa o contexto dada uma palavra central.
+
+O treinamento de Word2Vec era computacionalmente elegante. Para cada palavra em uma janela deslizante de texto, o modelo ajustava vetores para maximizar a probabilidade de prever corretamente palavras vizinhas. Essa tarefa aparentemente simples forçava o modelo a aprender representações onde palavras com contextos similares recebiam vetores próximos.
+
+No entanto, Word2Vec possuía uma limitação fundamental: cada palavra tinha exatamente um embedding fixo, independente do contexto. A palavra "banco" recebia o mesmo vetor em "banco de dados" e "banco do parque", apesar dos significados completamente distintos. Essa limitação levou ao desenvolvimento de **embeddings contextualizados**.
+
+### Embeddings Contextualizados: A Contribuição dos Transformers
+
+A arquitetura Transformer, que estudamos em profundidade no Capítulo 1, resolveu o problema de polissemia através de seu mecanismo de atenção. Ao invés de um único vetor estático por palavra, Transformers geram embeddings dinâmicos que dependem do contexto completo da sentença.
+
+Considere a arquitetura BERT [@devlin2018bert], que revolucionou embeddings contextualizados. Quando processamos "O **banco** de dados está corrompido", o embedding para "banco" é computado levando em conta toda a sentença através de múltiplas camadas de self-attention. O modelo atende fortemente para "dados" e "corrompido", resultando em um vetor que codifica o significado técnico. Para "Sentei no **banco** do parque", o mesmo token "banco" resulta em um vetor completamente diferente, influenciado por "sentei" e "parque".
+
+Matematicamente, em cada camada do Transformer, o embedding de um token é recalculado como uma combinação ponderada dos embeddings de todos os outros tokens:
+
+```
+h_i^(l) = Attention(h_i^(l-1), H^(l-1))
+```
+
+Onde `h_i^(l)` é o hidden state do token i na camada l, e `H^(l-1)` representa todos os hidden states da camada anterior. Essa recombinação iterativa através de múltiplas camadas permite que informação contextual se propague e refine cada representação.
+
+### Token-Level vs. Sentence-Level: Diferentes Granularidades
+
+Transformers naturalmente produzem embeddings no nível de token - cada subword no vocabulário do tokenizer recebe seu próprio vetor contextualizado. Para a sentença "Claude é um modelo de linguagem", com 6 tokens, BERT produziria 6 vetores distintos de 768 dimensões cada.
+
+No entanto, muitas aplicações práticas requerem um **único vetor representando a sentença inteira** - por exemplo, ao buscar documentos similares ou comparar significado de frases completas. Essa necessidade nos leva às **pooling strategies**.
+
+### Pooling Strategies: Agregando Informação
+
+Três abordagens dominam a prática de agregar embeddings token-level em sentence-level:
+
+**CLS Token Pooling:** BERT introduziu um token especial `[CLS]` no início de cada sentença. Durante o treinamento em tarefas de classificação, o modelo aprende a concentrar informação relevante sobre a sentença inteira nesse token. Para obter um sentence embedding, simplesmente extraímos o vetor do `[CLS]` token:
+
+```python
+# Ver sandbox/chapter-06/01-embedding-comparison.py para implementação completa
+from transformers import AutoTokenizer, AutoModel
+import torch
+
+tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
+model = AutoModel.from_pretrained('bert-base-uncased')
+
+text = "Claude é um modelo de linguagem"
+inputs = tokenizer(text, return_tensors='pt')
+outputs = model(**inputs)
+
+# CLS token é sempre a primeira posição
+cls_embedding = outputs.last_hidden_state[0, 0, :]  # Shape: [768]
+```
+
+**Mean Pooling:** Calcula a média de todos os token embeddings, excluindo tokens de padding. Essa abordagem tende a funcionar melhor para embeddings semânticos, pois considera informação de toda a sentença uniformemente:
+
+```python
+def mean_pooling(model_output, attention_mask):
+    """Average de todos os tokens, excluindo padding."""
+    token_embeddings = model_output[0]  # [batch_size, seq_len, hidden_dim]
+
+    # Expandir attention_mask para multiplicação
+    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+
+    # Somar embeddings e dividir pelo número real de tokens
+    return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+```
+
+Mean pooling é a estratégia padrão em Sentence Transformers, família de modelos otimizados especificamente para gerar sentence embeddings de alta qualidade.
+
+**Max Pooling:** Seleciona o valor máximo em cada dimensão através de todos os tokens. Essa abordagem pode capturar features distintivas específicas, mas tende a ser menos robusta que mean pooling para embeddings semânticos:
+
+```python
+def max_pooling(model_output, attention_mask):
+    """Máximo em cada dimensão através de todos os tokens."""
+    token_embeddings = model_output[0]
+
+    # Aplicar mask: -inf em posições de padding
+    input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+    token_embeddings[input_mask_expanded == 0] = -1e9
+
+    return torch.max(token_embeddings, 1)[0]
+```
+
+A escolha da estratégia de pooling tem impacto significativo na qualidade dos embeddings resultantes. Reimers e Gurevych [-@reimers2019sentence] demonstraram que, para tarefas de similaridade semântica, mean pooling com modelos fine-tuned supera CLS token pooling em até 5 pontos percentuais em benchmarks padrão. No entanto, para tarefas de classificação, CLS token pooling mantém vantagem por ter sido explicitamente treinado para essa finalidade durante o pré-treinamento de BERT.
 
 ## Modelos de Embedding Modernos
 
-  - Sentence Transformers (SBERT) e arquitetura bi-encoder
-  - OpenAI text-embedding-ada-002 e text-embedding-3-small/large
-  - Modelos multilíngues: mBERT, XLM-RoBERTa
-  - Modelos especializados: code embeddings, domain-specific
-  - Trade-offs: dimensionalidade, velocidade, custo, qualidade
+### Sentence Transformers: Otimizados para Similaridade Semântica
+
+BERT revolucionou NLP, mas não foi originalmente otimizado para gerar embeddings de sentenças comparáveis. Quando usamos BERT vanilla com CLS pooling para medir similaridade entre duas frases, os resultados frequentemente decepcionam - sentenças semanticamente similares podem ter embeddings distantes no espaço vetorial.
+
+Sentence-BERT (SBERT) [@reimers2019sentence] resolve essa limitação através de uma arquitetura **bi-encoder** treinada com contrastive learning. Durante o treinamento, o modelo processa pares de sentenças similares e dissimilares, aprendendo a mapear sentenças semanticamente próximas para regiões vizinhas do espaço vetorial.
+
+A arquitetura bi-encoder é computacionalmente eficiente para busca em larga escala. Ao invés de processar cada par de sentenças juntas (abordagem cross-encoder, que seria O(n²) para n documentos), SBERT codifica cada sentença independentemente uma vez, permitindo comparações posteriores através de simples operações vetoriais. Para um corpus de 1 milhão de documentos, isso reduz o custo de encontrar documentos similares de bilhões de forward passes para apenas 1 milhão de encodings + operações de similaridade rápidas.
+
+A família Sentence Transformers oferece modelos especializados para diferentes trade-offs:
+
+**all-MiniLM-L6-v2** (384 dimensões): O "canivete suíço" de embeddings. Com apenas 80MB, oferece excelente qualidade para a maioria das tarefas. Ideal para aplicações com constraints de latência ou quando embeddings serão armazenados em memória. Processa ~5000 sentenças/segundo em CPU.
+
+**all-mpnet-base-v2** (768 dimensões): O melhor modelo de propósito geral da família. Baseado em MPNet (Masked and Permuted Pre-training), supera all-MiniLM em ~3-5 pontos percentuais em benchmarks, ao custo de ser 3x mais lento. Recomendado quando qualidade é prioritária sobre latência.
+
+**multi-qa-MiniLM-L6-cos-v1** (384 dimensões): Fine-tuned especificamente para question-answering. Excelente para sistemas de busca onde queries são perguntas naturais e documentos são respostas ou conteúdo informativo.
+
+### OpenAI Embeddings: Qualidade Premium via API
+
+Os modelos de embedding da OpenAI representam o estado da arte em qualidade, treinados em corpora massivos e otimizados através de extenso RLHF (Reinforcement Learning from Human Feedback). No entanto, diferente de Sentence Transformers, são acessados via API, não podendo rodar localmente.
+
+**text-embedding-3-small** (1536 dimensões): Sucessor do ada-002, oferece melhor performance em benchmarks como MTEB (Massive Text Embedding Benchmark) a custo menor. Com $0.02 por 1M tokens (fevereiro 2024), é economicamente viável mesmo para aplicações em larga escala. Adequado quando embeddings serão usados uma vez e descartados, ou quando 1536 dimensões são aceitáveis para armazenamento.
+
+**text-embedding-3-large** (3072 dimensões): O topo da linha em qualidade. Supera text-embedding-3-small em ~2-4 pontos percentuais em benchmarks, crucial quando cada ponto de precisão importa - por exemplo, em sistemas de busca médica ou legal onde documentos incorretos podem ter consequências sérias. O custo 5x maior ($0.13 por 1M tokens) e dobro de armazenamento devem ser justificados pelos requisitos da aplicação.
+
+Uma característica única dos modelos OpenAI é **dimensionality reduction nativa**: você pode especificar dimensões menores (ex: 512 ao invés de 3072) e o modelo retornará vetores já otimizados para essa dimensão, mantendo maior informação que simples truncação pós-facto.
+
+### Modelos Multilíngues e Especializados
+
+**multilingual-e5-large**: Suporta 100+ línguas com qualidade consistente. Essencial para aplicações globais onde documentos em múltiplos idiomas devem ser comparáveis. Sentenças equivalentes em português e inglês produzem embeddings próximos no espaço vetorial, permitindo busca cross-lingual.
+
+**jina-embeddings-v2-base-code** (768 dimensões): Especializado em código. Entende não apenas sintaxe, mas semântica de programação - funções que implementam o mesmo algoritmo em linguagens diferentes recebem embeddings similares. Crucial para sistemas de busca em repositórios de código ou documentação técnica.
+
+**nomic-embed-text-v1.5** (768 dimensões): Treinado com context length de 8192 tokens, 4-8x maior que modelos tradicionais. Permite embedding de documentos longos inteiros sem chunking, preservando contexto global. Trade-off: inferência 3-4x mais lenta.
+
+### Comparação Quantitativa: Qual Modelo Escolher?
+
+A escolha do modelo de embedding é uma das decisões arquiteturais mais impactantes em sistemas de agentes. Vejamos dados concretos em três dimensões críticas:
+
+| Modelo | MTEB Score | Latência (ms)* | Custo ($/1M docs)** |
+|--------|-----------|----------------|---------------------|
+| all-MiniLM-L6-v2 | 56.3 | 12 | $0 (self-hosted) |
+| all-mpnet-base-v2 | 63.3 | 35 | $0 (self-hosted) |
+| text-embedding-3-small | 62.3 | 80 | $20 |
+| text-embedding-3-large | 64.6 | 95 | $130 |
+| multilingual-e5-large | 64.2 | 45 | $0 (self-hosted) |
+
+*Latência média por documento de ~100 palavras, CPU Intel Xeon ou equivalente
+**Custo assumindo ~750 palavras/documento, incluindo custos de infraestrutura para self-hosted
+
+MTEB (Massive Text Embedding Benchmark) [@muennighoff2022mteb] agrega performance em 58 datasets cobrindo classificação, clustering, reranking, retrieval, semantic textual similarity, e outras tarefas. Pontuações acima de 60 são consideradas estado da arte.
+
+A decisão deve considerar:
+
+- **Para protótipos e MVPs:** all-MiniLM-L6-v2 oferece melhor velocidade de desenvolvimento
+- **Para produção com budget limitado:** all-mpnet-base-v2 otimiza qualidade/custo self-hosted
+- **Para máxima qualidade com budget:** text-embedding-3-large quando cada ponto de precisão importa
+- **Para multilíngue:** multilingual-e5-large é imbatível self-hosted
+- **Para baixa latência crítica:** all-MiniLM-L6-v2 com quantização pode atingir <5ms/doc
 
 ## Medidas de Similaridade
 
-  - Similaridade cosseno: intuição geométrica e implementação
-  - Distância euclidiana e Manhattan
-  - Produto interno (dot product)
-  - Quando usar cada métrica
-  - Normalização e seu impacto
+Uma vez que temos embeddings, a questão crucial torna-se: como medir o quão "próximas" duas representações vetoriais estão? A escolha da métrica de similaridade não é mera tecnicidade - ela define fundamentalmente o que significa "documentos relacionados" em seu sistema.
+
+### Similaridade Cosseno: A Métrica Padrão
+
+Similaridade cosseno mede o ângulo entre dois vetores, ignorando suas magnitudes. Para vetores A e B:
+
+```
+cos_sim(A, B) = (A · B) / (||A|| * ||B||)
+```
+
+A intuição geométrica é elegante: vetores apontando na mesma direção (ângulo próximo de 0°) têm similaridade próxima de 1, vetores ortogonais (90°) têm similaridade 0, e vetores opostos (-180°) têm similaridade -1.
+
+Por que cosseno domina em NLP? Porque a **direção** de um embedding captura seu significado semântico, enquanto a magnitude frequentemente reflete apenas características acidentais como comprimento do documento. Considere duas descrições do mesmo produto - uma com 50 palavras e outra com 500. Seus embeddings apontarão na mesma direção (mesmo significado), mas terão magnitudes diferentes. Similaridade cosseno corretamente os identifica como similares.
+
+```python
+# Ver sandbox/chapter-06/02-similarity-metrics.py para implementação completa
+import numpy as np
+from numpy.linalg import norm
+
+def cosine_similarity(a, b):
+    """
+    Calcula similaridade cosseno entre dois vetores.
+
+    Args:
+        a, b: arrays numpy de mesma dimensão
+
+    Returns:
+        float entre -1 e 1, onde 1 = vetores idênticos em direção
+    """
+    return np.dot(a, b) / (norm(a) * norm(b))
+
+# Exemplo concreto
+doc1 = np.array([0.5, 0.8, 0.2])  # Embedding do documento 1
+doc2 = np.array([0.6, 0.7, 0.3])  # Embedding similar (direção próxima)
+doc3 = np.array([-0.5, -0.8, -0.2])  # Embedding oposto
+
+print(f"sim(doc1, doc2): {cosine_similarity(doc1, doc2):.4f}")  # ~0.98 (muito similar)
+print(f"sim(doc1, doc3): {cosine_similarity(doc1, doc3):.4f}")  # ~-1.0 (oposto)
+```
+
+**Otimização importante:** Quando embeddings são L2-normalizados (||v|| = 1), similaridade cosseno simplifica para produto interno, economizando operações de divisão caras. Sentence Transformers e OpenAI embeddings frequentemente retornam vetores já normalizados.
+
+### Distância Euclidiana: Quando Magnitude Importa
+
+Distância euclidiana mede o comprimento direto entre dois pontos no espaço vetorial:
+
+```
+euclidean(A, B) = ||A - B|| = sqrt(Σ(a_i - b_i)²)
+```
+
+Diferente de cosseno, distância euclidiana considera **tanto direção quanto magnitude**. Dois vetores na mesma direção mas com magnitudes diferentes terão similaridade cosseno alta mas distância euclidiana significativa.
+
+Quando usar euclidiana? Principalmente em espaços onde magnitude carrega informação semântica. Por exemplo, em embeddings de intensidade emocional, um vetor maior pode legitimamente representar emoção mais forte. Em embeddings de frequência de palavras não-normalizados, magnitude reflete prevalência, que pode ser relevante.
+
+```python
+def euclidean_distance(a, b):
+    """
+    Calcula distância euclidiana entre dois vetores.
+    Valores menores = mais similar. Range: [0, ∞)
+    """
+    return norm(a - b)
+
+# Mesmo exemplo anterior
+print(f"dist(doc1, doc2): {euclidean_distance(doc1, doc2):.4f}")  # ~0.21 (próximos)
+print(f"dist(doc1, doc3): {euclidean_distance(doc1, doc3):.4f}")  # ~1.94 (distantes)
+
+# Converter distância para similaridade (0 = idêntico, 1 = infinitamente distante)
+def distance_to_similarity(dist):
+    return 1 / (1 + dist)
+```
+
+**Distância Manhattan** (L1) é uma variante que soma diferenças absolutas ao invés de quadráticas: `manhattan(A, B) = Σ|a_i - b_i|`. Computacionalmente mais barata, mas menos usada em practice pois não tem interpretação geométrica clara em espaços de alta dimensão.
+
+### Produto Interno (Dot Product): Eficiência com Normalização
+
+Produto interno é simplesmente: `dot(A, B) = Σ(a_i * b_i)`. Quando vetores são L2-normalizados, produto interno é equivalente a similaridade cosseno, mas muito mais eficiente:
+
+```python
+# Com vetores normalizados, estas são equivalentes:
+cos_sim = cosine_similarity(a_normalized, b_normalized)  # Requer 2 normas + divisão
+dot_sim = np.dot(a_normalized, b_normalized)  # Apenas multiplicação e soma
+
+# Para 1M comparações, diferença de 10-20% em tempo de execução
+```
+
+Muitos sistemas de vector databases (FAISS, Pinecone) otimizam especificamente para dot product, fazendo uso de instruções SIMD (Single Instruction, Multiple Data) de CPU/GPU. Ao escolher dot product como métrica, você habilita essas otimizações.
+
+### Decisão Estratégica: Qual Métrica Usar?
+
+A escolha não é apenas técnica - ela define o comportamento do seu sistema:
+
+**Use Similaridade Cosseno (ou dot product com vetores normalizados) quando:**
+- Trabalhando com embeddings de modelos de linguagem modernos (default seguro)
+- Documentos de diferentes comprimentos devem ser comparáveis
+- Significado semântico é mais importante que features específicas
+- **Exemplo:** Busca semântica em documentação técnica
+
+**Use Distância Euclidiana quando:**
+- Magnitude dos embeddings carrega informação relevante
+- Trabalhando com embeddings não-normalizados onde escala importa
+- Em tarefas de clustering onde distância absoluta é interpretável
+- **Exemplo:** Clustering de representações de intensidade emocional
+
+**Use Manhattan quando:**
+- Necessita máxima eficiência computacional e pode sacrificar precisão
+- Trabalhando em espaços de baixa dimensão onde L1 é interpretável
+- **Exemplo:** Features numéricas esparsas ou one-hot encodings
+
+### Impacto da Normalização
+
+Normalizar embeddings (transformar para ||v|| = 1) é uma decisão com consequências profundas:
+
+```python
+def l2_normalize(v):
+    """L2 normalization: força ||v|| = 1"""
+    return v / norm(v)
+
+# Embeddings originais
+emb1 = np.array([1.0, 2.0, 3.0])  # ||emb1|| = 3.74
+emb2 = np.array([0.1, 0.2, 0.3])  # ||emb2|| = 0.37 (mesma direção, magnitude 10x menor)
+
+# Sem normalização
+print(f"dot(emb1, emb2) = {np.dot(emb1, emb2):.4f}")  # 1.4 (influenciado por magnitude)
+
+# Com normalização
+emb1_norm = l2_normalize(emb1)
+emb2_norm = l2_normalize(emb2)
+print(f"dot(emb1_norm, emb2_norm) = {np.dot(emb1_norm, emb2_norm):.4f}")  # 1.0 (idênticos)
+```
+
+Modelos modernos (Sentence Transformers com `normalize_embeddings=True`, OpenAI embeddings) frequentemente retornam vetores já normalizados. Se você fine-tunar seu próprio modelo, normalização deve ser uma escolha consciente baseada em se magnitude é semanticamente relevante em seu domínio.
 
 ## Chunking: Estratégias de Segmentação
 
-  - Por que chunking é necessário
-  - Estratégias básicas: fixed-size, sentence-based, paragraph-based
-  - Chunking semântico: usando embeddings para dividir
-  - Overlap strategies: sliding window e context preservation
-  - Tamanho ótimo de chunks por domínio
+Documentos no mundo real raramente cabem confortavelmente nas limitações técnicas de modelos de embedding. Um manual técnico de 50 páginas, um artigo científico, ou mesmo um README extenso excedem os context windows típicos de 512 tokens (BERT-base) ou 8192 tokens (modelos long-context modernos). **Chunking** - dividir documentos longos em segmentos processáveis - não é opcional, é fundamental para sistemas de produção.
+
+A qualidade do chunking impacta diretamente a eficácia da recuperação. Chunks muito grandes diluem informação relevante com contexto irrelevante, reduzindo precisão da busca. Chunks muito pequenos fragmentam conceitos relacionados, perdendo contexto necessário para compreensão. A estratégia de chunking é tão importante quanto a escolha do modelo de embedding.
+
+### Fixed-Size Chunking: Simples mas Problemático
+
+A abordagem mais ingênua divide texto em blocos de tamanho fixo - por exemplo, 512 tokens por chunk. Implementação é trivial:
+
+```python
+# Ver sandbox/chapter-06/03-chunking-strategies.py para implementações completas
+def fixed_size_chunking(text, chunk_size=512, overlap=50):
+    """
+    Divide texto em chunks de tamanho fixo.
+
+    Args:
+        text: string do documento completo
+        chunk_size: número de tokens por chunk
+        overlap: tokens compartilhados entre chunks consecutivos
+    """
+    tokens = tokenizer.encode(text)
+    chunks = []
+
+    for i in range(0, len(tokens), chunk_size - overlap):
+        chunk_tokens = tokens[i:i + chunk_size]
+        chunks.append(tokenizer.decode(chunk_tokens))
+
+    return chunks
+```
+
+O parâmetro `overlap` é crucial - sem ele, informação que cruza boundary entre chunks seria perdida. Com overlap de 10-20%, um conceito que começa no fim de um chunk e termina no início do próximo aparecerá completo em pelo menos um chunk.
+
+**Problemas do fixed-size:**
+- Corta sentenças e parágrafos arbitrariamente, quebrando unidades semânticas naturais
+- Tamanho ótimo varia radicalmente por domínio (código vs prosa vs listas)
+- Não considera estrutura do documento (seções, capítulos, listas)
+
+Fixed-size funciona aceitavelmente para texto altamente homogêneo (transcrições, chat logs), mas falha em documentação estruturada.
+
+### Sentence-Based Chunking: Respeitando Limites Naturais
+
+Uma melhoria significativa é dividir em boundaries de sentenças, agrupando sentenças até atingir tamanho-alvo:
+
+```python
+import nltk
+
+def sentence_based_chunking(text, target_size=500, max_size=600):
+    """
+    Agrupa sentenças em chunks respeitando boundaries naturais.
+
+    Args:
+        target_size: número-alvo de tokens por chunk
+        max_size: máximo absoluto antes de forçar split
+    """
+    sentences = nltk.sent_tokenize(text)
+    chunks = []
+    current_chunk = []
+    current_length = 0
+
+    for sent in sentences:
+        sent_length = len(tokenizer.encode(sent))
+
+        # Se adicionar sentença excederia max_size, finalizar chunk
+        if current_length + sent_length > max_size and current_chunk:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+            current_length = 0
+
+        current_chunk.append(sent)
+        current_length += sent_length
+
+        # Se atingiu target_size, considerar finalizar chunk
+        if current_length >= target_size:
+            chunks.append(" ".join(current_chunk))
+            current_chunk = []
+            current_length = 0
+
+    # Não esquecer último chunk
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+```
+
+Sentence-based preserva unidades semânticas completas. Uma vantagem adicional: ao recuperar um chunk relevante, você pode mostrar ao usuário texto fluido, não fragmentos cortados no meio de palavras.
+
+**Limitação importante:** Sentenças variam enormemente em comprimento. Em texto técnico com listas, uma "sentença" pode ser apenas "- NumPy", resultando em chunks minúsculos e ineficientes. Em prosa acadêmica, uma sentença pode ter 200 tokens, levando a chunks inconsistentes.
+
+### Paragraph-Based: Estrutura de Alto Nível
+
+Para documentos bem-estruturados (markdown, HTML, documentação técnica), parágrafos e seções oferecem boundaries semânticos ainda mais fortes:
+
+```python
+def paragraph_based_chunking(text, target_size=500):
+    """
+    Chunking baseado em parágrafos (separados por \n\n).
+    Agrupa parágrafos pequenos, divide grandes.
+    """
+    paragraphs = text.split('\n\n')
+    chunks = []
+    current_chunk = []
+    current_length = 0
+
+    for para in paragraphs:
+        para_length = len(tokenizer.encode(para))
+
+        # Parágrafo único muito grande: split em sentenças
+        if para_length > target_size * 1.5:
+            # Finalizar chunk atual se não-vazio
+            if current_chunk:
+                chunks.append('\n\n'.join(current_chunk))
+                current_chunk = []
+                current_length = 0
+
+            # Split parágrafo grande em sentenças
+            chunks.extend(sentence_based_chunking(para, target_size))
+            continue
+
+        # Adicionar parágrafo excederia target_size: finalizar chunk
+        if current_length + para_length > target_size and current_chunk:
+            chunks.append('\n\n'.join(current_chunk))
+            current_chunk = []
+            current_length = 0
+
+        current_chunk.append(para)
+        current_length += para_length
+
+    if current_chunk:
+        chunks.append('\n\n'.join(current_chunk))
+
+    return chunks
+```
+
+Paragraph-based excele em documentação técnica onde parágrafos naturalmente encapsulam conceitos completos. No entanto, requer texto bem-formatado - raw text sem estrutura clara colapsa em fixed ou sentence-based.
+
+### Semantic Chunking: Usando Embeddings para Dividir
+
+A técnica mais sofisticada usa os próprios embeddings para identificar onde conceitos mudam, cortando em transitions semânticas:
+
+```python
+from sentence_transformers import SentenceTransformer
+import numpy as np
+
+def semantic_chunking(text, model, similarity_threshold=0.7, min_chunk_size=3):
+    """
+    Divide texto quando similaridade entre sentenças consecutivas cai abaixo de threshold.
+
+    Intuição: sentenças sobre o mesmo conceito têm embeddings similares.
+    Quando similaridade cai, provável transition para novo tópico.
+    """
+    sentences = nltk.sent_tokenize(text)
+    embeddings = model.encode(sentences)
+
+    chunks = []
+    current_chunk = [sentences[0]]
+
+    for i in range(1, len(sentences)):
+        # Similaridade entre sentença atual e anterior
+        similarity = np.dot(embeddings[i], embeddings[i-1])
+
+        # Se similaridade alta, ainda no mesmo conceito
+        if similarity >= similarity_threshold:
+            current_chunk.append(sentences[i])
+        else:
+            # Similaridade baixa = novo conceito
+            if len(current_chunk) >= min_chunk_size:
+                chunks.append(" ".join(current_chunk))
+                current_chunk = [sentences[i]]
+            else:
+                # Chunk muito pequeno, forçar continuar
+                current_chunk.append(sentences[i])
+
+    if current_chunk:
+        chunks.append(" ".join(current_chunk))
+
+    return chunks
+```
+
+Semantic chunking é computacionalmente mais caro (requer embedding de todas as sentenças), mas pode significativamente melhorar qualidade em textos que discutem múltiplos tópicos não-relacionados. É particularmente eficaz em transcrições de reuniões ou artigos de blog que cobrem várias ideias.
+
+### Overlap Strategies: Preservando Contexto
+
+Independente da estratégia base, **overlap entre chunks** é crítico para capturar informação que cruza boundaries:
+
+**Sliding Window:** O chunk N+1 inicia X tokens antes do fim do chunk N. Overlap fixo em tokens ou sentenças.
+
+**Contextual Overlap:** Chunks incluem 1-2 sentenças do chunk anterior como contexto, explicitamente marcadas. Útil quando gerando summaries ou quando LLM processará chunk com contexto.
+
+```python
+def add_contextual_overlap(chunks, num_context_sentences=1):
+    """Adiciona sentenças finais do chunk anterior como contexto."""
+    overlapped_chunks = [chunks[0]]  # Primeiro chunk sem contexto anterior
+
+    for i in range(1, len(chunks)):
+        prev_sentences = nltk.sent_tokenize(chunks[i-1])
+        context = " ".join(prev_sentences[-num_context_sentences:])
+        overlapped_chunks.append(f"[Contexto: {context}]\n\n{chunks[i]}")
+
+    return overlapped_chunks
+```
+
+Overlap típico de 10-20% duplica armazenamento, mas melhora recall (probabilidade de encontrar informação relevante) em 15-25% conforme estudos empíricos.
+
+### Tamanho Ótimo por Domínio
+
+Não existe um tamanho universal ótimo - depende profundamente do domínio e tipo de queries:
+
+| Domínio | Tamanho Recomendado | Estratégia | Razão |
+|---------|---------------------|-----------|--------|
+| Código-fonte | 100-200 tokens | Paragraph (função/classe) | Funções completas como unidades |
+| Documentação técnica | 400-600 tokens | Paragraph + Sentence | Balanceia seções completas vs. contexto |
+| Artigos científicos | 500-800 tokens | Semantic | Parágrafos conceituais naturais |
+| FAQs/Q&A | 200-400 tokens | Sentence (1-3 sentenças) | Respostas são naturalmente concisas |
+| Transcrições/Chat | 300-500 tokens | Semantic | Detecta mudanças de tópico |
+| Documentação legal | 600-1000 tokens | Paragraph (cláusula completa) | Contexto legal requer completude |
+
+Experimentação é essencial. O método ideal frequentemente é híbrido: paragraph-based com fallback para sentence-based em parágrafos grandes, mais overlap contextual de 15%.
 
 ## Vector Databases: Fundamentos
 
-  - O problema de busca em alta dimensionalidade
-  - FAISS: Facebook AI Similarity Search (conceitos básicos)
-  - Pinecone, Weaviate, Chroma, Qdrant: overview
-  - Indexação: flat vs. approximate nearest neighbors (ANN)
-  - HNSW (Hierarchical Navigable Small World) - intuição
+### O Problema da Curse of Dimensionality
+
+Buscar os k vetores mais similares em um conjunto de embeddings parece trivial: calcular distância/similaridade entre a query e cada documento, ordenar, retornar os top-k. Essa abordagem "brute-force" funciona perfeitamente para 1.000 documentos. Para 1 milhão? Cada query requer 1 milhão de comparações vetoriais - inviável em latências de produção (sub-100ms).
+
+O problema se agrava em alta dimensionalidade. Em 768 dimensões, cada comparação é 768 multiplicações e somas. Para 1M documentos × 768 dims = 768 milhões de operações por query. Mesmo com otimizações SIMD, isso leva centenas de milissegundos.
+
+**Vector databases** resolvem esse problema através de estruturas de indexação especializadas que trocam perfeição por velocidade. Ao invés de verificar todos os vetores, elas exploram propriedades geométricas para eliminar rapidamente regiões irrelevantes do espaço, verificando apenas candidatos prováveis.
+
+### FAISS: O Padrão para Busca Vetorial
+
+FAISS (Facebook AI Similarity Search) [@johnson2019billion] é a biblioteca de busca vetorial mais estabelecida, desenvolvida pela Meta AI Research. Oferece múltiplos algoritmos de indexação, do simples ao sofisticado, permitindo otimizar precisamente o trade-off velocidade/precisão/memória para seu caso de uso.
+
+**IndexFlatL2/IndexFlatIP:** O baseline - busca exaustiva sem otimização. Garante resultados exatos, mas escala linearmente (O(n)). Útil como referência para medir qualidade de índices aproximados, ou quando n < 10K e exatidão absoluta é crítica.
+
+```python
+# Ver sandbox/chapter-06/04-faiss-search-engine.py para implementações completas
+import faiss
+import numpy as np
+
+# Criar índice flat (exato) com similaridade cosseno (Inner Product)
+dimension = 768
+index = faiss.IndexFlatIP(dimension)
+
+# Adicionar vetores normalizados (importante para IP = cosine)
+embeddings = np.random.random((10000, dimension)).astype('float32')
+faiss.normalize_L2(embeddings)  # Normalizar para L2 = 1
+index.add(embeddings)
+
+# Buscar top-5 mais similares
+query = np.random.random((1, dimension)).astype('float32')
+faiss.normalize_L2(query)
+distances, indices = index.search(query, k=5)
+```
+
+**IndexIVFFlat:** Divide o espaço vetorial em clusters (cells) usando k-means. Durante busca, primeiro identifica os n_probe clusters mais próximos da query, depois faz busca exaustiva apenas nesses clusters. Trade-off fundamental: mais n_probe = maior recall mas mais lento.
+
+```python
+# IVF com 100 clusters
+nlist = 100  # Número de clusters
+quantizer = faiss.IndexFlatIP(dimension)
+index = faiss.IndexIVFFlat(quantizer, dimension, nlist)
+
+# Treinar requer dados representativos
+index.train(embeddings)
+index.add(embeddings)
+
+# Buscar checando 10 clusters (de 100 total)
+index.nprobe = 10
+distances, indices = index.search(query, k=5)
+```
+
+Para 1M documentos com 100 clusters e nprobe=10, verificamos ~10K vetores ao invés de 1M - aceleração de 100x, com recall típico de 95-98%.
+
+**IndexHNSW:** Hierarchical Navigable Small World graphs [@malkov2018efficient] - o estado da arte em qualidade de busca aproximada. Constrói um grafo multi-camada onde cada nó (vetor) conecta-se a vizinhos próximos. Busca navega do topo (overview global) para camadas inferiores (refinamento local), convergindo rapidamente para os nearest neighbors verdadeiros.
+
+HNSW oferece recall excepcional (>99%) com velocidade sub-milissegundo, mas a um custo: o índice ocupa ~2-3x mais memória que os vetores originais, e construção é lenta (~1 hora para 100M vetores). Para produção com alto QPS (queries per second), HNSW é frequentemente a escolha ideal.
+
+### Pinecone, Weaviate, Chroma, Qdrant: Comparação Estratégica
+
+FAISS é uma biblioteca, não um banco de dados completo - não oferece persistência, sharding distribuído, ou APIs RESTful. Vector databases gerenciadas preenchem essa lacuna:
+
+**Pinecone (Managed Cloud):** Foco em simplicidade e escala. Abstrai completamente detalhes de indexação - você apenas faz upload de vetores e consulta. Escala automaticamente, suporta metadata filtering, e oferece latências consistentes. Trade-off: sem self-hosting, custos podem ser significativos ($0.08/hora para 100K vetores, $0.40 para 1M). Ideal para startups que priorizam time-to-market sobre controle.
+
+**Weaviate (Open-Source + Managed):** Arquitetura mais complexa com suporte a schema, GraphQL, e módulos de ML integrados. Permite hybrid search (vector + keyword) nativamente. Self-hostable para controle total, ou managed para conveniência. Excelente para aplicações que precisam combinar busca estruturada e semântica.
+
+**Chroma (Open-Source, Embedded):** Projetado para embeddings de LLM applications. Extremamente fácil de usar - literalmente 3 linhas de código para começar. Roda in-process (como SQLite) ou como servidor. Limitado a datasets menores (~1-10M vetores), mas perfeito para protótipos e aplicações médias. Comunidade ativa no ecossistema LangChain/LlamaIndex.
+
+**Qdrant (Open-Source + Managed):** Balance entre performance e features. Escrito em Rust para máxima eficiência, suporta filtering complexo, payloads JSON arbitrários, e sharding distribuído. API RESTful e gRPC. Comparável a Weaviate em funcionalidade, mas frequentemente mais rápido. Ótima escolha para self-hosting em produção.
+
+| Característica | FAISS | Pinecone | Weaviate | Chroma | Qdrant |
+|----------------|-------|----------|----------|--------|--------|
+| Self-hosting | Sim (lib) | Não | Sim | Sim | Sim |
+| Managed option | Não | Sim | Sim | Não | Sim |
+| Escala (vetores) | Bilhões | Milhões | Milhões | ~10M | Milhões |
+| Metadata filtering | Manual | Sim | Sim | Básico | Sim |
+| Hybrid search | Manual | Limitado | Nativo | Não | Sim |
+| Latência p99 (1M) | <1ms | <10ms | <5ms | <20ms | <3ms |
+| Curva de aprendizado | Alta | Baixa | Média | Muito baixa | Média |
+
+**Decisão estratégica:**
+- **Protótipo/MVP:** Chroma (simplicidade) ou FAISS (controle total)
+- **Produção self-hosted:** Qdrant ou Weaviate (features completas)
+- **Produção managed sem DevOps:** Pinecone (abstração total)
+- **Máxima escala (100M+):** FAISS com infraestrutura custom
 
 ## Semantic Search na Prática
 
-  - Pipeline completo: texto → embedding → search → ranking
-  - Implementação básica com FAISS
-  - Re-ranking: combinando busca vetorial com keyword search
-  - Hybrid search: BM25 + embeddings
-  - Avaliação: precision, recall, MRR, NDCG
+A construção de um sistema de semantic search robusto requer mais que apenas embeddings e um vector database - é necessário um pipeline completo que lida com chunking, indexação, retrieval, e re-ranking. Vejamos a arquitetura end-to-end:
+
+### Pipeline Completo: Da Ingestão ao Resultado
+
+```python
+# Ver sandbox/chapter-06/04-faiss-search-engine.py para implementação completa
+class SemanticSearchEngine:
+    """Pipeline completo de semantic search."""
+
+    def __init__(self, model_name='all-mpnet-base-v2'):
+        self.model = SentenceTransformer(model_name)
+        self.dimension = self.model.get_sentence_embedding_dimension()
+        self.index = None
+        self.chunks = []
+        self.metadata = []
+
+    def index_documents(self, documents, chunk_strategy='paragraph'):
+        """
+        Fase 1: Ingestão e Indexação
+        1. Chunkar documentos
+        2. Gerar embeddings
+        3. Construir índice FAISS
+        """
+        for doc_id, doc in enumerate(documents):
+            chunks = self.chunk_document(doc, strategy=chunk_strategy)
+
+            for chunk_id, chunk in enumerate(chunks):
+                self.chunks.append(chunk)
+                self.metadata.append({
+                    'doc_id': doc_id,
+                    'chunk_id': chunk_id,
+                    'source': doc.get('source', 'unknown')
+                })
+
+        # Gerar embeddings em batch para eficiência
+        embeddings = self.model.encode(
+            self.chunks,
+            batch_size=32,
+            show_progress_bar=True,
+            normalize_embeddings=True
+        )
+
+        # Construir índice HNSW para baixa latência
+        self.index = faiss.IndexHNSWFlat(self.dimension, 32)
+        self.index.add(embeddings.astype('float32'))
+
+    def search(self, query, top_k=5):
+        """
+        Fase 2: Retrieval
+        1. Embedding da query
+        2. Busca aproximada no índice
+        3. Retornar chunks mais relevantes
+        """
+        query_embedding = self.model.encode(
+            [query],
+            normalize_embeddings=True
+        ).astype('float32')
+
+        distances, indices = self.index.search(query_embedding, top_k)
+
+        results = []
+        for dist, idx in zip(distances[0], indices[0]):
+            results.append({
+                'chunk': self.chunks[idx],
+                'score': float(dist),  # Similaridade cosseno
+                'metadata': self.metadata[idx]
+            })
+
+        return results
+```
+
+### Hybrid Search: Combinando Vetores e Keywords
+
+Semantic search sozinho pode falhar em queries que requerem matches exatos - por exemplo, buscar por um número de modelo específico "GPT-4" ou um termo técnico preciso como "HNSW". **Hybrid search** combina busca semântica (embeddings) com busca léxica (BM25), capturando ambos significado e precisão lexical.
+
+BM25 [@robertson2009probabilistic] é uma função de ranking probabilística que pontua documentos baseado em term frequency e document frequency:
+
+```python
+# Ver sandbox/chapter-06/05-hybrid-search.py para implementação completa
+from rank_bm25 import BM25Okapi
+import numpy as np
+
+class HybridSearchEngine(SemanticSearchEngine):
+    """Combina semantic search (embeddings) com keyword search (BM25)."""
+
+    def index_documents(self, documents, chunk_strategy='paragraph'):
+        # Indexação vetorial (herda da classe pai)
+        super().index_documents(documents, chunk_strategy)
+
+        # Indexação BM25
+        tokenized_chunks = [chunk.lower().split() for chunk in self.chunks]
+        self.bm25 = BM25Okapi(tokenized_chunks)
+
+    def hybrid_search(self, query, top_k=10, alpha=0.5):
+        """
+        alpha controla o peso: 1.0 = só semantic, 0.0 = só BM25
+        """
+        # Busca semântica (retorna similaridade cosseno [0, 1])
+        semantic_results = self.search(query, top_k=top_k * 2)
+
+        # Busca BM25 (retorna scores não-normalizados)
+        bm25_scores = self.bm25.get_scores(query.lower().split())
+
+        # Normalizar BM25 scores para [0, 1]
+        if max(bm25_scores) > 0:
+            bm25_scores = bm25_scores / max(bm25_scores)
+
+        # Combinar scores
+        combined_scores = {}
+        for result in semantic_results:
+            idx = self.chunks.index(result['chunk'])
+            semantic_score = result['score']
+            bm25_score = bm25_scores[idx]
+
+            combined_scores[idx] = alpha * semantic_score + (1 - alpha) * bm25_score
+
+        # Ordenar por score combinado
+        ranked_indices = sorted(combined_scores.items(),
+                                key=lambda x: x[1],
+                                reverse=True)[:top_k]
+
+        return [{'chunk': self.chunks[idx],
+                 'score': score,
+                 'metadata': self.metadata[idx]}
+                for idx, score in ranked_indices]
+```
+
+Em benchmarks práticos, hybrid search com alpha=0.7 (70% semantic, 30% BM25) tipicamente supera busca puramente semântica em 10-15 pontos percentuais em precision@5.
+
+### Avaliação: Métricas Que Importam
+
+**Precision@K:** Dos K documentos retornados, quantos são relevantes? `Precision@5 = 4/5 = 0.8` se 4 dos top-5 são relevantes. Crítico quando usuário vê apenas primeiros resultados.
+
+**Recall@K:** Dos documentos relevantes totais, quantos foram capturados nos top-K? Se existem 10 documentos relevantes e retornamos 6 deles nos top-20, `Recall@20 = 6/10 = 0.6`. Importante quando precisamos garantir não perder informação crítica.
+
+**MRR (Mean Reciprocal Rank):** Mede quão cedo o primeiro resultado relevante aparece. Se primeira resposta relevante está na posição 3, `RR = 1/3 = 0.33`. Média através de múltiplas queries. Útil para Q&A onde usuário espera resposta imediata.
+
+**NDCG (Normalized Discounted Cumulative Gain):** Considera tanto relevância quanto posição, com desconto logarítmico para posições mais baixas. Permite relevância gradual (muito relevante vs. parcialmente relevante). Gold standard para avaliação de ranking [@jarvelin2002cumulated].
+
+```python
+from sklearn.metrics import ndcg_score
+
+def evaluate_search_system(search_engine, test_queries, ground_truth):
+    """
+    test_queries: lista de queries
+    ground_truth: dict {query_id: [list of relevant doc_ids]}
+    """
+    all_ndcg = []
+    all_precision_at_5 = []
+
+    for query_id, query in enumerate(test_queries):
+        results = search_engine.search(query, top_k=10)
+        retrieved_doc_ids = [r['metadata']['doc_id'] for r in results]
+        relevant_doc_ids = ground_truth[query_id]
+
+        # Precision@5
+        relevant_in_top5 = len(set(retrieved_doc_ids[:5]) & set(relevant_doc_ids))
+        all_precision_at_5.append(relevant_in_top5 / 5.0)
+
+        # NDCG
+        # Criar relevance scores: 1 se relevante, 0 se não
+        true_relevance = [1 if doc_id in relevant_doc_ids else 0
+                          for doc_id in retrieved_doc_ids]
+        predicted_relevance = list(range(len(true_relevance), 0, -1))  # Posição como score
+
+        ndcg = ndcg_score([true_relevance], [predicted_relevance])
+        all_ndcg.append(ndcg)
+
+    return {
+        'mean_precision_at_5': np.mean(all_precision_at_5),
+        'mean_ndcg': np.mean(all_ndcg)
+    }
+```
+
+Para sistemas de produção, meta mínima é Precision@5 > 0.7 e NDCG > 0.6. Sistemas de alta qualidade atingem Precision@5 > 0.85.
 
 ## Fine-tuning de Embeddings
 
-  - Quando fazer fine-tuning de embeddings
-  - Contrastive learning: triplet loss e InfoNCE
-  - Domain adaptation para embeddings
-  - Few-shot fine-tuning com synthetic data
-  - Avaliação de qualidade: benchmark datasets
+Modelos de embedding pré-treinados como Sentence Transformers são surpreendentemente eficazes em domínios gerais, mas podem falhar em terminologia highly-specialized. Documentação médica, jurídica, ou técnicas de nicho frequentemente contêm jargão e relações semânticas que modelos gerais nunca viram durante treinamento. **Fine-tuning** adapta embeddings para seu domínio específico.
+
+### Quando Vale a Pena Fine-Tunar?
+
+Fine-tuning requer esforço significativo - coleta de dados, treinamento, validação. Considere quando:
+
+**Vale a pena:**
+- Domínio altamente especializado com vocabulário único (medicina, lei, finanças)
+- Performance de embeddings gerais está abaixo de requisitos (Precision@5 < 0.65)
+- Possui ou pode gerar 10K+ exemplos de pares (query, documento relevante)
+- Melhoria de 10-15% em métricas justifica custo de desenvolvimento
+
+**Não vale a pena:**
+- Domínio geral (notícias, e-commerce, suporte ao cliente)
+- Dataset < 5K exemplos (overfitting inevitável)
+- Embeddings gerais já atingem > 0.75 Precision@5
+- Recursos limitados - foque em chunking e hybrid search primeiro
+
+### Contrastive Learning: A Base do Fine-Tuning
+
+A técnica dominante para fine-tuning de embeddings é **contrastive learning** [@chen2020simple] - treinar o modelo para aproximar embeddings de pares positivos (semanticamente similares) e afastar pares negativos (dissimilares).
+
+**Triplet Loss:** A loss function clássica opera em triplets (anchor, positive, negative):
+
+```
+L = max(0, margin + d(anchor, positive) - d(anchor, negative))
+```
+
+Intuitivamente: queremos que a distância anchor→positive seja menor que anchor→negative por pelo menos `margin`. Se isso já é verdade, loss = 0. Se não, loss cresce proporcionalmente à violação.
+
+```python
+# Ver sandbox/chapter-06/06-embedding-fine-tuning.py
+from sentence_transformers import SentenceTransformer, losses, InputExample
+from torch.utils.data import DataLoader
+
+# Criar training examples no formato triplet
+train_examples = [
+    InputExample(texts=['query sobre Python', 'Documentação de Python', 'Receita de bolo']),
+    # anchor, positive, negative
+]
+
+model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# Triplet loss com margin=1.0
+train_dataloader = DataLoader(train_examples, shuffle=True, batch_size=16)
+train_loss = losses.TripletLoss(model=model, distance_metric=losses.TripletDistanceMetric.COSINE, triplet_margin=1.0)
+
+# Fine-tune
+model.fit(
+    train_objectives=[(train_dataloader, train_loss)],
+    epochs=3,
+    warmup_steps=100
+)
+```
+
+**InfoNCE Loss** [@oord2018representation]: Uma generalização mais moderna e eficaz. Ao invés de apenas um negative, considera múltiplos negatives simultaneamente, forçando o modelo a distinguir o positive correto entre muitos distractors:
+
+```python
+# Mais eficaz: MultipleNegativesRankingLoss (implementa InfoNCE)
+train_examples_pairs = [
+    InputExample(texts=['query', 'documento relevante']),
+    # Negativos são criados automaticamente do batch
+]
+
+train_loss = losses.MultipleNegativesRankingLoss(model=model)
+```
+
+Com batch size de 64, cada exemplo vê 63 negatives automaticamente - muito mais eficiente que construir triplets manualmente.
+
+### Few-Shot Fine-Tuning com Dados Sintéticos
+
+O maior obstáculo ao fine-tuning é coleta de dados de treinamento. **Synthetic data generation** com LLMs resolve isso. A técnica: usar um LLM forte (GPT-4) para gerar queries sintéticas dado um documento:
+
+```python
+def generate_synthetic_queries(document, num_queries=5):
+    """Usa LLM para gerar queries que o documento responderia."""
+    prompt = f"""
+    Documento: {document}
+
+    Gere {num_queries} perguntas ou buscas diferentes que um usuário faria
+    para encontrar este documento. Varie o nível de especificidade.
+    """
+
+    response = llm.generate(prompt, temperature=0.7)
+    queries = parse_queries(response)  # Parse lista de queries
+
+    return [(query, document) for query in queries]
+```
+
+Com 1000 documentos gerando 5 queries cada = 5000 pares de treino sintéticos. Estudos mostram que fine-tuning com synthetic data atinge 80-90% da performance de dados reais [@dai2023promptagator], a fração do custo.
+
+### Avaliação: Medir Melhoria
+
+Após fine-tuning, é crítico validar melhoria em held-out test set antes de deploy:
+
+```python
+def compare_models(baseline_model, finetuned_model, test_queries, ground_truth):
+    """Compara baseline vs fine-tuned em métricas chave."""
+
+    baseline_results = evaluate_on_testset(baseline_model, test_queries, ground_truth)
+    finetuned_results = evaluate_on_testset(finetuned_model, test_queries, ground_truth)
+
+    print(f"Baseline - Precision@5: {baseline_results['p@5']:.3f}, NDCG: {baseline_results['ndcg']:.3f}")
+    print(f"Fine-tuned - Precision@5: {finetuned_results['p@5']:.3f}, NDCG: {finetuned_results['ndcg']:.3f}")
+    print(f"Melhoria relativa: {((finetuned_results['p@5'] - baseline_results['p@5']) / baseline_results['p@5'] * 100):.1f}%")
+```
+
+Meta: melhoria de >10% em Precision@5 para justificar complexidade adicional de manter modelo custom.
 
 ## Embeddings em Sistemas de Agentes
 
-  - RAG (Retrieval-Augmented Generation): preview do conceito
-  - Memory systems: armazenamento de contexto longo
-  - Tool retrieval: seleção dinâmica de ferramentas
-  - Multi-modal embeddings: texto + imagem (CLIP)
-  - Embeddings para classification e routing
+Embeddings são a tecnologia foundational que viabiliza agentes inteligentes modernos. Enquanto este capítulo focou em fundamentos técnicos, vejamos brevemente como embeddings se integram em arquiteturas de agentes - conceitos que exploraremos profundamente na Parte II do livro.
+
+### RAG: Expandindo Conhecimento Além do Treinamento
+
+Retrieval-Augmented Generation [@lewis2020retrieval] resolve uma limitação fundamental de LLMs: conhecimento estático congelado no momento do treinamento. RAG permite que agentes acessem documentos externos dinamicamente, expandindo seu conhecimento para incluir informação proprietária, atualizada, ou específica de domínio.
+
+O pipeline RAG combina tudo que aprendemos neste capítulo:
+1. **Indexação offline:** Documentos → chunking → embeddings → vector database
+2. **Retrieval online:** Query do usuário → embedding → busca vetorial → top-k chunks relevantes
+3. **Augmentation:** Injetar chunks recuperados no prompt do LLM
+4. **Generation:** LLM gera resposta fundamentada nos documentos recuperados
+
+```python
+def rag_agent(user_query, search_engine, llm):
+    """Agente RAG básico: recupera contexto relevante e gera resposta."""
+
+    # Recuperar documentos relevantes
+    relevant_chunks = search_engine.search(user_query, top_k=3)
+    context = "\n\n".join([chunk['chunk'] for chunk in relevant_chunks])
+
+    # Construir prompt com contexto recuperado
+    prompt = f"""
+    Baseado nos seguintes documentos, responda a pergunta do usuário.
+    Se a resposta não está nos documentos, diga que não sabe.
+
+    Documentos:
+    {context}
+
+    Pergunta: {user_query}
+
+    Resposta:
+    """
+
+    response = llm.generate(prompt, temperature=0.3)
+    return response, relevant_chunks  # Retornar sources para transparência
+```
+
+RAG é a arquitetura dominante para assistentes de documentação, chatbots corporativos, e sistemas de Q&A especializados. Exploraremos implementações avançadas no Capítulo 7.
+
+### Memory Systems: Contexto Longo via Embeddings
+
+LLMs têm context windows limitados (4K-128K tokens). Para conversas longas ou agentes que operam durante dias, **memory systems** usam embeddings para armazenar e recuperar contexto histórico relevante seletivamente.
+
+A arquitetura típica mantém dois tipos de memória:
+- **Working memory:** Últimas N turns da conversa (sempre no context window)
+- **Long-term memory:** Histórico completo embedado em vector database
+
+Quando contexto excede limit, o agente busca memories relevantes na long-term memory baseado na query atual, trazendo apenas informação pertinente para o context window.
+
+### Tool Retrieval: Seleção Dinâmica em Toolkits Grandes
+
+Agentes com acesso a centenas de ferramentas (APIs, funções) enfrentam um problema: descrever todas as tools no prompt excede o context window. **Tool retrieval** usa embeddings de descrições de ferramentas para selecionar dinamicamente apenas as relevantes para a task atual [@schick2023toolformer].
+
+```python
+# Indexar ferramentas por suas descrições
+tool_descriptions = {
+    "get_weather": "Retorna previsão do tempo para uma cidade",
+    "send_email": "Envia email para destinatário com subject e body",
+    "search_database": "Busca registros no banco de dados SQL",
+    # ... centenas mais
+}
+
+# Embedding das descrições
+tool_embeddings = model.encode(list(tool_descriptions.values()))
+
+# Para cada task, recuperar top-5 tools mais relevantes
+user_task = "Qual a previsão para São Paulo amanhã?"
+task_embedding = model.encode([user_task])
+distances, indices = index.search(task_embedding, k=5)
+
+relevant_tools = [list(tool_descriptions.keys())[i] for i in indices[0]]
+# ["get_weather", "search_location", ...]
+```
+
+Essa abordagem escala para thousands de tools, mantendo context window gerenciável.
+
+### Multi-Modal Embeddings: Além de Texto
+
+CLIP [@radford2021learning] e modelos similares criam embeddings compartilhados entre texto e imagens - uma foto de gato e o texto "gato" têm embeddings próximos. Isso viabiliza busca cross-modal: buscar imagens usando descrições textuais, ou vice-versa.
+
+Para agentes multi-modais que analisam documentos com figuras, dashboards, ou interfaces visuais, embeddings multi-modais permitem raciocínio unificado sobre informação textual e visual.
+
+### Classification e Routing: Eficiência via Embeddings
+
+Em sistemas multi-agente (Capítulo 12), embeddings facilitam routing eficiente de queries para agentes especializados. Ao invés de chamar todos os agentes, o router usa embeddings para identificar qual especialista é mais adequado para cada query, economizando latência e custo.
+
+Embeddings também viabilizam zero-shot classification: classificar exemplos em categorias nunca vistas durante treinamento, simplesmente medindo similaridade entre embedding do exemplo e embeddings das descrições das categorias.
+
+**Esses conceitos são teasers da Parte II**, onde construiremos agentes completos que orquestram todas essas técnicas. Embeddings são a cola que conecta LLMs a conhecimento externo, memória, ferramentas, e percepção multi-modal - transformando modelos estáticos em agentes verdadeiramente inteligentes e adaptativos.
 
 ## Exercícios Práticos
 
 ### Exercício 1: Semantic Search Engine
 
+Implemente um semantic search engine completo usando FAISS e Sentence Transformers. Use o dataset `book/datasets/documents_for_search.jsonl` contendo documentação técnica.
+
+**Requisitos:**
+- Implementar chunking paragraph-based com overlap de 15%
+- Indexar usando FAISS IndexHNSWFlat
+- Interface de busca que retorna top-5 resultados com scores
+- Avaliar com `book/datasets/query_relevance_pairs.jsonl` (Precision@5 e NDCG)
+
+**Código base:** `book/sandbox/chapter-06/04-faiss-search-engine.py`
+
+**Meta de performance:** Precision@5 > 0.70
+
 ### Exercício 2: Custom Embedding Fine-tuning
 
+Fine-tune um modelo Sentence Transformer em um domínio específico usando dados sintéticos.
+
+**Requisitos:**
+- Gerar 1000+ query-document pairs sintéticos usando LLM
+- Treinar com MultipleNegativesRankingLoss por 3 epochs
+- Comparar baseline vs fine-tuned model no mesmo test set
+- Documentar melhoria em métricas
+
+**Código base:** `book/sandbox/chapter-06/06-embedding-fine-tuning.py`
+**Dataset:** `book/datasets/embedding_training_triplets.jsonl`
+
+**Meta:** >10% melhoria relativa em Precision@5
+
 ### Exercício 3: Hybrid Search Implementation
+
+Implemente hybrid search combinando busca semântica (FAISS) com keyword search (BM25).
+
+**Requisitos:**
+- Implementar classe `HybridSearchEngine`
+- Experimentar com alpha=[0.5, 0.7, 0.9] (peso semantic vs BM25)
+- Comparar puramente semantic vs hybrid em test set
+- Identificar queries onde hybrid supera semantic significantly
+
+**Código base:** `book/sandbox/chapter-06/05-hybrid-search.py`
+
+**Insight esperado:** Queries com nomes próprios ou termos técnicos específicos beneficiam mais de hybrid search.
 
 ## Conclusão
 

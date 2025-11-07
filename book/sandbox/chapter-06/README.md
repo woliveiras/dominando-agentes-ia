@@ -64,27 +64,145 @@ export OPENAI_API_KEY="sk-..."
 echo $OPENAI_API_KEY
 ```
 
-## 📝 Exemplos (Em Desenvolvimento)
+## 📝 Exemplos Práticos
 
-Este capítulo está em desenvolvimento ativo. Os seguintes exemplos serão adicionados:
+### 01-embedding-comparison.py ✅
+**Status**: Implementado
 
-### 01-basic-embeddings.py
-Introdução a embeddings com Sentence Transformers e OpenAI.
+Compara diferentes modelos de embedding e pooling strategies:
+- Sentence Transformers vs BERT vanilla
+- CLS pooling vs Mean pooling vs Max pooling
+- Aritmética vetorial (vec(rei) - vec(homem) + vec(mulher) ≈ vec(rainha))
+- Benchmark de modelos (dimensão, latência, qualidade)
 
-### 02-similarity-metrics.py
-Comparação de diferentes métricas de similaridade.
+**Como executar**:
+```bash
+uv pip install sentence-transformers transformers torch numpy
+python 01-embedding-comparison.py
+```
 
-### 03-chunking-strategies.py
-Implementação de diferentes estratégias de segmentação de documentos.
+### 02-similarity-metrics.py ✅
+**Status**: Implementado
 
-### 04-faiss-semantic-search.py
-Busca semântica com FAISS (indexação flat e ANN).
+Demonstra métricas de similaridade:
+- Similaridade cosseno vs distância euclidiana vs Manhattan
+- Impacto da normalização L2
+- Otimização: dot product para vetores normalizados
+- Guia de decisão: qual métrica usar
+- Exemplo prático de semantic search
 
-### 05-hybrid-search.py
-Combinação de BM25 (keyword search) + embeddings.
+**Como executar**:
+```bash
+uv pip install sentence-transformers numpy
+python 02-similarity-metrics.py
+```
 
-### 06-fine-tune-embeddings.py
-Fine-tuning de embeddings para domínio específico.
+### 03-chunking-strategies.py ✅
+**Status**: Implementado
+
+Implementa e compara estratégias de chunking:
+- Fixed-size chunking (com overlap)
+- Sentence-based chunking
+- Paragraph-based chunking
+- Semantic chunking (usando embeddings)
+- Contextual overlap entre chunks
+- Recomendações por domínio
+
+**Como executar**:
+```bash
+uv pip install nltk sentence-transformers transformers numpy
+python 03-chunking-strategies.py
+```
+
+### 04-faiss-search-engine.py ✅
+**Status**: Implementado
+
+Pipeline completo de semantic search com FAISS:
+- Classe `SemanticSearchEngine` com indexação e busca
+- Indexação HNSW para baixa latência
+- Chunking configurável
+- Avaliação com métricas (Precision@5, NDCG)
+- Demonstração com documentos técnicos
+
+**Como executar**:
+```bash
+uv pip install faiss-cpu sentence-transformers nltk scikit-learn numpy
+python 04-faiss-search-engine.py
+```
+
+### 05-hybrid-search.py ✅
+**Status**: Implementado
+
+Hybrid search combinando semantic + keyword search:
+- Classe `HybridSearchEngine`
+- Busca semântica (FAISS) + BM25
+- Parâmetro alpha para balancear semantic vs keyword
+- Comparação de métodos puros vs híbrido
+- Demonstração com queries específicas
+
+**Como executar**:
+```bash
+uv pip install faiss-cpu sentence-transformers rank-bm25 numpy
+python 05-hybrid-search.py
+```
+
+### 06-embedding-fine-tuning.py ✅
+**Status**: Implementado
+
+Fine-tuning de embeddings com contrastive learning:
+- MultipleNegativesRankingLoss (InfoNCE) - recomendado
+- TripletLoss (método clássico)
+- Comparação baseline vs fine-tuned
+- Recomendações para produção
+- Exemplo com synthetic data
+
+**Como executar**:
+```bash
+uv pip install sentence-transformers torch numpy
+python 06-embedding-fine-tuning.py
+```
+
+## 📊 Datasets Necessários
+
+Os seguintes datasets devem ser criados em `book/datasets/` para os exercícios práticos:
+
+### documents_for_search.jsonl
+**Formato**: Uma linha por documento em JSON
+```jsonl
+{"text": "Embeddings são representações vetoriais...", "source": "doc_embeddings.md", "metadata": {"category": "fundamentos"}}
+{"text": "FAISS é uma biblioteca...", "source": "doc_faiss.md", "metadata": {"category": "tools"}}
+```
+
+**Conteúdo sugerido**: 100-200 documentos sobre tópicos de IA/ML:
+- Fundamentos de embeddings
+- Vector databases (FAISS, Pinecone, etc.)
+- Chunking strategies
+- Machine learning concepts
+- LLMs e agentes
+
+### query_relevance_pairs.jsonl
+**Formato**: Pares de query e documentos relevantes
+```jsonl
+{"query": "Como funciona FAISS?", "relevant_doc_ids": [1, 5], "difficulty": "medium"}
+{"query": "O que são embeddings?", "relevant_doc_ids": [0], "difficulty": "easy"}
+```
+
+**Conteúdo sugerido**: 50+ pares de query-relevance para avaliação:
+- Queries factuais ("O que é X?")
+- Queries conceituais ("Como funciona Y?")
+- Queries comparativas ("Diferença entre X e Y?")
+
+### embedding_training_triplets.jsonl
+**Formato**: Triplets para fine-tuning (anchor, positive, negative)
+```jsonl
+{"anchor": "Como usar embeddings?", "positive": "Embeddings são representações vetoriais de texto...", "negative": "Receitas de culinária italiana"}
+{"anchor": "Tutorial FAISS", "positive": "FAISS oferece busca vetorial eficiente...", "negative": "Gatos são animais domésticos"}
+```
+
+**Conteúdo sugerido**: 1000+ triplets para fine-tuning:
+- Pares positivos: queries semanticamente relacionadas
+- Negatives: documentos completamente não-relacionados
+- Balancear dificuldade (easy, medium, hard negatives)
 
 ## 🎯 Conceitos-Chave
 
@@ -354,5 +472,5 @@ Testou diferentes estratégias de chunking? Comparou vector databases?
 
 ---
 
-**Status**: 🚧 Em desenvolvimento
-**Última atualização**: 2025-01-07
+**Status**: ✅ Implementado (6 scripts Python, aguardando criação de datasets)
+**Última atualização**: 2025-11-07
