@@ -1,0 +1,5 @@
+# Sobre o autor {.unnumbered}
+
+William Oliveira é um engenheiro de Software com vasta experiência em desenvolvimento de aplicações empresariais de larga escala, autor dos livros "[O Universo da Programação](https://www.casadocodigo.com.br/products/livro-universo-programacao)", "[Navegando no universo da programação](https://www.casadocodigo.com.br/products/livro-navegando-universo)" e "[Carreira técnica no universo da programação](https://www.casadocodigo.com.br/products/livro-carreira-tecnica)", mentor e voluntário em diversos projetos e comunidades de tecnologia focadas em inclusão social. Apaixonado por desenvolvimento de software e Inteligência Artificial, tem se dedicado a estudar e aplicar técnicas de IA em projetos práticos e produtivos, com ênfase em agentes inteligentes.
+
+Você pode saber mais sobre o autor visitando seu site pessoal [em português](https://woliveiras.com.br), [em inglês](https://woliveiras.github.io/) ou seguindo-o no [LinkedIn](https://www.linkedin.com/in/william-oliveira/). Se quiser saber mais sobre agentes de IA, o site em inglês será sua melhor fonte de informações.

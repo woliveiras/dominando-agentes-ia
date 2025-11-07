@@ -4,12 +4,6 @@ Neste capítulo introdutório, apresentamos uma visão geral do livro "Dominando
 
 Lembrando que os pré-requisitos técnicos não são limitantes para o aprendizado dos conceitos apresentados, mas ajudam a contextualizar o leitor e facilitar a compreensão dos temas abordados.
 
-## Sobre o autor
-
-William Oliveira é um engenheiro de Software com vasta experiência em desenvolvimento de aplicações empresariais de larga escala, autor dos livros "[O Universo da Programação](https://www.casadocodigo.com.br/products/livro-universo-programacao)", "[Navegando no universo da programação](https://www.casadocodigo.com.br/products/livro-navegando-universo)" e "[Carreira técnica no universo da programação](https://www.casadocodigo.com.br/products/livro-carreira-tecnica)", mentor e voluntário em diversos projetos e comunidades de tecnologia focadas em inclusão social. Apaixonado por desenvolvimento de software e Inteligência Artificial, tem se dedicado a estudar e aplicar técnicas de IA em projetos práticos e produtivos, com ênfase em agentes inteligentes.
-
-Você pode saber mais sobre o autor visitando seu site pessoal [em português](https://woliveiras.com.br), [em inglês](https://woliveiras.github.io/) ou seguindo-o no [LinkedIn](https://www.linkedin.com/in/william-oliveira/). Se quiser saber mais sobre agentes de IA, o site em inglês será sua melhor fonte de informações.
-
 ## Como este livro funciona
 
 ### Objetivos e público-alvo
@@ -40,21 +34,21 @@ Para aproveitar ao máximo este livro, é recomendável que os leitores tenham:
 
 Este livro está organizado em **três partes principais**, cada uma com um propósito específico na sua jornada de aprendizado:
 
-**Parte I: Fundamentos e Componentes Base (Capítulos 1-4)**
+**Parte I: Fundamentos e Componentes Base (Capítulos 1-6)**
 
   - Estabelece a base teórica e prática necessária
-  - Foco em entender *LLMs*, *prompting* e *embeddings*
+  - Cobre arquitetura (*Transformers*), treinamento, *fine-tuning*, *prompting*, operacionalização de *LLMs* e *embeddings*
   - **Leia sequencialmente** - cada capítulo constrói sobre o anterior
-  - Essencial mesmo se você já tem experiência com IA, para entender a abordagem do autor
+  - Essencial mesmo se você já tem experiência com IA, para entender a abordagem do autor e dominar os fundamentos
 
-**Parte II: Construindo Sistemas de Agentes (Capítulos 5-8)**
+**Parte II: Construindo Sistemas de Agentes (Capítulos 7-10)**
 
   - Aplica os fundamentos em construção de agentes
   - Introduz *RAG*, *tools*, *workflows* e *comunicação entre agentes*
   - **Recomendação**: Pratique cada conceito antes de avançar
   - Os exemplos de código aqui são a essência do livro
 
-**Parte III: Arquitetura e Produção (Capítulos 9-13)**
+**Parte III: Arquitetura e Produção (Capítulos 11-15)**
 
   - Prepara seus agentes para ambientes de produção
   - Aborda arquitetura, segurança, qualidade e operações
@@ -70,23 +64,25 @@ Este livro está organizado em **três partes principais**, cada uma com um prop
 
 #### Se você é iniciante em IA:
 
-- Leia linearmente do Capítulo 1 ao 13
-- Dedique tempo extra aos capítulos 3 e 6 (prompting e tools)
+- Leia linearmente do Capítulo 1 ao 15
+- Dedique tempo extra aos Capítulos 4, 6 e 7 (*prompting*, *embeddings* e *RAG*)
 - Pratique **todos** os exemplos de código
 
 #### Se você já trabalha com *LLMs*
 
-- Revise rapidamente os Capítulos 1-2
-- Foque na Parte II (especialmente Capítulos 6-8)
+- Revise rapidamente os Capítulos 1-3
+- Foque nos Capítulos 4-6 para dominar *prompting* e *embeddings*
+- Mergulhe na Parte II (especialmente Capítulos 7-9)
 - Use a Parte III como referência para produção
 
 #### Se você quer construir um projeto específico
 
-- Leia os Capítulos 1-4 para fundamentos
+- Leia os Capítulos 1-6 para fundamentos sólidos
 - Vá direto para o capítulo relevante ao seu caso:
-  - **RAG system** → Capítulos 4, 5
-  - **Multi-agente** → Capítulos 7, 8, 9
-  - **Deploy em produção** → Capítulos 10-13
+  - **RAG system** → Capítulos 6, 7
+  - **Agentes com tools** → Capítulo 8
+  - **Multi-agente** → Capítulos 9, 10, 11
+  - **Deploy em produção** → Capítulos 12-15
 
 ### Recursos de Aprendizado
 
@@ -116,9 +112,9 @@ SEMPRE modifique e experimente o código - é assim que se aprende de verdade! Q
 
 Cada parte do livro tem objetivos claros de aprendizado. Você está pronto para avançar quando conseguir:
 
-- **Após Parte I**: Explicar como *LLMs* funcionam e criar prompts eficazes
-- **Após Parte II**: Construir um agente funcional com *tools* e memória
-- **Após Parte III**: Fazer *deploy* de um sistema multi-agentes em produção
+- **Após Parte I**: Explicar como *LLMs* funcionam, criar prompts eficazes com técnicas de *in-context learning* e *chain-of-thought*, trabalhar com *embeddings* e implementar *semantic search*
+- **Após Parte II**: Construir um agente funcional com *RAG*, *tools* e memória, orquestrar múltiplos agentes em *workflows* complexos
+- **Após Parte III**: Fazer *deploy* de um sistema multi-agentes em produção com observabilidade, segurança e qualidade garantidas
 
 ---
 

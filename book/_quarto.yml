@@ -7,8 +7,9 @@ book:
   date: ""
   chapters:
     - index.qmd
-    - chapters/00-visao-geral.qmd
-    - chapters/01-intro.qmd
+    - chapters/00-sobre-autor.qmd
+    - chapters/01-visao-geral.qmd
+    - chapters/02-intro.qmd
     - part: "Parte I: Fundamentos e Componentes Base"
       chapters:
         - chapters/part-01/01-fundamentos-transformers.qmd
