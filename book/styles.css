@@ -13,10 +13,15 @@ pre {
   overflow-x: auto;
 }
 
-
 pre, pre code, code {
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
-  padding: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+table, table.table {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
 }

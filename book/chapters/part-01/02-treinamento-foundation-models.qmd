@@ -1460,8 +1460,6 @@ Isso tem uma implicação prática: se você está fazendo fine-tuning, muitas v
 
 ## Capacidades Emergentes: Além do Treinamento
 
-**O Fenômeno da Emergência**
-
 Um dos fenômenos mais surpreendentes dos LLMs é a **emergência de capacidades que não foram explicitamente treinadas** [@wei2022emergent]. Modelos suficientemente grandes demonstram comportamentos qualitativamente novos que modelos menores simplesmente não exibem, **mesmo treinados nos mesmos dados**.
 
 Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades novas. Considere a analogia com transições de fase na física: água a 99°C e 101°C não é apenas "mais quente ou mais fria", é qualitativamente diferente (líquido vs. vapor). Similarmente, um modelo de 1B parâmetros e um de 100B não diferem apenas em "qualidade", mas em **quais tarefas conseguem realizar**.
@@ -1469,8 +1467,6 @@ Isso não é apenas "fazer a mesma coisa melhor", é desenvolver capacidades nov
 Entre as capacidades emergentes mais documentadas destacam-se: **In-Context Learning** (aprender de exemplos no prompt), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo), e **Instruction Following** (seguir instruções complexas). Estas capacidades são fundamentais para construir agentes de IA eficazes.
 
 ### In-Context Learning: Aprendizado Sem Atualizar Pesos
-
-**O que é ICL?**
 
 In-Context Learning (ICL) é a capacidade do modelo aprender novas tarefas a partir de poucos exemplos fornecidos no próprio prompt, **sem atualizar pesos do modelo** [@brown2020language]. Imagine que você mostra 3 exemplos de tradução inglês→francês no prompt, e o modelo "aprende" o padrão e traduz corretamente uma quarta frase—mesmo que nunca tenha sido explicitamente treinado para "seguir exemplos no contexto".
 
@@ -1522,9 +1518,7 @@ Veja as imagens abaixo comparando um modelo pequeno ([gemma3:270m-it-fp16](https
 
 ![Exemplo de raciocínio passo a passo em modelo grande. A resposta do modelo foi "Roger tem 5 bolas de tênis. Ele compra 2 latas, e cada lata contém 3 bolas. Quantidade comprada: \(2 \times 3 = 6\) bolas. Total agora: \(5 + 6 = 11\) bolas. **Resposta:** 11 bolas de tênis."](./images/cot-success-large.png)
 
-**Por que CoT funciona?**
-
-Duas hipóteses principais explicam o sucesso de CoT:
+Existem duas hipóteses principais que explicam o sucesso de CoT:
 
 1. **Espaço de Trabalho Intermediário**: Gerando tokens intermediários, o modelo cria "espaço para pensar" em vez de comprimir todo o raciocínio em uma única predição
 2. **Padrão de Treinamento**: Dados de treinamento incluem tutoriais, explicações matemáticas, provas—exemplos de raciocínio passo-a-passo. CoT ativa esse padrão aprendido
@@ -1535,9 +1529,7 @@ Duas hipóteses principais explicam o sucesso de CoT:
 - **SVAMP (word problems aritméticos)**: +28% de acurácia (64% → 92%)
 - **AQuA (álgebra)**: +40% de acurácia
 
-**Implicações para Agentes de IA**
-
-CoT é fundamental para agentes porque:
+No nosso contexto, na construção de agentes, CoT acaba sendo essencial para permitir que o modelo raciocine sobre planos de ação complexos.
 
 - Permite **decomposição** de tarefas complexas em etapas gerenciáveis
 - Torna o raciocínio **inspecionável** e **debugável** (essencial em produção)
@@ -1578,8 +1570,6 @@ A ciência exata da emergência ainda não é completamente compreendida, mas te
 1. **Threshold de Complexidade**: Certas tarefas requerem "circuitos" neurais de tamanho mínimo. Modelos abaixo desse threshold simplesmente não conseguem representar a lógica necessária
 2. **Composição de Habilidades Simples**: Capacidades complexas surgem da composição de padrões mais simples aprendidos durante o treinamento
 3. **Generalização em Escala**: Com mais parâmetros e dados, o modelo aprende padrões mais abstratos que generalizam para tarefas não vistas
-
-**Próximos Passos**
 
 Neste capítulo você compreendeu **o que** são capacidades emergentes e **por que** elas surgem durante o treinamento. No Capítulo 4 (Fundamentos de Prompting e Raciocínio), você dominará **como usar** essas capacidades na prática através de técnicas avançadas de prompt engineering.
 
@@ -1924,6 +1914,41 @@ print("\n💡 Observe que Code Llama tokeniza código mais eficientemente!")
 2. Como tokenizers otimizados para código diferem dos genéricos?
 3. Qual impacto isso tem em aplicações de agentes que processam código?
 
+## Conclusão
+
+Neste capítulo, exploramos os fundamentos de como foundation models são treinados, focando em quatro pilares essenciais que determinam suas capacidades:
+
+**1. Self-Supervised Learning e Métricas de Treinamento**
+
+Compreendemos como modelos aprendem através do paradigma de predição do próximo token, uma tarefa aparentemente simples que, em escala massiva, produz representações ricas de linguagem. Exploramos como medimos esse aprendizado através de loss function e perplexidade, e—criticamente—entendemos as limitações dessas métricas: perplexidade baixa não garante utilidade prática, e otimizar apenas para loss pode levar a modelos que "decoram" sem realmente compreender.
+
+**2. Dados de Pré-Treinamento: A Matéria-Prima do Conhecimento**
+
+Investigamos a composição de datasets modernos (Common Crawl, livros, código, Wikipedia) e o processo meticuloso de data cleaning que transforma petabytes de texto bruto em dados de alta qualidade. Vimos que data cleaning não é apenas um passo técnico—envolve decisões éticas complexas sobre o que incluir ou excluir, com impactos profundos nas capacidades e vieses do modelo resultante. A qualidade e diversidade dos dados de treinamento são fundamentais: "garbage in, garbage out" nunca foi tão verdadeiro quanto em foundation models.
+
+**3. Tokenização: A Camada Crítica Entre Texto e Modelo**
+
+Mergulhamos profundamente em como texto é convertido em sequências numéricas que modelos podem processar. Exploramos diferentes estratégias (tokenização por caracteres, palavras, e subword tokenization via BPE e variantes) e suas implicações práticas. Vimos como escolhas de tokenização afetam não apenas eficiência computacional, mas capacidades fundamentais do modelo: aritmética, processamento multilíngue, compreensão de código, e até mesmo custos de API. Aprendemos a treinar tokenizers customizados e avaliar sua qualidade através de métricas como fertility rate.
+
+**4. Capacidades Emergentes: O Fenômeno Surpreendente**
+
+Descobrimos que modelos suficientemente grandes desenvolvem capacidades que nunca foram explicitamente treinadas—um fenômeno chamado emergência. Exploramos três capacidades emergentes fundamentais: **In-Context Learning** (aprender de exemplos no prompt sem atualizar pesos), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo explícito), e **Instruction Following** (executar instruções complexas). Compreendemos por que essas capacidades emergem (thresholds de escala, composição de padrões aprendidos) e suas implicações para construção de agentes. No Capítulo 4, você aprenderá como usar essas capacidades na prática através de técnicas de prompt engineering.
+
+**Aplicação Prática: Por que isso importa para Agentes de IA**
+
+Este conhecimento não é puramente acadêmico—ele é essencial para construir agentes de IA eficazes:
+
+- **Seleção de Modelos**: Entender como modelos foram treinados ajuda a escolher o modelo certo para cada tarefa. Um modelo treinado predominantemente em código (Code Llama) terá capacidades diferentes de um treinado em linguagem natural geral.
+
+- **Otimização de Prompts**: Conhecer limitações de tokenização permite escrever prompts mais eficientes, reduzindo custos e latência.
+
+- **Debugging de Comportamento**: Quando um agente falha em uma tarefa, entender o processo de treinamento ajuda a diagnosticar se é uma limitação fundamental do modelo ou um problema de prompt/configuração.
+
+- **Gerenciamento de Custos**: Compreender que custos de API são baseados em tokens—e que tokenização varia entre idiomas—permite estimativas precisas de custo operacional.
+
+**Preparação para o Próximo Capítulo**
+
+Com essa fundação sólida sobre como modelos são treinados, estamos prontos para explorar como **adaptá-los** para casos de uso específicos. No próximo capítulo, mergulharemos em fine-tuning e técnicas de otimização: como pegar um modelo pré-treinado e especializá-lo para suas tarefas específicas, balanceando qualidade, custo e latência para construir agentes de IA eficientes em produção.
 
 ## Exemplos de Código Completos
 
@@ -2142,39 +2167,3 @@ print(f"Taxa de compressão: {(1 - len(duplicates)/len(docs)) * 100:.1f}%")
 - `num_perm`: Mais permutações = mais precisão, mais memória (128 é padrão)
 - `threshold`: Mais alto = apenas duplicatas muito similares (0.8-0.9 típico)
 - `num_bands`: Trade-off sensibilidade vs false positives
-
-## Conclusão
-
-Neste capítulo, exploramos os fundamentos de como foundation models são treinados, focando em quatro pilares essenciais que determinam suas capacidades:
-
-**1. Self-Supervised Learning e Métricas de Treinamento**
-
-Compreendemos como modelos aprendem através do paradigma de predição do próximo token, uma tarefa aparentemente simples que, em escala massiva, produz representações ricas de linguagem. Exploramos como medimos esse aprendizado através de loss function e perplexidade, e—criticamente—entendemos as limitações dessas métricas: perplexidade baixa não garante utilidade prática, e otimizar apenas para loss pode levar a modelos que "decoram" sem realmente compreender.
-
-**2. Dados de Pré-Treinamento: A Matéria-Prima do Conhecimento**
-
-Investigamos a composição de datasets modernos (Common Crawl, livros, código, Wikipedia) e o processo meticuloso de data cleaning que transforma petabytes de texto bruto em dados de alta qualidade. Vimos que data cleaning não é apenas um passo técnico—envolve decisões éticas complexas sobre o que incluir ou excluir, com impactos profundos nas capacidades e vieses do modelo resultante. A qualidade e diversidade dos dados de treinamento são fundamentais: "garbage in, garbage out" nunca foi tão verdadeiro quanto em foundation models.
-
-**3. Tokenização: A Camada Crítica Entre Texto e Modelo**
-
-Mergulhamos profundamente em como texto é convertido em sequências numéricas que modelos podem processar. Exploramos diferentes estratégias (tokenização por caracteres, palavras, e subword tokenization via BPE e variantes) e suas implicações práticas. Vimos como escolhas de tokenização afetam não apenas eficiência computacional, mas capacidades fundamentais do modelo: aritmética, processamento multilíngue, compreensão de código, e até mesmo custos de API. Aprendemos a treinar tokenizers customizados e avaliar sua qualidade através de métricas como fertility rate.
-
-**4. Capacidades Emergentes: O Fenômeno Surpreendente**
-
-Descobrimos que modelos suficientemente grandes desenvolvem capacidades que nunca foram explicitamente treinadas—um fenômeno chamado emergência. Exploramos três capacidades emergentes fundamentais: **In-Context Learning** (aprender de exemplos no prompt sem atualizar pesos), **Chain-of-Thought Reasoning** (raciocínio passo-a-passo explícito), e **Instruction Following** (executar instruções complexas). Compreendemos por que essas capacidades emergem (thresholds de escala, composição de padrões aprendidos) e suas implicações para construção de agentes. No Capítulo 4, você aprenderá como usar essas capacidades na prática através de técnicas de prompt engineering.
-
-**Aplicação Prática: Por que isso importa para Agentes de IA**
-
-Este conhecimento não é puramente acadêmico—ele é essencial para construir agentes de IA eficazes:
-
-- **Seleção de Modelos**: Entender como modelos foram treinados ajuda a escolher o modelo certo para cada tarefa. Um modelo treinado predominantemente em código (Code Llama) terá capacidades diferentes de um treinado em linguagem natural geral.
-
-- **Otimização de Prompts**: Conhecer limitações de tokenização permite escrever prompts mais eficientes, reduzindo custos e latência.
-
-- **Debugging de Comportamento**: Quando um agente falha em uma tarefa, entender o processo de treinamento ajuda a diagnosticar se é uma limitação fundamental do modelo ou um problema de prompt/configuração.
-
-- **Gerenciamento de Custos**: Compreender que custos de API são baseados em tokens—e que tokenização varia entre idiomas—permite estimativas precisas de custo operacional.
-
-**Preparação para o Próximo Capítulo**
-
-Com essa fundação sólida sobre como modelos são treinados, estamos prontos para explorar como **adaptá-los** para casos de uso específicos. No próximo capítulo, mergulharemos em fine-tuning e técnicas de otimização: como pegar um modelo pré-treinado e especializá-lo para suas tarefas específicas, balanceando qualidade, custo e latência para construir agentes de IA eficientes em produção.
