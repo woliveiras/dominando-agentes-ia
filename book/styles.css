@@ -8,3 +8,14 @@
   margin-top: 40px;
   margin-bottom: 40px;
 }
+
+pre {
+  overflow-x: auto;
+}
+
+
+pre, pre code {
+  white-space: pre-wrap !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+}
