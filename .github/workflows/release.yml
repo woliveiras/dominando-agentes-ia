@@ -40,11 +40,41 @@ jobs:
           export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer --disable-extensions --disable-dbus"
           export PUPPETEER_TIMEOUT=30000
 
+          # Debug: mostra configuração
+          echo "=== Configuração de ambiente ==="
+          echo "Chrome: $CHROME_BIN"
+          echo "TinyTeX: $(which pdflatex)"
+          echo "Quarto: $(quarto --version)"
+
           echo "=== Renderizando PDF ==="
-          quarto render book/ --to pdf --verbose
+          set +e
+          quarto render book/ --to pdf --verbose 2>&1 | tee /tmp/quarto-render.log
+          RENDER_EXIT=$?
+          set -e
+
+          if [ $RENDER_EXIT -ne 0 ]; then
+            echo ""
+            echo "✗ Erro no render (exit code: $RENDER_EXIT)"
+            echo "=== Últimas 50 linhas do log ==="
+            tail -50 /tmp/quarto-render.log
+            exit 1
+          fi
+          echo "✓ Renderização concluída com sucesso"
 
       - name: Verify PDF generation
         run: |
+          echo "=== Verificando arquivos gerados ==="
+
+          if [ ! -d "book/_book/" ]; then
+            echo "✗ Diretório book/_book/ não foi criado!"
+            echo "=== Últimas 100 linhas do log de renderização ==="
+            tail -100 /tmp/quarto-render.log 2>/dev/null || echo "Log não encontrado"
+            exit 1
+          fi
+
+          echo "Conteúdo de book/_book/:"
+          ls -lh book/_book/
+
           if [ ! -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
             echo "✗ PDF não foi gerado!"
             exit 1
@@ -52,6 +82,11 @@ jobs:
 
           PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
           echo "✓ PDF gerado com sucesso: $(numfmt --to=iec-i --suffix=B $PDF_SIZE)"
+
+          # Verifica tamanho mínimo (deve ter pelo menos 100KB)
+          if [ $PDF_SIZE -lt 102400 ]; then
+            echo "⚠ Aviso: PDF muito pequeno ($PDF_SIZE bytes), pode estar incompleto"
+          fi
 
       - name: Upload PDF artifact
         uses: actions/upload-artifact@v4

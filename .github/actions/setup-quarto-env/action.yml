@@ -118,7 +118,6 @@ runs:
         done
 
     - name: Test Chrome for Mermaid rendering
-      if: inputs.install-latex == 'true'
       shell: bash
       run: |
         echo "=== Testando Chrome ==="
