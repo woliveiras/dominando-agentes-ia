@@ -31,6 +31,11 @@ book:
     #     - chapters/part-03/11-seguranca-sistemas-agentes-ia.qmd
     #     - chapters/part-03/12-llmops-deployment.qmd
     #     - chapters/part-03/13-avaliacao-iteracao-agentes.qmd
+    - part: "Apêndices"
+      chapters:
+        - chapters/appendix/A-model-comparison.qmd
+        - chapters/appendix/C-glossary.qmd
+        - chapters/appendix/E-prompt-patterns.qmd
     - chapters/99-references.qmd
 
 bibliography: references.bib

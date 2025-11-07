@@ -1,0 +1,289 @@
+# Apêndice E: Padrões de Prompt {.unnumbered}
+
+Este apêndice apresenta templates e padrões de prompts testados e eficazes para diferentes casos de uso. Use como ponto de partida e adapte para suas necessidades específicas.
+
+---
+
+## Estrutura Básica de Prompts
+
+### Template Geral
+
+```
+[CONTEXTO DO SISTEMA]
+Você é um [PAPEL]. Sua especialidade é [DOMÍNIO].
+
+[INSTRUÇÕES]
+Tarefa: [DESCRIÇÃO CLARA]
+
+Requisitos:
+- [REQUISITO 1]
+- [REQUISITO 2]
+
+[EXEMPLOS - OPCIONAL]
+Exemplo 1:
+Input: [ENTRADA]
+Output: [SAÍDA]
+
+[INPUT DO USUÁRIO]
+Input: [ENTRADA ATUAL]
+
+[FORMATO DE SAÍDA]
+Output: [ESTRUTURA ESPERADA]
+```
+
+---
+
+## Padrões por Categoria
+
+### 1. Zero-Shot Prompts
+
+#### Classificação de Texto
+
+```
+Classifique o sentimento do seguinte texto em: POSITIVO, NEGATIVO, ou NEUTRO.
+
+Responda apenas com a categoria.
+
+Texto: "{texto}"
+Categoria:
+```
+
+#### Extração de Informação
+
+```
+Extraia as seguintes informações do texto:
+- Nome completo
+- Email  
+- Telefone
+- Empresa
+
+Se ausente, retorne "N/A".
+
+Texto: "{texto}"
+
+JSON:
+{
+  "nome": "",
+  "email": "",
+  "telefone": "",
+  "empresa": ""
+}
+```
+
+---
+
+### 2. Few-Shot Prompts
+
+#### Geração de Títulos
+
+```
+Gere título atraente baseado no conteúdo.
+
+Exemplo 1:
+Conteúdo: "Exploramos técnicas de otimização SQL..."
+Título: "5 Técnicas de Otimização SQL para Bancos Massivos"
+
+Exemplo 2:
+Conteúdo: "ML transformou detecção de fraude..."
+Título: "Como ML Revolucionou Detecção de Fraudes"
+
+Exemplo 3:
+Conteúdo: "{seu_conteudo}"
+Título:
+```
+
+---
+
+### 3. Chain-of-Thought (CoT)
+
+#### CoT Básico
+
+```
+Resolva passo a passo. Mostre seu raciocínio.
+
+Problema: {problema}
+
+Vamos pensar passo a passo:
+1.
+```
+
+#### CoT com Verificação
+
+```
+Resolva com raciocínio passo a passo. Ao final, verifique.
+
+Problema: {problema}
+
+Raciocínio:
+1. [Passo]
+2. [Passo]
+
+Resposta preliminar: [X]
+
+Verificação:
+- Correto? [Sim/Não]
+- Se não, erro: [Explicação]
+- Resposta corrigida: [Y]
+
+Resposta final:
+```
+
+---
+
+### 4. ReAct (Reasoning + Acting)
+
+```
+Use ferramentas disponíveis alternando entre raciocínio e ação.
+
+Ferramentas:
+- search(query): Busca internet
+- calculator(expr): Calcula
+- wikipedia(topic): Busca Wikipedia
+
+Formato:
+Thought: [Raciocínio]
+Action: [Ferramenta]
+Observation: [Resultado]
+... (repetir)
+Answer: [Resposta final]
+
+Pergunta: {pergunta}
+Thought:
+```
+
+---
+
+### 5. Structured Outputs
+
+#### JSON Schema
+
+```
+Extraia informações no formato JSON exato:
+
+Schema:
+{
+  "produto": {
+    "nome": "string",
+    "preco": "number",
+    "categoria": "string"
+  },
+  "avaliacao": {
+    "nota": "number (1-5)",
+    "comentario": "string"
+  }
+}
+
+Texto: "{texto}"
+JSON:
+```
+
+---
+
+### 6. Role-Playing
+
+#### Expert em Domínio
+
+```
+Você é professor de física com 20 anos de experiência.
+Conhecido por explicações claras com analogias.
+
+Explique para iniciante: "{conceito}"
+
+Deve:
+- Usar analogia concreta
+- Evitar jargão
+- Incluir exemplo prático
+- Terminar com pergunta de verificação
+```
+
+---
+
+## Boas Práticas
+
+### Faça
+
+1. **Seja específico**: "Liste 3 vantagens" > "Fale sobre vantagens"
+2. **Use exemplos**: Few-shot melhora consistência
+3. **Defina formato**: JSON, Markdown, etc.
+4. **Adicione contexto**: Por que importa
+5. **Itere**: Teste e refine
+
+### Evite
+
+1. **Ambiguidade**: "Descreva um pouco" → Quanto?
+2. **Suposições**: Não assuma contexto
+3. **Prompts longos**: >2000 tokens raramente ajuda
+4. **Múltiplas tarefas**: Uma tarefa clara
+5. **Imprecisão**: "Tipo", "meio que"
+
+---
+
+## Debugging de Prompts
+
+### Saída Inconsistente
+
+**Solução**: Adicione especificidade
+```
+[ANTES] "Resuma o texto"
+[DEPOIS] "Resuma em 3 frases. Máximo 20 palavras cada."
+```
+
+### Modelo Inventa Informações
+
+**Solução**: Restrinja fonte
+```
+[ADICIONE] "Baseie APENAS no texto fornecido. 
+Se ausente, diga 'Não mencionado'."
+```
+
+### Formato Não Respeitado
+
+**Solução**: Mostre exemplo
+```
+Entrada: "..."
+Saída esperada: {"campo": "valor"}
+
+Agora:
+Entrada: "{sua_entrada}"
+Saída:
+```
+
+---
+
+## Templates por Framework
+
+### LangChain
+
+```python
+from langchain.prompts import PromptTemplate
+
+template = """Você é {role}. Tarefa: {task}.
+Contexto: {context}
+Pergunta: {question}
+Resposta:"""
+
+prompt = PromptTemplate(
+    input_variables=["role", "task", "context", "question"],
+    template=template
+)
+```
+
+### OpenAI API
+
+```python
+messages = [
+    {
+        "role": "system",
+        "content": "Especialista em {domain}"
+    },
+    {
+        "role": "user",  
+        "content": "{task}: {input}"
+    }
+]
+```
+
+---
+
+**Última atualização**: 2025-01-07  
+**Padrões**: 15+ templates testados

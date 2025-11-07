@@ -1,0 +1,290 @@
+# Apêndice C: Glossário {.unnumbered}
+
+Este glossário contém definições concisas dos principais termos técnicos utilizados ao longo do livro. Os termos estão organizados alfabeticamente para facilitar a consulta rápida.
+
+---
+
+## A
+
+**Attention (Atenção)**
+: Mecanismo que permite ao modelo focar em partes relevantes da entrada ao processar cada token. Ver *Self-Attention* e *Multi-Head Attention*.
+
+**Attention Head**
+: Uma das múltiplas "cabeças" paralelas em *Multi-Head Attention*, cada uma aprendendo padrões diferentes de dependências entre tokens.
+
+**Approximate Nearest Neighbors (ANN)**
+: Algoritmos que encontram vizinhos aproximadamente mais próximos em espaços de alta dimensionalidade, sacrificando precisão perfeita por velocidade. Usado em *vector databases* para busca eficiente.
+
+---
+
+## B
+
+**BM25 (Best Matching 25)**
+: Algoritmo clássico de ranking baseado em *keyword search* que considera frequência de termos e comprimento do documento. Frequentemente combinado com *embeddings* em *hybrid search*.
+
+**BERT (Bidirectional Encoder Representations from Transformers)**
+: Modelo *encoder-only* pré-treinado bidirecional, pioneiro em representações contextualizadas. Base para muitos modelos de *embeddings*.
+
+**Bi-Encoder**
+: Arquitetura que codifica query e documentos independentemente, permitindo pré-computação de embeddings. Usado em *Sentence Transformers*.
+
+---
+
+## C
+
+**Causal Mask (Máscara Causal)**
+: Máscara de atenção que impede tokens de "verem" tokens futuros, essencial para modelos *decoder-only* como GPT.
+
+**Chain-of-Thought (CoT)**
+: Técnica de *prompting* que induz o modelo a raciocinar passo-a-passo antes de responder. Melhora performance em tarefas de raciocínio complexo.
+
+**Chunking**
+: Processo de dividir documentos longos em segmentos menores para processamento eficiente. Estratégias incluem *fixed-size*, *sentence-based*, e *semantic chunking*.
+
+**Contrastive Learning**
+: Método de treinamento que aproxima representações de exemplos similares e afasta exemplos dissimilares. Usado em *fine-tuning* de *embeddings*.
+
+**Cosine Similarity (Similaridade Cosseno)**
+: Métrica que mede similaridade entre vetores através do ângulo entre eles. Valor entre -1 e 1; quanto mais próximo de 1, mais similares.
+
+---
+
+## D
+
+**Decoder-Only**
+: Arquitetura *Transformer* que usa apenas a parte *decoder*, como GPT. Especializada em geração de texto autoregressiva.
+
+**Dense Embeddings**
+: Representações vetoriais de alta dimensionalidade onde a maioria dos valores é não-zero. Capturam significado semântico melhor que representações esparsas.
+
+**Distributed Tracing**
+: Técnica de observabilidade que rastreia requisições através de múltiplos serviços. Essencial para debugar sistemas de agentes distribuídos.
+
+---
+
+## E
+
+**Embeddings**
+: Representações vetoriais densas de texto, imagens ou outros dados que capturam significado semântico em espaço contínuo.
+
+**Encoder-Only**
+: Arquitetura *Transformer* que usa apenas a parte *encoder*, como BERT. Especializada em tarefas de compreensão e classificação.
+
+**Emergent Capabilities (Capacidades Emergentes)**
+: Habilidades que surgem em modelos grandes não explicitamente treinadas, como *In-Context Learning* e *Chain-of-Thought*. Geralmente aparecem acima de ~10B parâmetros.
+
+---
+
+## F
+
+**FAISS (Facebook AI Similarity Search)**
+: Biblioteca de busca de similaridade vetorial desenvolvida pela Meta. Suporta indexação *flat* e *ANN* para escalabilidade.
+
+**Few-Shot Learning**
+: Capacidade do modelo aprender nova tarefa a partir de poucos exemplos (tipicamente 2-10) fornecidos no *prompt*. Ver *In-Context Learning*.
+
+**Fine-Tuning**
+: Processo de adaptar modelo pré-treinado para tarefa ou domínio específico através de treinamento adicional em dataset especializado.
+
+**Foundation Model (Modelo Base)**
+: Modelo de larga escala pré-treinado em dados diversos, que serve como base para adaptação a múltiplas tarefas. Exemplos: GPT-4, Claude, Llama.
+
+---
+
+## G
+
+**GPT (Generative Pre-trained Transformer)**
+: Família de modelos *decoder-only* desenvolvidos pela OpenAI. Pioneiros em demonstrar poder de *scale* e *In-Context Learning*.
+
+---
+
+## H
+
+**HNSW (Hierarchical Navigable Small World)**
+: Algoritmo de indexação *ANN* que constrói grafo hierárquico para busca eficiente de vizinhos próximos. Usado em *vector databases* como FAISS e Qdrant.
+
+**Hybrid Search**
+: Combinação de *keyword search* (ex: BM25) com *semantic search* (embeddings) para melhor recall e precisão.
+
+---
+
+## I
+
+**In-Context Learning (ICL)**
+: Capacidade de LLMs aprenderem novas tarefas a partir de exemplos no *prompt*, sem atualizar pesos do modelo. Inclui *zero-shot*, *few-shot* e *many-shot learning*.
+
+**Instruction Tuning**
+: *Fine-tuning* especializado onde modelo aprende a seguir instruções em linguagem natural. Melhora usabilidade e alinhamento com intenções humanas.
+
+---
+
+## K
+
+**KV-Cache (Key-Value Cache)**
+: Otimização que cacheia keys e values da atenção em gerações anteriores, evitando recomputação. Reduz latência em geração autoregressiva.
+
+**Keyword Search**
+: Busca baseada em correspondência exata de palavras-chave. Complementa *semantic search* em *hybrid search*.
+
+---
+
+## L
+
+**LLM (Large Language Model)**
+: Modelo de linguagem de larga escala (tipicamente bilhões de parâmetros) treinado em grandes corpus de texto. Exemplos: GPT-4, Claude, Llama.
+
+**LLM-as-Judge**
+: Técnica de avaliação onde LLM avalia qualidade de saídas de outro LLM. Útil quando métricas automáticas são insuficientes.
+
+**Load Balancing**
+: Distribuição de requisições entre múltiplos modelos/endpoints para otimizar latência, custo e disponibilidade.
+
+**LoRA (Low-Rank Adaptation)**
+: Técnica de *fine-tuning* eficiente que treina matrizes de baixo rank ao invés de todos os pesos. Reduz drasticamente memória e custo.
+
+---
+
+## M
+
+**Many-Shot Learning**
+: Variante de *In-Context Learning* com dezenas a centenas de exemplos no *prompt*. Requer *context window* muito grande.
+
+**Multi-Head Attention**
+: Mecanismo que executa múltiplas operações de atenção em paralelo (*attention heads*), cada uma capturando padrões diferentes.
+
+**MRR (Mean Reciprocal Rank)**
+: Métrica de avaliação que mede a posição média do primeiro resultado relevante. Usado em *semantic search*.
+
+---
+
+## N
+
+**NDCG (Normalized Discounted Cumulative Gain)**
+: Métrica de ranking que considera tanto relevância quanto posição dos resultados. Valores mais altos indicam melhor ranking.
+
+---
+
+## P
+
+**PEFT (Parameter-Efficient Fine-Tuning)**
+: Família de técnicas de *fine-tuning* que atualizam apenas pequena fração dos parâmetros. Inclui *LoRA*, *Prefix Tuning*, *Adapters*.
+
+**Positional Encoding**
+: Sinal adicionado aos *embeddings* de entrada para informar ao modelo a posição de cada token na sequência.
+
+**Precision@k**
+: Proporção de resultados relevantes entre os top-k retornados. Métrica comum em *semantic search*.
+
+**Prompt Engineering**
+: Arte e ciência de desenhar *prompts* eficazes para obter comportamento desejado de LLMs. Inclui técnicas como *ICL*, *CoT*, *ReAct*.
+
+---
+
+## Q
+
+**Quantization (Quantização)**
+: Técnica de compressão que reduz precisão numérica dos pesos (ex: FP32 → INT8). Reduz memória e acelera inferência com perda mínima de qualidade.
+
+**QLoRA (Quantized LoRA)**
+: Combinação de *quantização* com *LoRA* para *fine-tuning* ultra-eficiente. Permite treinar modelos 70B em GPUs consumer.
+
+---
+
+## R
+
+**RAG (Retrieval-Augmented Generation)**
+: Técnica que combina *semantic search* com geração de LLM. Modelo primeiro recupera documentos relevantes, depois gera resposta baseada neles.
+
+**ReAct (Reasoning + Acting)**
+: Padrão que entrelaça raciocínio (*Chain-of-Thought*) com ações (uso de ferramentas). Modelo alterna entre pensar e agir.
+
+**Recall@k**
+: Proporção de documentos relevantes recuperados entre os top-k. Complementa *Precision@k* em avaliação.
+
+---
+
+## S
+
+**Self-Attention**
+: Mecanismo central do *Transformer* onde cada token "presta atenção" a todos os outros tokens (respeitando *causal mask* em decoders).
+
+**Self-Consistency**
+: Técnica que gera múltiplas cadeias de raciocínio *CoT* e usa voting majoritário para escolher resposta final. Melhora robustez.
+
+**Semantic Chunking**
+: Estratégia de *chunking* que divide documentos em fronteiras semanticamente coerentes, ao invés de tamanho fixo.
+
+**Semantic Search**
+: Busca baseada em significado semântico usando *embeddings*, ao invés de correspondência exata de palavras. Essencial para *RAG*.
+
+**Sentence Transformers (SBERT)**
+: Família de modelos baseados em BERT otimizados para gerar *embeddings* de sentenças. Usa arquitetura *bi-encoder*.
+
+---
+
+## T
+
+**Temperature**
+: Hiperparâmetro que controla aleatoriedade na geração. Valores altos (>1) = mais criativo; valores baixos (<0.5) = mais determinístico.
+
+**Tokenization**
+: Processo de dividir texto em unidades atômicas (*tokens*) processadas pelo modelo. Algoritmos comuns: BPE, WordPiece, Unigram.
+
+**Transformer**
+: Arquitetura neural baseada em *attention* que revolucionou NLP. Base de todos os LLMs modernos. Proposta por Vaswani et al. (2017).
+
+---
+
+## V
+
+**Vector Database**
+: Banco de dados especializado em armazenar e buscar *embeddings* eficientemente. Exemplos: FAISS, Pinecone, Weaviate, Chroma, Qdrant.
+
+---
+
+## Z
+
+**Zero-Shot Learning**
+: Capacidade do modelo executar tarefa sem exemplos no *prompt*, apenas com instrução em linguagem natural. Funciona bem para tarefas comuns.
+
+---
+
+## Siglas e Abreviações
+
+| Sigla | Significado | Definição |
+|-------|-------------|-----------|
+| **ANN** | Approximate Nearest Neighbors | Algoritmos de busca aproximada de vizinhos |
+| **BERT** | Bidirectional Encoder Representations from Transformers | Modelo encoder-only pré-treinado |
+| **BPE** | Byte-Pair Encoding | Algoritmo de tokenização subword |
+| **CoT** | Chain-of-Thought | Técnica de prompting com raciocínio passo-a-passo |
+| **FAISS** | Facebook AI Similarity Search | Biblioteca de busca vetorial |
+| **GPT** | Generative Pre-trained Transformer | Família de modelos decoder-only da OpenAI |
+| **HNSW** | Hierarchical Navigable Small World | Algoritmo de indexação ANN |
+| **ICL** | In-Context Learning | Aprendizado via exemplos no prompt |
+| **LoRA** | Low-Rank Adaptation | Técnica de fine-tuning eficiente |
+| **LLM** | Large Language Model | Modelo de linguagem de larga escala |
+| **MRR** | Mean Reciprocal Rank | Métrica de avaliação de ranking |
+| **NDCG** | Normalized Discounted Cumulative Gain | Métrica de qualidade de ranking |
+| **NLP** | Natural Language Processing | Processamento de Linguagem Natural |
+| **PEFT** | Parameter-Efficient Fine-Tuning | Fine-tuning eficiente em parâmetros |
+| **QLoRA** | Quantized LoRA | LoRA com quantização |
+| **RAG** | Retrieval-Augmented Generation | Geração aumentada por recuperação |
+| **SBERT** | Sentence-BERT | Sentence Transformers baseados em BERT |
+
+---
+
+## Referências Cruzadas
+
+Para mais detalhes sobre termos específicos, consulte:
+
+- **Transformers e Attention**: Capítulo 1
+- **Emergent Capabilities, ICL, CoT**: Capítulos 2 e 4
+- **Fine-Tuning, LoRA, PEFT**: Capítulo 3
+- **Prompting Techniques**: Capítulo 4
+- **Load Balancing, Observability**: Capítulo 5
+- **Embeddings, Vector Databases, Semantic Search**: Capítulo 6
+
+---
+
+**Última atualização**: 2025-01-07
+**Termos**: 60+
