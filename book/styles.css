@@ -18,4 +18,5 @@ pre, pre code, code {
   white-space: pre-wrap !important;
   word-wrap: break-word !important;
   overflow-wrap: break-word !important;
+  padding: 20px;
 }
