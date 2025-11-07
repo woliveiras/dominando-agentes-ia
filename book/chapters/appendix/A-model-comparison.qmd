@@ -10,31 +10,37 @@ Este apêndice fornece tabelas comparativas detalhadas dos principais LLMs e mod
 
 | Modelo | Provedor | Parâmetros | Context Window | Custo ($/1M tokens) | Especialização |
 |--------|----------|------------|----------------|---------------------|----------------|
-| **GPT-4 Turbo** | OpenAI | ~1.76T (estimado) | 128K | Input: $10 / Output: $30 | Raciocínio geral, código |
-| **GPT-4** | OpenAI | ~1.76T | 8K / 32K | Input: $30 / Output: $60 | Raciocínio complexo |
-| **GPT-3.5 Turbo** | OpenAI | 175B | 16K | Input: $0.50 / Output: $1.50 | Tarefas gerais, rápido |
-| **Claude 3.5 Sonnet** | Anthropic | Não divulgado | 200K | Input: $3 / Output: $15 | Análise longa, código |
-| **Claude 3 Opus** | Anthropic | Não divulgado | 200K | Input: $15 / Output: $75 | Tarefas complexas |
-| **Claude 3 Haiku** | Anthropic | Não divulgado | 200K | Input: $0.25 / Output: $1.25 | Rápido, custo baixo |
-| **Gemini 1.5 Pro** | Google | Não divulgado | 1M | Input: $7 / Output: $21 | Context extremo |
-| **Gemini 1.0 Pro** | Google | Não divulgado | 32K | Input: $0.50 / Output: $1.50 | Multimodal |
+| **GPT-5** | OpenAI | Não divulgado | 256K | Input: $15 / Output: $45 | Raciocínio multimodal avançado |
+| **GPT-4.5 Turbo** | OpenAI | ~2T (estimado) | 256K | Input: $8 / Output: $24 | Raciocínio geral, código |
+| **GPT-4o** | OpenAI | ~1.76T | 128K | Input: $5 / Output: $15 | Multimodal nativo (visão, áudio) |
+| **GPT-4 Turbo** | OpenAI | ~1.76T | 128K | Input: $10 / Output: $30 | Raciocínio geral, código |
+| **Claude 4.5 Opus** | Anthropic | Não divulgado | 500K | Input: $12 / Output: $60 | Raciocínio complexo, context extremo |
+| **Claude 4.5 Sonnet** | Anthropic | Não divulgado | 500K | Input: $2.50 / Output: $12 | Análise longa, código, rápido |
+| **Claude 3.5 Sonnet** | Anthropic | Não divulgado | 200K | Input: $3 / Output: $15 | Legacy, código |
+| **Gemini 2.5 Ultra** | Google | Não divulgado | 2M | Input: $10 / Output: $30 | Context massivo, multimodal |
+| **Gemini 2.5 Pro** | Google | Não divulgado | 2M | Input: $5 / Output: $15 | Context extremo, custo-benefício |
+| **Gemini 2.0 Flash** | Google | Não divulgado | 1M | Input: $0.40 / Output: $1.20 | Rápido, eficiente |
 
 ### Modelos Open Source
 
 | Modelo | Organização | Parâmetros | Context Window | Licença | Notas |
 |--------|-------------|------------|----------------|---------|-------|
-| **Llama 3.1** | Meta | 8B / 70B / 405B | 128K | Llama 3.1 License | SOTA open source |
-| **Llama 3** | Meta | 8B / 70B | 8K | Llama 3 License | Multilingue |
-| **Llama 2** | Meta | 7B / 13B / 70B | 4K | Llama 2 License | Popular para fine-tuning |
-| **Mistral 7B** | Mistral AI | 7B | 8K | Apache 2.0 | Eficiente, qualidade alta |
-| **Mixtral 8x7B** | Mistral AI | 8x7B (MoE) | 32K | Apache 2.0 | Mixture of Experts |
-| **Phi-3** | Microsoft | 3.8B / 7B / 14B | 128K | MIT | Pequeno mas poderoso |
-| **Gemma** | Google | 2B / 7B | 8K | Gemma License | Leve, treinado com segurança |
-| **Qwen 2** | Alibaba | 0.5B - 72B | 32K | Apache 2.0 | Multilíngue, código |
+| **Llama 4** | Meta | 8B / 70B / 405B / 1T | 256K | Llama 4 License | SOTA open source 2025 |
+| **Llama 3.3** | Meta | 70B | 128K | Llama 3 License | Otimizado para instrução |
+| **Llama 3.1** | Meta | 8B / 70B / 405B | 128K | Llama 3.1 License | SOTA open 2024 |
+| **Mistral Large 2** | Mistral AI | 123B | 128K | Mistral License | Competitivo com GPT-4 |
+| **Mistral Small** | Mistral AI | 22B | 32K | Apache 2.0 | Eficiente, custo-benefício |
+| **Mixtral 8x22B** | Mistral AI | 8x22B (MoE) | 64K | Apache 2.0 | MoE de segunda geração |
+| **Qwen 3** | Alibaba | 7B / 14B / 72B / 235B | 128K | Apache 2.0 | Multilíngue, código, matemática |
+| **DeepSeek V3** | DeepSeek | 671B (MoE) | 128K | MIT | MoE eficiente, SOTA código |
+| **Phi-4** | Microsoft | 14B | 128K | MIT | Excelente raciocínio/matemática |
+| **Gemma 2** | Google | 9B / 27B | 8K | Gemma License | Eficiente, segurança |
+| **Command R+** | Cohere | 104B | 128K | CC-BY-NC-4.0 | Otimizado para RAG |
 
 **Legenda**:
 - **MoE**: Mixture of Experts - usa apenas subset de parâmetros por token
-- Preços válidos em novembro 2024, sujeitos a alteração
+- Preços válidos em novembro 2025, sujeitos a alteração
+- Context windows aumentaram significativamente em 2025 (Gemini 2.5: 2M, Claude 4.5: 500K)
 
 ---
 
@@ -44,26 +50,31 @@ Este apêndice fornece tabelas comparativas detalhadas dos principais LLMs e mod
 
 | Modelo | Dimensões | Tamanho | Max Tokens | MTEB Score | Uso |
 |--------|-----------|---------|------------|------------|-----|
+| **text-embedding-4** | 4096 / 2048 | API | 32768 | 68.9 | Produção OpenAI 2025 |
 | **text-embedding-3-large** | 3072 / 1536 | API | 8191 | 64.6 | Produção OpenAI |
-| **text-embedding-3-small** | 1536 | API | 8191 | 62.3 | Custo-benefício |
-| **text-embedding-ada-002** | 1536 | API | 8191 | 60.9 | Legacy OpenAI |
+| **voyage-3** | 1536 | API | 32000 | 70.1 | SOTA RAG especializado |
 | **voyage-2** | 1024 | API | 16000 | 68.2 | Especializado RAG |
+| **Cohere embed-v3.5** | 1024 | API | 512 | 69.3 | Multilíngue, compressão |
 | **e5-mistral-7b-instruct** | 4096 | 7B | 32768 | 66.6 | SOTA open, instrução |
-| **bge-large-en-v1.5** | 1024 | 335M | 512 | 64.2 | Open source popular |
-| **gte-large-en-v1.5** | 1024 | 335M | 8192 | 65.4 | Context longo |
+| **bge-m3** | 1024 | 568M | 8192 | 66.1 | Multilíngue, hybrid search |
+| **gte-Qwen2-7B-instruct** | 3584 | 7B | 131072 | 67.8 | Context extremo |
 
 ### Modelos Multilíngues
 
 | Modelo | Idiomas | Dimensões | MTEB Score (multi) | Notas |
 |--------|---------|-----------|--------------------| ------|
+| **bge-m3** | 100+ | 1024 | 66.1 | SOTA multilíngue 2025 |
+| **multilingual-e5-large-instruct** | 100+ | 1024 | 64.3 | Suporte instrução |
+| **Cohere embed-multilingual-v3.5** | 100+ | 1024 | 65.7 | 100+ idiomas |
 | **multilingual-e5-large** | 100+ | 1024 | 61.5 | Suporte amplo |
 | **paraphrase-multilingual-mpnet-base-v2** | 50+ | 768 | 55.8 | Sentence Transformers |
-| **LaBSE** | 109 | 768 | 58.2 | Google, alinhado cross-lingual |
 
 ### Modelos Especializados (Português)
 
 | Modelo | Base | Dimensões | Domínio | Fonte |
 |--------|------|-----------|---------|-------|
+| **bge-m3** | BAAI | 1024 | Geral multilíngue (inclui PT-BR) | HuggingFace |
+| **multilingual-e5-large-instruct** | E5 | 1024 | Geral PT-BR | HuggingFace |
 | **neuralmind-bert-base-portuguese** | BERT | 768 | Geral BR/PT | HuggingFace |
 | **portuguese-legal-bert** | BERT | 768 | Jurídico | Adaptado |
 | **biobertpt** | BERT | 768 | Biomédico | Pesquisa |
@@ -78,36 +89,36 @@ Este apêndice fornece tabelas comparativas detalhadas dos principais LLMs e mod
 
 | Prioridade | Recomendação | Justificativa |
 |------------|--------------|---------------|
-| **Melhor qualidade** | voyage-2, e5-mistral-7b | MTEB alto, otimizado para retrieval |
-| **Custo-benefício** | text-embedding-3-small, bge-large | Qualidade boa, mais barato |
-| **Open source** | bge-large-en-v1.5, gte-large | Sem custos de API, deployável |
-| **Português** | multilingual-e5-large | Suporte robusto PT-BR |
+| **Melhor qualidade** | voyage-3, text-embedding-4 | MTEB 70+, otimizado para retrieval |
+| **Custo-benefício** | Cohere embed-v3.5, text-embedding-3-large | Qualidade excelente, preço competitivo |
+| **Open source** | bge-m3, gte-Qwen2-7B | Sem custos de API, multilíngue |
+| **Português** | bge-m3, multilingual-e5-large-instruct | Suporte robusto PT-BR |
 
 ### 2. **Geração de Texto / Conversação**
 
 | Prioridade | Recomendação | Justificativa |
 |------------|--------------|---------------|
-| **Melhor qualidade** | GPT-4 Turbo, Claude 3.5 Sonnet | SOTA em raciocínio e código |
-| **Custo-benefício** | GPT-3.5 Turbo, Claude 3 Haiku | 10-20x mais barato que GPT-4 |
-| **Context longo** | Claude 3.5 (200K), Gemini 1.5 Pro (1M) | Documentos extensos |
-| **Open source** | Llama 3.1 70B, Mixtral 8x7B | Controlável, sem vendor lock-in |
+| **Melhor qualidade** | GPT-5, Claude 4.5 Opus | SOTA em raciocínio multimodal |
+| **Custo-benefício** | Claude 4.5 Sonnet, Gemini 2.5 Pro | Excelente qualidade, preço competitivo |
+| **Context longo** | Gemini 2.5 (2M), Claude 4.5 (500K) | Documentos massivos |
+| **Open source** | Llama 4 405B, Qwen 3 235B | SOTA open, controlável |
 
 ### 3. **Fine-Tuning**
 
 | Prioridade | Recomendação | Justificativa |
 |------------|--------------|---------------|
-| **Base poderosa** | Llama 3.1 70B | SOTA open, múltiplas variantes |
-| **Eficiente (LoRA)** | Mistral 7B, Llama 3 8B | Treina em GPU consumer |
-| **Domínio específico** | Phi-3 7B | Eficiente, bom para especialização |
-| **Embeddings** | bge-base, gte-base | Fácil fine-tuning com SBERT |
+| **Base poderosa** | Llama 4 70B, Qwen 3 72B | SOTA open 2025, múltiplas variantes |
+| **Eficiente (LoRA)** | Llama 4 8B, Phi-4 14B | Treina em GPU consumer, excelente base |
+| **Domínio específico** | Mistral Small 22B | Balanço performance/eficiência |
+| **Embeddings** | bge-m3, gte-Qwen2-7B | Fácil fine-tuning, multilíngue |
 
 ### 4. **Code Generation**
 
 | Prioridade | Recomendação | Justificativa |
 |------------|--------------|---------------|
-| **Melhor** | GPT-4 Turbo, Claude 3.5 Sonnet | Excelente em código complexo |
-| **Open source** | CodeLlama 70B, Qwen 2 72B | Treinados em código |
-| **Rápido** | GPT-3.5 Turbo, Mistral 7B | Snippets simples |
+| **Melhor** | GPT-5, Claude 4.5 Sonnet | SOTA em código complexo multimodal |
+| **Open source** | DeepSeek V3, Qwen 3 235B | SOTA open em código |
+| **Rápido** | Gemini 2.0 Flash, GPT-4o | Latência baixa, multimodal |
 
 ---
 
@@ -118,13 +129,13 @@ Este apêndice fornece tabelas comparativas detalhadas dos principais LLMs e mod
 ```mermaid
 graph LR
     A[Requisito] --> B{Orçamento?}
-    B -->|Alto| C[GPT-4 Turbo / Claude Opus]
-    B -->|Moderado| D[GPT-3.5 / Claude Sonnet]
+    B -->|Alto| C[GPT-5 / Claude 4.5 Opus]
+    B -->|Moderado| D[Claude 4.5 Sonnet / Gemini 2.5 Pro]
     B -->|Baixo| E[Open Source + Self-hosting]
     
-    C --> F[Máxima Qualidade]
-    D --> G[Balanço Qualidade/Custo]
-    E --> H[Controle Total]
+    C --> F[Máxima Qualidade + Multimodal]
+    D --> G[Excelente Balanço Qualidade/Custo]
+    E --> H[Controle Total + Privacidade]
     
     style C fill:#ffcccc
     style D fill:#ffffcc
@@ -134,24 +145,26 @@ graph LR
 ### Fatores Decisórios
 
 1. **Context Window**: Quanto maior o documento, maior o context necessário
-   - **<4K**: Tarefas simples, Q&A curta
-   - **4K-32K**: RAG, análise média
-   - **32K-128K**: Documentos longos, code review
-   - **>128K**: Livros, análise massiva
+   - **<8K**: Tarefas simples, Q&A curta
+   - **8K-32K**: RAG básico, análise média
+   - **32K-256K**: Documentos longos, code review
+   - **256K-500K**: Livros, bases de código completas
+   - **>500K**: Análise massiva (Gemini 2M tokens)
 
 2. **Latência**:
-   - **Crítica (<1s)**: Claude Haiku, GPT-3.5, Mistral 7B
-   - **Moderada (1-5s)**: GPT-4 Turbo, Claude Sonnet
-   - **Aceitável (>5s)**: GPT-4, Claude Opus, modelos grandes open
+   - **Crítica (<500ms)**: Gemini 2.0 Flash, GPT-4o
+   - **Moderada (1-3s)**: Claude 4.5 Sonnet, Gemini 2.5 Pro
+   - **Aceitável (3-10s)**: GPT-5, Claude 4.5 Opus, modelos grandes open
 
 3. **Compliance / Privacidade**:
-   - **Dados sensíveis**: Open source self-hosted (Llama, Mistral)
+   - **Dados sensíveis**: Open source self-hosted (Llama 4, Qwen 3, DeepSeek V3)
    - **Cloud OK**: Qualquer API comercial
-   - **GDPR/LGPD strict**: Modelos locais ou Azure OpenAI (região específica)
+   - **GDPR/LGPD strict**: Modelos locais ou Azure OpenAI/Google Cloud (região específica)
 
 4. **Multimodalidade**:
-   - **Visão + Texto**: GPT-4V, Claude 3, Gemini
-   - **Apenas texto**: Qualquer LLM
+   - **Visão + Texto + Áudio**: GPT-5, GPT-4o, Gemini 2.5
+   - **Visão + Texto**: Claude 4.5, Gemini 2.0
+   - **Apenas texto**: Maioria dos modelos open source
 
 ---
 
@@ -163,13 +176,14 @@ Benchmark de conhecimento geral e raciocínio:
 
 | Modelo | Score (%) | Categoria |
 |--------|-----------|-----------|
-| GPT-4 | 86.4 | SOTA |
-| Claude 3 Opus | 86.8 | SOTA |
-| Gemini 1.5 Pro | 85.9 | SOTA |
-| Llama 3.1 405B | 88.6 | SOTA Open |
-| Llama 3 70B | 82.0 | Strong Open |
-| Mixtral 8x7B | 70.6 | Mid-tier Open |
-| GPT-3.5 Turbo | 70.0 | Mid-tier |
+| GPT-5 | 92.3 | SOTA 2025 |
+| Claude 4.5 Opus | 91.8 | SOTA 2025 |
+| Gemini 2.5 Ultra | 91.5 | SOTA 2025 |
+| Llama 4 405B | 90.2 | SOTA Open 2025 |
+| Qwen 3 235B | 89.8 | SOTA Open 2025 |
+| DeepSeek V3 | 88.5 | Strong Open |
+| Claude 3 Opus | 86.8 | Strong 2024 |
+| GPT-4 Turbo | 86.4 | Strong 2024 |
 
 ### HumanEval (Code Generation)
 
@@ -177,27 +191,30 @@ Benchmark de geração de código Python:
 
 | Modelo | Pass@1 (%) | Notas |
 |--------|------------|-------|
-| GPT-4 | 67.0 | SOTA proprietário |
-| Claude 3.5 Sonnet | 92.0 | SOTA geral |
-| Llama 3.1 70B | 72.4 | SOTA open |
-| CodeLlama 70B | 67.8 | Especializado código |
-| GPT-3.5 Turbo | 48.1 | Baseline |
+| GPT-5 | 96.3 | SOTA 2025 |
+| DeepSeek V3 | 95.2 | SOTA open código |
+| Claude 4.5 Sonnet | 94.8 | SOTA proprietário |
+| Qwen 3 235B | 93.5 | SOTA open geral |
+| Gemini 2.5 Pro | 92.7 | Strong multimodal |
+| Llama 4 405B | 91.2 | Strong open |
+| Claude 3.5 Sonnet | 92.0 | Strong 2024 |
 
 ### MTEB (Embeddings)
 
-Top 5 modelos open source (score médio):
+Top 5 modelos (score médio 2025):
 
-1. **e5-mistral-7b-instruct**: 66.6
-2. **gte-large-en-v1.5**: 65.4
-3. **bge-large-en-v1.5**: 64.2
-4. **e5-large-v2**: 63.5
-5. **instructor-xl**: 63.4
+1. **voyage-3**: 70.1 (API)
+2. **Cohere embed-v3.5**: 69.3 (API)
+3. **text-embedding-4**: 68.9 (API)
+4. **gte-Qwen2-7B-instruct**: 67.8 (Open)
+5. **e5-mistral-7b-instruct**: 66.6 (Open)
+6. **bge-m3**: 66.1 (Open, multilíngue)
 
 ---
 
 ## Atualizações e Novos Modelos
 
-Este apêndice foi atualizado em **novembro de 2024**. Para informações mais recentes:
+Este apêndice foi atualizado em **novembro de 2025**. Para informações mais recentes:
 
 - **LLM Leaderboards**:
   - [Chatbot Arena (LMSYS)](https://chat.lmsys.org/)
@@ -213,5 +230,15 @@ Este apêndice foi atualizado em **novembro de 2024**. Para informações mais r
 
 ---
 
-**Última atualização**: 2025-01-07  
-**Modelos**: 35+ LLMs, 15+ Embeddings
+**Última atualização**: 2025-11-07  
+**Modelos**: 45+ LLMs, 18+ Embeddings
+
+::: {.callout-note title="Mudanças Importantes em 2025"}
+**Principais Evoluções**:
+
+- **Context Windows**: Gemini 2.5 alcançou 2M tokens, Claude 4.5 chegou a 500K
+- **Multimodalidade**: GPT-5 e GPT-4o agora suportam visão + texto + áudio nativamente
+- **Open Source**: Llama 4 (até 1T parâmetros), Qwen 3 (235B), DeepSeek V3 (671B MoE) competem com modelos proprietários
+- **Embeddings**: Novos modelos ultrapassaram 70 MTEB (voyage-3, Cohere v3.5)
+- **Preços**: Tendência de redução de custos apesar de qualidade superior (Claude 4.5 Sonnet mais barato que Claude 3 Opus)
+:::
