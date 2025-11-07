@@ -1,9 +1,5 @@
 # Prefácio {.unnumbered}
 
-::: {.content-visible when-format="html"}
-[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
-:::
-
 Este livro é resultado de minha jornada explorando o universo dos agentes de Inteligência Artificial (IA) desde descobertas pessoais durante meus estudos até aplicações práticas em projetos reais. Com o avanço acelerado da tecnologia, os agentes de IA estão se tornando cada vez mais presentes em nossas vidas, desde assistentes virtuais até sistemas autônomos complexos. Este livro visa fornecer uma compreensão abrangente sobre o funcionamento, desenvolvimento e aplicação desses agentes, capacitando os leitores a dominar essa tecnologia.
 
 Meu objetivo não é te convencer a adotar agentes de IA, mas sim oferecer uma base sólida para que os leitores possam tomar decisões informadas sobre seu real uso e implementação, considerando tanto os benefícios quanto os desafios associados.
@@ -30,17 +26,17 @@ Este livro está licenciado sob [Creative Commons Atribuição-NãoComercial-Com
 
 **Você tem o direito de:**
 
-- ✅ Compartilhar e adaptar o conteúdo gratuitamente
-- ✅ Contribuir via pull requests no GitHub
-- ✅ Usar em cursos e materiais educacionais não-comerciais (com atribuição)
+- Compartilhar e adaptar o conteúdo gratuitamente
+- Contribuir via pull requests no GitHub
+- Usar em cursos e materiais educacionais não-comerciais (com atribuição)
 
 **Restrições:**
 
-- 🚫 Uso comercial não autorizado (a venda comercial é exclusiva do autor)
-- 📝 Atribuição obrigatória
-- 🔄 Derivações devem usar a mesma licença
+- Uso comercial não autorizado (a venda comercial é exclusiva do autor)
+- Atribuição obrigatória
+- Derivações devem usar a mesma licença
 
-Para licenciamento comercial ou perguntas, contate: w.oliveira542@gmail.com
+Para licenciamento comercial ou perguntas, entre em contato com o autor.
 
 Veja os arquivos de licença completos: [English](../LICENSE.md) | [Português](../LICENSE.pt-BR.md) | [Español](../LICENSE.es.md)
 
