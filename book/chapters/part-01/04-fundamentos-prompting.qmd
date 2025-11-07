@@ -1096,27 +1096,604 @@ Porém, o custo e latência aumentam proporcionalmente ao número de amostras.
 - Quando você pode fazer inferências em paralelo
 - Problemas onde o modelo erra inconsistentemente
 
-## Técnicas de Reasoning
+## Técnicas Avançadas de Reasoning
 
-  - ReAct: Reasoning + Acting (introdução básica)
-  - Self-reflection patterns
-  - Analogical prompting
+Além de Chain-of-Thought e Self-Consistency, existem técnicas especializadas de raciocínio que se tornaram importantes para construir agentes robustos. Esta seção explora três padrões: **ReAct** (fusão de raciocínio com ações externas), **Self-Reflection** (autocorreção e refinamento iterativo) e **Analogical Prompting** (raciocínio por transferência de analogias).
+
+### ReAct: Reasoning + Acting
+
+ReAct [@yao2022react] representa uma mudança em como agentes de IA interagem com o mundo. Em vez de raciocínio isolado ou execução de ações sem contexto, ReAct **intercala pensamento e ação**, permitindo que agentes sejam adaptativos e responsivos.
+
+O ciclo ReAct segue quatro passos principais:
+
+1. **Raciocinem sobre qual ação tomar** (Thought)
+2. **Executem ações externas** (Action) — chamar APIs, buscar databases, usar ferramentas
+3. **Observem os resultados** (Observation)
+4. **Ajustem o raciocínio** baseado nas observações
+
+ReAct segue o seguinte formato estruturado:
+
+```
+Question: [pergunta do usuário]
+
+Thought 1: [raciocínio sobre próximo passo]
+Action 1: [ferramenta a usar + argumentos]
+Observation 1: [resultado da ação]
+
+Thought 2: [raciocínio baseado na observação]
+Action 2: [próxima ação]
+Observation 2: [resultado]
+
+...
+
+Thought N: [conclusão final]
+Answer: [resposta para o usuário]
+```
+
+Comparando três abordagens, CoT puro, ReAct e Act puro, em problemas que requerem informações externas, pesquisadores chegaram às seguintes conclusões:
+
+| Abordagem | Descrição | Problema |
+|-----------|-----------|----------|
+| **CoT puro** | Raciocina até o fim, depois age | Não pode ajustar plano baseado em resultados |
+| **Act puro** | Executa ações sem raciocinar | Ações aleatórias, sem estratégia |
+| **ReAct** | Intercala pensamento e ação | Adapta-se dinamicamente a observações |
+
+Vamos ver um exemplo comparativo para ilustrar a diferença.
+
+**Pergunta:** "Quanto custaria comprar 3 unidades do produto mais barato da categoria 'eletrônicos'?"
+
+**CoT puro (falha):**
+```
+Thought: Preciso encontrar o produto mais barato em eletrônicos
+         e multiplicar o preço por 3.
+Action: [tenta acessar database sem ter preço específico]
+# FALHA: Não sabe qual produto buscar sem primeiro consultar
+```
+
+**ReAct (sucesso):**
+```
+Thought 1: Primeiro preciso listar produtos da categoria 'eletrônicos'
+Action 1: search_products(category="eletrônicos")
+Observation 1: [Mouse: R$50, Teclado: R$80, Headset: R$120]
+
+Thought 2: O mais barato é Mouse a R$50. Agora multiplico por 3.
+Action 2: calculate(50 * 3)
+Observation 2: 150
+
+Thought 3: Tenho a resposta final.
+Answer: Custaria R$150 para comprar 3 unidades do produto mais barato
+        (Mouse a R$50 cada).
+```
+
+Perceba como o agente ReAct ajusta seu raciocínio com base nas observações, permitindo uma solução mais eficaz.
+
+Vamos implementar um agente ReAct simples em Python que pode usar ferramentas externas para ilustrar este conceito.
+
+```python
+from typing import Dict, Callable, List, Tuple
+import re
+
+class ReActAgent:
+    """
+    Agente ReAct com registry de ferramentas.
+    """
+
+    def __init__(self, tools: Dict[str, Callable]):
+        """
+        Args:
+            tools: Dicionário {nome_ferramenta: função_executável}
+        """
+        self.tools = tools
+        self.history = []
+
+    def run(self, question: str, max_iterations: int = 7) -> str:
+        """
+        Loop Thought-Action-Observation até resposta final.
+
+        Args:
+            question: Pergunta do usuário
+            max_iterations: Limite de iterações para evitar loops infinitos
+
+        Returns:
+            Resposta final ou mensagem de timeout
+        """
+        prompt = self._build_initial_prompt(question)
+
+        for i in range(max_iterations):
+            # Gera Thought + Action
+            response = llm.generate(prompt, temperature=0.0)
+
+            # Parse do output
+            thought, action, action_input = self._parse_response(response)
+
+            # Registra thought
+            self.history.append(f"Thought {i+1}: {thought}")
+
+            # Verifica se é resposta final
+            if self._is_final_answer(thought):
+                return self._extract_answer(response)
+
+            # Executa ação
+            if action not in self.tools:
+                observation = f"Erro: ferramenta '{action}' não existe"
+            else:
+                try:
+                    observation = self.tools[action](action_input)
+                except Exception as e:
+                    observation = f"Erro ao executar {action}: {str(e)}"
+
+            # Registra ação e observação
+            self.history.append(f"Action {i+1}: {action}[{action_input}]")
+            self.history.append(f"Observation {i+1}: {observation}")
+
+            # Atualiza prompt com nova observação
+            prompt = self._update_prompt(question, self.history)
+
+        return "Limite de iterações atingido sem resposta final."
+
+    def _build_initial_prompt(self, question: str) -> str:
+        """Constrói prompt inicial com descrição de ferramentas."""
+        tools_desc = "\n".join([
+            f"- {name}: {func.__doc__}"
+            for name, func in self.tools.items()
+        ])
+
+        return f"""Answer the following question using available tools.
+
+Available Tools:
+{tools_desc}
+
+Use this format:
+Thought: [your reasoning about next step]
+Action: [tool_name]
+Action Input: [input for the tool]
+Observation: [result will be provided]
+... (repeat Thought/Action/Observation as needed)
+Thought: [final reasoning]
+Answer: [final answer to the user]
+
+Question: {question}
+
+Thought:"""
+
+    def _parse_response(self, response: str) -> Tuple[str, str, str]:
+        """
+        Extrai Thought, Action e Action Input do response.
+
+        Returns:
+            (thought, action_name, action_input)
+        """
+        thought_match = re.search(r'Thought:\s*(.+?)(?=\nAction:|\nAnswer:|$)',
+                                 response, re.DOTALL)
+        action_match = re.search(r'Action:\s*(\w+)', response)
+        input_match = re.search(r'Action Input:\s*(.+?)(?=\n|$)', response)
+
+        thought = thought_match.group(1).strip() if thought_match else ""
+        action = action_match.group(1).strip() if action_match else ""
+        action_input = input_match.group(1).strip() if input_match else ""
+
+        return thought, action, action_input
+
+    def _is_final_answer(self, thought: str) -> bool:
+        """Detecta se thought indica resposta final."""
+        final_indicators = [
+            "resposta final",
+            "final answer",
+            "concluí",
+            "tenho a resposta",
+            "respondido"
+        ]
+        return any(ind in thought.lower() for ind in final_indicators)
+
+    def _extract_answer(self, response: str) -> str:
+        """Extrai resposta final do response."""
+        match = re.search(r'Answer:\s*(.+)', response, re.DOTALL)
+        return match.group(1).strip() if match else response
+
+    def _update_prompt(self, question: str, history: List[str]) -> str:
+        """Reconstrói prompt com histórico completo."""
+        history_text = "\n".join(history)
+        return f"""{self._build_initial_prompt(question)}
+
+{history_text}
+
+Thought:"""
+
+# Definir ferramentas
+def calculator(expression: str) -> float:
+    """Avalia expressões matemáticas simples. Ex: calculator("2 + 3 * 4")"""
+    try:
+        # ATENÇÃO: eval é inseguro em produção! Este é apenas um exemplo.
+        return eval(expression)
+    except Exception as e:
+        return f"Erro na expressão: {e}"
+
+def search_database(query: str) -> List[Dict]:
+    """Busca produtos no database. Ex: search_database("categoria:eletrônicos")"""
+    # Simulação - em produção seria chamada real a database
+    mock_db = {
+        "eletrônicos": [
+            {"nome": "Mouse", "preco": 50},
+            {"nome": "Teclado", "preco": 80},
+            {"nome": "Headset", "preco": 120}
+        ]
+    }
+
+    # Parse simples de query
+    if "categoria:" in query:
+        categoria = query.split("categoria:")[1].strip()
+        return mock_db.get(categoria, [])
+
+    return []
+
+# Uso
+agent = ReActAgent(tools={
+    "calculator": calculator,
+    "search_database": search_database
+})
+
+resultado = agent.run(
+    "Quanto custaria comprar 5 unidades do produto mais barato de eletrônicos?"
+)
+print(resultado)
+```
+
+**Resultado esperado:**
+
+```
+Thought 1: Preciso primeiro encontrar produtos na categoria eletrônicos
+Action 1: search_database[categoria:eletrônicos]
+Observation 1: [{'nome': 'Mouse', 'preco': 50}, {'nome': 'Teclado', 'preco': 80},
+                {'nome': 'Headset', 'preco': 120}]
+
+Thought 2: O produto mais barato é Mouse a R$50. Preciso calcular 5 unidades.
+Action 2: calculator[50 * 5]
+Observation 2: 250
+
+Thought 3: Tenho a resposta final.
+Answer: Custaria R$250 para comprar 5 unidades do produto mais barato
+        (Mouse a R$50 cada).
+```
+
+**Quando usar ReAct:**
+
+- **Precisa de informações externas**: APIs, databases, web search
+- **Ferramentas devem ser escolhidas dinamicamente**: não é sequência fixa de ações
+- **Resultado de uma ação influencia próxima**: decisões condicionais
+- **Debugging é importante**: histórico Thought-Action-Observation facilita diagnóstico
+
+**Limitações conhecidas:**
+
+1. **Loops infinitos**: Agente pode repetir mesmas ações (mitigação: limite de iterações, detecção de loops)
+2. **Parsing frágil**: LLM pode não seguir formato exato (mitigação: retry com correção do formato)
+3. **Custo elevado**: Múltiplas chamadas ao LLM (mitigação: caching, modelos menores para ações simples)
+
+### Self-Reflection: Autocorreção e Refinamento Iterativo
+
+Self-reflection permite que agentes **avaliem suas próprias respostas** e as refinem iterativamente. Em vez de gerar uma resposta e parar, o agente:
+
+1. Gera resposta inicial
+2. **Critica** a própria resposta (identifica erros, lacunas)
+3. **Refina** baseado na crítica
+4. Repete até satisfazer critérios ou limite de iterações
+
+A estrutura típica de self-reflection é:
+
+```
+Initial Answer: [primeira tentativa]
+Reflection: [autocrítica - o que está errado? o que falta?]
+Refined Answer: [versão melhorada]
+Reflection: [nova crítica]
+Final Answer: [versão final após N iterações]
+```
+
+Vamos analisar um exemplo prático.
+
+**Pergunta:** "Explique o teorema de Pitágoras para uma criança de 10 anos."
+
+**Sem self-reflection:**
+```
+Answer: O teorema de Pitágoras afirma que a² + b² = c², onde c é a
+        hipotenusa de um triângulo retângulo.
+# Resposta tecnicamente correta, mas inadequada para criança de 10 anos
+```
+
+**Com self-reflection:**
+```
+Initial Answer: O teorema de Pitágoras afirma que a² + b² = c², onde c
+                é a hipotenusa de um triângulo retângulo.
+
+Reflection: Esta explicação usa termos técnicos (hipotenusa, exponenciação)
+            que uma criança de 10 anos provavelmente não conhece. Falta
+            contexto visual e exemplo concreto. Preciso simplificar.
+
+Refined Answer: Imagine um triângulo que tem um canto reto (como um
+                canto de mesa). Se você souber o tamanho dos dois lados
+                que formam esse canto reto, consegue descobrir o tamanho
+                do terceiro lado usando uma fórmula mágica de matemática!
+
+Reflection: Melhor, mas ainda abstrato. Deveria dar exemplo numérico simples.
+
+Final Answer: Imagine um triângulo com um canto reto (como canto de mesa).
+              Se um lado mede 3cm e o outro mede 4cm, o lado diagonal vai
+              medir 5cm. Isso sempre funciona seguindo a regra:
+              (3×3) + (4×4) = (5×5) → 9 + 16 = 25. Legal, né?
+```
+
+Agora que entendemos o conceito, vamos implementar um loop de self-reflection.
+
+```python
+def self_reflection_loop(
+    question: str,
+    max_iterations: int = 3,
+    quality_threshold: float = 0.8
+) -> str:
+    """
+    Loop de self-reflection com refinamento iterativo.
+
+    Args:
+        question: Pergunta original
+        max_iterations: Máximo de refinamentos
+        quality_threshold: Score mínimo para aceitar resposta (0-1)
+
+    Returns:
+        Resposta final refinada
+    """
+    # Geração inicial
+    answer = llm.generate(f"Question: {question}\nAnswer:", temperature=0.7)
+
+    for i in range(max_iterations):
+        # Autocrítica
+        reflection_prompt = f"""
+You provided this answer:
+{answer}
+
+For the question: {question}
+
+Critically evaluate your answer:
+1. What is correct?
+2. What is wrong or missing?
+3. How could it be improved?
+4. Rate quality 0-1:
+
+Reflection:"""
+
+        reflection = llm.generate(reflection_prompt, temperature=0.3)
+
+        # Extrai score de qualidade
+        score = extract_quality_score(reflection)
+
+        if score >= quality_threshold:
+            return answer  # Resposta boa o suficiente
+
+        # Refinamento
+        refinement_prompt = f"""
+Original Question: {question}
+
+Your previous answer:
+{answer}
+
+Your self-critique:
+{reflection}
+
+Provide an improved answer addressing the issues you identified:
+
+Refined Answer:"""
+
+        answer = llm.generate(refinement_prompt, temperature=0.7)
+
+    return answer
+
+def extract_quality_score(reflection: str) -> float:
+    """Extrai score numérico de 0-1 da reflection."""
+    # Busca por "Rate quality: 0.X" ou "Quality: X/10"
+    match = re.search(r'(?:quality|score)[:\s]+([0-9.]+)',
+                     reflection.lower())
+    if match:
+        score = float(match.group(1))
+        # Normaliza para 0-1 se necessário
+        return score if score <= 1.0 else score / 10.0
+    return 0.5  # Default se não encontrar score
+```
+
+**Quando self-reflection funciona melhor:**
+
+1. **Tarefas criativas**: Escrita, design de prompts, geração de código
+2. **Respostas complexas**: Onde primeira tentativa raramente é ideal
+3. **Critérios subjetivos**: Qualidade de explicação, adequação ao público-alvo
+4. **Tempo não é crítico**: Múltiplas gerações aumentam latência significativamente
+
+**Variante: External Feedback Loop**
+
+Em vez de autocrítica (modelo avalia a si mesmo), use **feedback externo**:
+
+```python
+def reflection_with_external_feedback(question: str, answer: str) -> str:
+    """Usa ferramenta externa para avaliar resposta."""
+
+    # Exemplo: verificador de código
+    if is_code_question(question):
+        test_results = run_unit_tests(answer)
+
+        feedback_prompt = f"""
+Your code:
+{answer}
+
+Test results:
+{test_results}
+
+The tests show your code has bugs. Fix them:
+
+Corrected Code:"""
+
+        return llm.generate(feedback_prompt)
+
+    # Exemplo: fact-checker para respostas factuais
+    if is_factual_question(question):
+        fact_check_results = verify_facts(answer)
+        # ... refinar baseado em fact-checking
+```
+
+### Analogical Prompting: Raciocínio por Transferência
+
+Analogical prompting [@yasunaga2023large] explora a capacidade de LLMs de **gerar suas próprias analogias** para resolver problemas novos, baseando-se em problemas similares conhecidos.
+
+O conceito central é que, em vez de memorizar exemplos fixos, o modelo pode **recordar problemas similares** que já sabe resolver e **transferir o raciocínio** para o novo problema.
+
+Em vez de fornecer exemplos fixos (few-shot), peça ao modelo para:
+
+1. **Recordar problemas similares** que ele já sabe resolver
+2. **Gerar soluções para esses problemas análogos**
+3. **Transferir o raciocínio** para o problema atual
+
+A estrutura típica é:
+
+```
+Problem: [problema novo]
+
+Recall relevant problems you know how to solve that are analogous to this one.
+
+Analogous Problem 1: [modelo gera problema similar]
+Solution: [modelo gera solução]
+
+Analogous Problem 2: [outro problema similar]
+Solution: [solução]
+
+Now solve the original problem using insights from the analogies:
+Solution: [solução final]
+```
+
+Vamos ver um exemplo concreto.
+
+**Problema:** "Um tanque enche em 6 horas com a torneira A e em 3 horas com a torneira B. Em quanto tempo enche com as duas abertas?"
+
+**Prompt tradicional (few-shot CoT):**
+```
+[Fornece 2-3 exemplos similares resolvidos]
+Now solve: [problema do tanque]
+```
+
+**Analogical prompting:**
+```
+Problem: Um tanque enche em 6 horas com a torneira A e em 3 horas com
+         a torneira B. Em quanto tempo enche com as duas abertas?
+
+Recall relevant problems you know how to solve:
+
+Analogous Problem 1: Dois trabalhadores pintam uma casa. Um leva 4 horas
+                     sozinho, outro leva 6 horas. Quanto tempo levam juntos?
+Solution: Taxa combinada = 1/4 + 1/6 = 5/12 por hora → 12/5 = 2.4 horas
+
+Analogous Problem 2: Dois canos enchem uma piscina. Um enche em 8h, outro
+                     em 12h. Quanto tempo juntos?
+Solution: Taxa combinada = 1/8 + 1/12 = 5/24 por hora → 24/5 = 4.8 horas
+
+Now solve the original problem:
+Taxa A = 1/6 tanques por hora
+Taxa B = 1/3 tanques por hora
+Taxa combinada = 1/6 + 1/3 = 1/6 + 2/6 = 3/6 = 1/2 por hora
+Tempo = 1 / (1/2) = 2 horas
+
+Answer: 2 horas
+```
+
+**Por que funciona?**
+
+1. **Ativa conhecimento latente**: Modelo "lembra" padrões de solução similares em seus pesos
+2. **Generalização**: Em vez de memorizar exemplos fixos, modelo identifica estrutura abstrata do problema
+3. **Menos exemplos necessários**: Modelo gera as próprias analogias
+
+No paper original [@yasunaga2023large], analogical prompting superou few-shot CoT:
+
+- **GSM8K**: Few-shot CoT (87%) → Analogical (92%) (+5%)
+- **Math**: Few-shot CoT (23%) → Analogical (29%) (+6%)
+- **Com menos exemplos**: 2-3 analogias geradas vs. 8 exemplos few-shot fixos
+
+Vamos implementar uma função simples de analogical prompting.
+
+```python
+def analogical_prompting(problem: str, n_analogies: int = 2) -> str:
+    """
+    Resolve problema gerando analogias automaticamente.
+
+    Args:
+        problem: Problema a resolver
+        n_analogies: Número de analogias a gerar
+
+    Returns:
+        Solução usando raciocínio analógico
+    """
+    prompt = f"""
+Problem: {problem}
+
+Before solving, recall {n_analogies} problems you know how to solve that are
+analogous to this one. For each analogy, show the problem and solution.
+
+Analogous Problem 1:"""
+
+    # Geração de analogias + solução
+    response = llm.generate(prompt, temperature=0.7)
+
+    # Adiciona pedido para solução final
+    final_prompt = f"""
+{response}
+
+Now solve the original problem using insights from these analogies.
+
+Solution to original problem:"""
+
+    solution = llm.generate(final_prompt, temperature=0.3)
+
+    return solution
+```
+
+**Quando usar analogical prompting:**
+
+1. **Domínios com padrões claros**: Matemática, física, programação
+2. **Quando você não tem exemplos prontos**: Modelo gera as próprias analogias
+3. **Problemas estruturalmente similares a conhecidos**: Transferência funciona melhor
+4. **Reduzir custo de few-shot**: Menos tokens que fornecer 5-10 exemplos completos
+
+**Limitações:**
+
+1. **Analogias podem ser inadequadas**: Modelo pode gerar problemas não-análogos
+2. **Menos controle**: Você não escolhe os exemplos (modelo escolhe)
+3. **Não funciona para domínios muito específicos**: Se modelo não tem conhecimento prévio similar
+
+### Combinando Técnicas
+
+Técnicas de reasoning não são mutuamente exclusivas. Normalmente você pode combiná-las para maximizar desempenho.
+
+Algumas combinações comuns são:
+
+**ReAct + Self-Reflection:**
+
+```
+Thought: [raciocínio]
+Action: [ferramenta]
+Observation: [resultado]
+Reflection: [essa ação foi útil? preciso mudar estratégia?]
+Thought: [raciocínio ajustado]
+...
+```
+
+**Analogical + Self-Consistency:**
+
+- Gera 5 soluções usando analogias diferentes
+- Voting majoritário para resposta final
+- Combina criatividade de analogias com robustez de self-consistency
+
+**CoT + ReAct + Reflection:**
+
+- ReAct para orquestração de ações
+- CoT para raciocínio em cada Thought
+- Reflection para avaliar se sequência de ações faz sentido
+
+Estas técnicas serão fundamentais quando construirmos agentes autônomos multi-ferramenta nos próximos capítulos.
 
 ## Exercícios Práticos
 
 Este capítulo inclui três exercícios práticos completos, disponíveis em `sandbox/chapter-04/`. Cada exercício combina teoria com implementação executável, permitindo experimentação hands-on com as técnicas apresentadas.
-
-::: {.callout-tip title="Instalação"}
-Antes de executar os exercícios, instale as dependências:
-```bash
-uv pip install sentence-transformers scikit-learn numpy
-```
-
-Navegue para o diretório correto:
-```bash
-cd book/sandbox/chapter-04
-```
-:::
 
 ### Exercício 1: Few-Shot Dynamic Classifier
 
@@ -1225,12 +1802,14 @@ Confiança média: 0.85
 ```
 
 **Desafios adicionais:**
+
 1. Implemente extração robusta de resposta numérica (regex aprimorado)
 2. Adicione detecção de contradições no raciocínio
 3. Compare "Think step by step" vs. "Solve carefully" vs. outros prompts
 4. Meça token usage real e calcule custo exato (se usar APIs)
 
 **Questões para reflexão:**
+
 - Self-consistency vale 5× no custo para seu caso de uso?
 - Como detectar quando o modelo está "adivinhando" vs. raciocinando?
 - Quando CoT piora a performance? (dica: tarefas muito simples)
@@ -1275,6 +1854,7 @@ class ReactAgent:
 ```
 
 **Ferramentas implementadas:**
+
 - `calculator(expression)`: Avalia expressões matemáticas
 - `get_temperature(city)`: Retorna temperatura (mock API)
 - `convert_currency(amount, from, to)`: Converte moedas (mock API)
@@ -1295,12 +1875,14 @@ Resposta Final: A temperatura em São Paulo é 28°C.
 ```
 
 **Desafios adicionais:**
+
 1. Adicione retry logic quando parsing de Ação falha
 2. Implemente detecção de loops (agente repete mesma ação)
 3. Adicione logging estruturado (JSON) para debugging
 4. Compare ReAct vs. raciocínio direto (sem ferramentas)
 
 **Questões para reflexão:**
+
 - Quando ReAct é superior a raciocínio direto?
 - Como lidar com ferramentas que falham intermitentemente?
 - Como escalar de 3 ferramentas para 50+? (arquitetura modular)
@@ -1308,7 +1890,9 @@ Resposta Final: A temperatura em São Paulo é 28°C.
 ---
 
 ::: {.callout-important title="Simulação vs. Produção"}
-Os exercícios usam **simulação de LLMs** para permitir execução sem API keys. Para produção:
+Os exercícios usam **simulação de LLMs** para permitir execução sem API keys. 
+
+Para produção, seria necessário integrar com APIs reais. Por exemplo, para OpenAI:
 
 ```python
 # Substituir simulate_llm_response() por:
@@ -1326,6 +1910,8 @@ output = response.choices[0].message.content
 ```
 
 Veja `sandbox/chapter-04/README.md` para exemplos completos com OpenAI e Anthropic.
+
+Também seria possível utilizar modelos open source locais (Llama2, Falcon) via bibliotecas como `transformers`, `llama-cpp-python` ou ferramentas como Ollama e vLLM.
 :::
 
 ---
@@ -1337,28 +1923,33 @@ Neste capítulo, você dominou os fundamentos técnicos de prompting e raciocín
 **O que você aprendeu:**
 
 **1. Estruturação de Prompts:**
+
 - Anatomia de prompts efetivos: ROLE, TASK, CONTEXT, FORMAT, CONSTRAINTS
 - Técnicas de marcação: Markdown, XML, JSON (e quando usar cada uma)
 - Templates com Jinja2 para produção escalável
 
 **2. In-Context Learning (ICL):**
+
 - **Zero-shot**: $P(y | I, x; \theta)$ - quando usar e limitações
 - **Few-shot**: $P(y | \mathcal{E}, x; \theta)$ - seleção dinâmica de exemplos via embeddings
 - **Many-shot**: Aproximação de gradient descent, gerenciamento de context window
 - Trade-offs: custo, latência, acurácia para cada estratégia
 
 **3. Chain-of-Thought (CoT):**
+
 - Zero-shot CoT: "Let's think step by step" para raciocínio emergente
 - Few-shot CoT: exemplos com raciocínio explícito
 - Self-consistency: voting majoritário para maior robustez (+5-15% acurácia, 5× custo)
 - Quando CoT funciona (raciocínio matemático, planejamento) e quando falha
 
 **4. ReAct Framework:**
+
 - Padrão Pensamento-Ação-Observação para agentes autônomos
 - Integração de ferramentas externas (calculadora, APIs, databases)
 - Fundamentos para sistemas multi-agentes (Parte II do livro)
 
 **Implementações práticas:**
+
 - **Exercício 1**: Classificador few-shot com seleção dinâmica (+20% acurácia)
 - **Exercício 2**: Math solver com CoT e self-consistency (86% acurácia)
 - **Exercício 3**: Agente ReAct básico com três ferramentas
