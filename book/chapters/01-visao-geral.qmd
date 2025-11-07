@@ -86,10 +86,12 @@ Este livro está organizado em **três partes principais**, cada uma com um prop
 
 ### Recursos de Aprendizado
 
-- **Código de exemplo**: Todo código está disponível no repositório GitHub do livro
+- **Código de exemplo**: Todo código está disponível no repositório GitHub do livro ([github.com/woliveiras/dominando-agentes-ia/](https://github.com/woliveiras/dominando-agentes-ia/tree/main/book/sandbox))
 - **Exercícios práticos**: Cada capítulo inclui exercícios hands-on
-- **Projeto integrado**: Os capítulos constroem um sistema real incrementalmente
+- **Projeto integrado**: Os capítulos práticos constroem um sistema real incrementalmente
 - **Referências cruzadas**: Links internos conectam conceitos relacionados
+- **Referências bibliográficas**: No final do livro, para aprofundamento
+- **Apêndices**: Material de referência para consulta rápida
 
 ### Importante
 
