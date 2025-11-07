@@ -2488,11 +2488,4 @@ Você construiu uma base sólida que cobre:
 - Prompt engineering e raciocínio com LLMs
 - Operacionalização prática em produção
 
-**Na Parte II**, usaremos esses fundamentos para construir **sistemas de agentes completos**:
-
-- Retrieval-Augmented Generation (RAG) para conhecimento externo
-- Tool calling para ações no mundo real
-- Workflows e orquestração de múltiplos agentes
-- Arquiteturas de sistemas multi-agentes
-
-Prepare-se para transformar o conhecimento teórico em agentes de IA capazes e autônomos!
+No próximo capítulo, vamos entender como funcionam os embeddings e vetores, a base para recuperação de informação e sistemas RAG (Retrieval-Augmented Generation), que será muito explorado na segunda parte do livro.

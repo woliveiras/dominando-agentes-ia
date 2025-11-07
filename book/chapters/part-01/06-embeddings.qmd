@@ -1,36 +1,115 @@
 # Capítulo 6: Embeddings e Representação Semântica {.unnumbered}
 
-## Fundamentos de embeddings
+## O que são Embeddings?
 
-- Representação densa de dados
-- Embeddings pré-treinados vs. treinados do zero
-- Transferência de aprendizado em embeddings
+  - De texto para números: a necessidade de representações vetoriais
+  - Diferença entre one-hot encoding, TF-IDF e embeddings densos
+  - Como embeddings capturam significado semântico
+  - Propriedades emergentes: analogias e relações matemáticas
+  - Dimensionalidade típica e trade-offs
 
-## Modelos de embedding e fine-tuning
+## Arquitetura de Modelos de Embedding
 
-- Modelos populares (e.g., OpenAI, Sentence Transformers)
-- Técnicas de fine-tuning para domínios específicos
+  - Word2Vec: CBOW e Skip-gram (contexto histórico)
+  - Embeddings contextualizados vs. estáticos
+  - Como Transformers geram embeddings (relação com Cap 1)
+  - Sentence-level vs. token-level embeddings
+  - Pooling strategies: CLS token, mean pooling, max pooling
 
-## Similarity measures e semantic search
+## Modelos de Embedding Modernos
 
-- Métricas de similaridade (cosseno, Euclidiana, etc.)
-- Implementação de buscas semânticas com embeddings
+  - Sentence Transformers (SBERT) e arquitetura bi-encoder
+  - OpenAI text-embedding-ada-002 e text-embedding-3-small/large
+  - Modelos multilíngues: mBERT, XLM-RoBERTa
+  - Modelos especializados: code embeddings, domain-specific
+  - Trade-offs: dimensionalidade, velocidade, custo, qualidade
 
-## Técnicas de chunking inteligente
+## Medidas de Similaridade
 
-- Divisão de texto em partes menores
-- Manutenção de contexto entre chunks
-- Estratégias de sobreposição e agrupamento
+  - Similaridade cosseno: intuição geométrica e implementação
+  - Distância euclidiana e Manhattan
+  - Produto interno (dot product)
+  - Quando usar cada métrica
+  - Normalização e seu impacto
 
-## Vector databases na prática
+## Chunking: Estratégias de Segmentação
 
-- Armazenamento e recuperação de embeddings
-- Indexação eficiente para busca semântica
-- Casos de uso e ferramentas populares
+  - Por que chunking é necessário
+  - Estratégias básicas: fixed-size, sentence-based, paragraph-based
+  - Chunking semântico: usando embeddings para dividir
+  - Overlap strategies: sliding window e context preservation
+  - Tamanho ótimo de chunks por domínio
 
-## Aplicações avançadas de embeddings
+## Vector Databases: Fundamentos
 
-- Geração de texto e chatbots
-- Análise de sentimentos e emoções
-- Recomendação de conteúdo
-- Detecção de plágio e similaridade textual
+  - O problema de busca em alta dimensionalidade
+  - FAISS: Facebook AI Similarity Search (conceitos básicos)
+  - Pinecone, Weaviate, Chroma, Qdrant: overview
+  - Indexação: flat vs. approximate nearest neighbors (ANN)
+  - HNSW (Hierarchical Navigable Small World) - intuição
+
+## Semantic Search na Prática
+
+  - Pipeline completo: texto → embedding → search → ranking
+  - Implementação básica com FAISS
+  - Re-ranking: combinando busca vetorial com keyword search
+  - Hybrid search: BM25 + embeddings
+  - Avaliação: precision, recall, MRR, NDCG
+
+## Fine-tuning de Embeddings
+
+  - Quando fazer fine-tuning de embeddings
+  - Contrastive learning: triplet loss e InfoNCE
+  - Domain adaptation para embeddings
+  - Few-shot fine-tuning com synthetic data
+  - Avaliação de qualidade: benchmark datasets
+
+## Embeddings em Sistemas de Agentes
+
+  - RAG (Retrieval-Augmented Generation): preview do conceito
+  - Memory systems: armazenamento de contexto longo
+  - Tool retrieval: seleção dinâmica de ferramentas
+  - Multi-modal embeddings: texto + imagem (CLIP)
+  - Embeddings para classification e routing
+
+## Exercícios Práticos
+
+### Exercício 1: Semantic Search Engine
+
+### Exercício 2: Custom Embedding Fine-tuning
+
+### Exercício 3: Hybrid Search Implementation
+
+## Conclusão
+
+Neste capítulo, você aprendeu como modelos de linguagem representam significado através de embeddings - a ponte fundamental entre texto e matemática que possibilita sistemas de agentes inteligentes.
+
+**O que você aprendeu:**
+
+- **Fundamentos de Embeddings**: Como texto é transformado em vetores que capturam significado semântico
+- **Modelos Modernos**: Sentence Transformers, OpenAI embeddings, e quando usar cada um
+- **Similaridade Semântica**: Métricas e técnicas para medir proximidade entre conceitos
+- **Chunking Estratégico**: Como segmentar documentos preservando contexto
+- **Vector Databases**: Armazenamento e busca eficiente em alta dimensionalidade
+- **Semantic Search**: Implementação completa de busca semântica com re-ranking
+- **Fine-tuning**: Como adaptar embeddings para domínios específicos
+- **Aplicações em Agentes**: Preview de RAG, memory systems e tool retrieval
+
+Com isso, você completou a **Parte I: Fundamentos e Componentes Base**. Você agora domina:
+
+1. **Arquitetura**: Como Transformers processam informação (Cap 1)
+2. **Treinamento**: Como foundation models aprendem (Cap 2)
+3. **Adaptação**: Fine-tuning e otimização de modelos (Cap 3)
+4. **Interface**: Prompting e raciocínio com LLMs (Cap 4)
+5. **Operacionalização**: LLMs em produção (Cap 5)
+6. **Representação**: Embeddings e busca semântica (Cap 6)
+
+**Na Parte II: Construindo Sistemas de Agentes**, você combinará todos esses fundamentos para criar agentes autônomos capazes de:
+
+- Acessar conhecimento externo via RAG (usando embeddings do Cap 6)
+- Raciocinar sobre problemas complexos (usando CoT do Cap 4)
+- Usar ferramentas externas para realizar tarefas
+- Manter memória de longo prazo (usando vector databases)
+- Colaborar em sistemas multi-agente
+
+Prepare-se para transformar teoria em agentes de IA funcionais!
