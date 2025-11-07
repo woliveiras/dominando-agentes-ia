@@ -1,22 +1,16 @@
 # Capítulo 2: Treinamento de Foundation Models {.unnumbered}
 
-## Como os LLMs Aprendem e Representam Conhecimento
-
-Até agora exploramos a **arquitetura** dos Transformers, os componentes mecânicos que permitem processar linguagem. Mas arquitetura sozinha não cria inteligência. Um Transformer recém-inicializado com pesos aleatórios é essencialmente inútil, incapaz de entender ou gerar linguagem coerente.
+Até agora exploramos a **arquitetura** dos Transformers, os componentes mecânicos que permitem processar linguagem. Mas arquitetura sozinha não cria inteligência. Um Transformer não-treinado, com pesos inicializados aleatoriamente, não possui capacidade de compreender ou gerar linguagem coerente.
 
 A transformação de uma arquitetura vazia em um modelo capaz acontece através do **aprendizado**. Esta seção explora como LLMs adquirem conhecimento, desenvolvem capacidades linguísticas e, surpreendentemente, demonstram comportamentos que parecem ir além do que foi explicitamente ensinado.
 
 ### O Paradigma de Pré-Treinamento
 
-Imagine ensinar alguém a ser um médico. Você não começa ensinando cirurgias específicas. Primeiro, a pessoa passa por **educação básica** (fundamental e médio - lembra do que estávamos falando sobre isso?), depois **graduação em medicina** (conhecimento geral amplo), e só então se especializa em uma área específica. Os LLMs seguem um caminho similar através de um processo de duas fases: **pré-treinamento** e **fine-tuning**.
-
-**Pré-treinamento: A Educação Fundamental**
+Imagine ensinar alguém a ser um médico. Você não começa ensinando cirurgias específicas. Primeiro, a pessoa passa por **educação básica** (fundamental e médio), depois **graduação em medicina** (conhecimento geral amplo), e só então se especializa em uma área específica. Os LLMs seguem um caminho similar através de um processo de duas fases: **pré-treinamento** e **fine-tuning**.
 
 O pré-treinamento é onde a "mágica" acontece. É aqui que o modelo desenvolve sua compreensão fundamental de linguagem, absorve conhecimento sobre o mundo e, surpreendentemente, desenvolve capacidades rudimentares de raciocínio, tudo isso **sem supervisão humana direta**.
 
 Pense no pré-treinamento como expor uma criança a milhões de livros, artigos, conversas e códigos. A criança não recebe instruções explícitas sobre gramática ou fatos, mas através da exposição massiva, começa a reconhecer padrões, entender estruturas linguísticas e absorver conhecimento implícito.
-
-**Como isso funciona na prática?**
 
 Durante o pré-treinamento, o modelo é exposto a um corpus **gigantesco** de texto não-anotado:
 
