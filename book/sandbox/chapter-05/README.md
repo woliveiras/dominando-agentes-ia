@@ -1,4 +1,4 @@
-# Exemplos do Capítulo 4: Dominando LLMs na Prática
+# Exemplos do Capítulo 5: Dominando LLMs na Prática
 
 Exemplos práticos e executáveis demonstrando observabilidade e otimização de sistemas LLM em produção.
 

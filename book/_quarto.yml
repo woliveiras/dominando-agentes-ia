@@ -14,10 +14,9 @@ book:
         - chapters/part-01/01-fundamentos-transformers.qmd
         - chapters/part-01/02-treinamento-foundation-models.qmd
         - chapters/part-01/03-fine-tuning-otimizacao.qmd
-        - chapters/part-01/04-dominando-llms-pratica.qmd
-    #     - chapters/part-01/02-dominando-large-language-models.qmd
-    #     - chapters/part-01/03-fundamentos-prompting.qmd
-    #     - chapters/part-01/04-embeddings.qmd
+        - chapters/part-01/04-fundamentos-prompting.qmd
+        - chapters/part-01/05-dominando-llms-pratica.qmd
+    #     - chapters/part-01/06-embeddings.qmd
     # - part: "Parte II: Construindo Sistemas de Agentes"
     #   chapters:
     #     - chapters/part-02/05-retrieval-augmented-generation.qmd

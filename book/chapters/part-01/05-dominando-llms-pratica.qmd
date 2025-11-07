@@ -1,8 +1,17 @@
-# Capítulo 4: Dominando LLMs na Prática {.unnumbered}
+# Capítulo 5: Dominando LLMs na Prática {.unnumbered}
 
-Nos capítulos anteriores, exploramos a arquitetura dos Transformers, como foundation models são treinados, e técnicas de fine-tuning. Agora é hora de focar nos aspectos práticos de usar LLMs em produção: como configurar parâmetros de geração para controlar o comportamento do modelo, gerenciar o *context window* eficientemente, e otimizar custo e latência sem sacrificar qualidade das respostas geradas.
+No capítulo anterior, você dominou as técnicas de prompting: como estruturar prompts efetivos, in-context learning, chain-of-thought reasoning e introdução ao ReAct. Você aprendeu a **linguagem** para se comunicar com LLMs.
 
-Este capítulo é sobre engenharia prática. Você aprenderá as decisões técnicas que separam uma prova de conceito funcional de um sistema de produção robusto e eficiente. Ao final da leitura, você terá um conjunto de ferramentas para dominar LLMs em qualquer aplicação real.
+Agora é hora de aprender a **operacionalizar** esse conhecimento em sistemas de produção reais. Saber escrever bons prompts não é suficiente - você precisa entender como configurar parâmetros de geração, gerenciar o context window eficientemente, otimizar custos e latência, e garantir observabilidade em produção.
+
+Este capítulo é sobre **engenharia prática de LLMs**. Você aprenderá:
+
+- **Parâmetros de geração**: Como temperature, top-p e top-k afetam as respostas
+- **Context window management**: Estratégias para manter conversações longas
+- **Otimização de custo/latência**: Técnicas que reduzem custos em 40-70%
+- **Observabilidade**: Instrumentação e monitoramento em produção
+
+Ao final deste capítulo, você terá o conhecimento técnico necessário para levar LLMs da prototipagem para produção com confiança.
 
 ## Configuração de Parâmetros de Geração
 
@@ -2469,4 +2478,21 @@ Os exemplos apresentados não são protótipos acadêmicos. São implementaçõe
 - A instrumentação OpenTelemetry permite debugging de workflows complexos
 - As queries PromQL dão visibilidade em tempo real de performance e custos
 
-No próximo capítulo, aplicaremos esse conhecimento em **prompt engineering avançado**: construção de prompts estruturados, few-shot learning, chain-of-thought reasoning e técnicas de elicitação que maximizam a qualidade de resposta dos modelos que você agora sabe operar eficientemente.
+Com o domínio de **técnicas de prompting** e agora a capacidade de **operacionalizar LLMs eficientemente** em produção, você completou a **Parte I: Fundamentos e Componentes Base**.
+
+Você construiu uma base sólida que cobre:
+
+- A arquitetura dos Transformers e foundation models
+- Como LLMs são treinados e representam conhecimento
+- Técnicas de fine-tuning e otimização
+- Prompt engineering e raciocínio com LLMs
+- Operacionalização prática em produção
+
+**Na Parte II**, usaremos esses fundamentos para construir **sistemas de agentes completos**:
+
+- Retrieval-Augmented Generation (RAG) para conhecimento externo
+- Tool calling para ações no mundo real
+- Workflows e orquestração de múltiplos agentes
+- Arquiteturas de sistemas multi-agentes
+
+Prepare-se para transformar o conhecimento teórico em agentes de IA capazes e autônomos!

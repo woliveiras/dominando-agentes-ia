@@ -1,0 +1,69 @@
+# Capítulo 4: Fundamentos de Prompting e Raciocínio {.unnumbered}
+
+Nos capítulos anteriores, você aprendeu como funcionam os Transformers, como foundation models são treinados, e técnicas de fine-tuning e otimização. Com esse conhecimento sobre a **arquitetura** e o **treinamento**, agora é hora de dominar a **interface** principal para interagir com LLMs: **prompts**.
+
+Prompting é a arte e ciência de comunicar-se efetivamente com modelos de linguagem. Um prompt bem construído pode fazer a diferença entre um modelo que gera outputs úteis e um que produz resultados incoerentes ou irrelevantes. Para construir agentes de IA capazes, você precisa dominar essa habilidade fundamental.
+
+Neste capítulo, você aprenderá:
+
+- Como estruturar prompts efetivos que extraem o máximo dos LLMs
+- Técnicas de in-context learning (zero-shot, few-shot, many-shot)
+- Chain-of-Thought prompting para raciocínio complexo
+- Fundamentos do ReAct para agentes autônomos
+
+Ao final deste capítulo, você terá as ferramentas necessárias para guiar LLMs em tarefas complexas e preparar o terreno para construir sistemas de agentes completos.
+
+## Prompt Engineering Essencial
+
+  - Anatomia de um bom prompt
+  - System prompts, user prompts e assistant responses
+  - Técnicas de estruturação (markdown, XML, JSON)
+  - Uso de templates e variáveis
+
+## In-Context Learning (ICL)
+
+  - Zero-shot: quando o modelo já sabe
+  - Few-shot: aprendendo com exemplos
+  - Many-shot: maximizando o context window
+  - Seleção e ordenação estratégica de exemplos
+  - Dynamic example selection
+
+## Chain-of-Thought (CoT) Prompting
+
+  - Fundamentos do raciocínio passo-a-passo
+  - Zero-shot CoT: "Let's think step by step"
+  - Few-shot CoT: ensinando com exemplos de raciocínio
+  - Self-consistency: múltiplos caminhos para uma resposta
+  - Quando CoT funciona melhor (e quando não funciona)
+
+## Técnicas Fundamentais de Reasoning
+
+  - ReAct: Reasoning + Acting (introdução básica)
+  - Self-reflection patterns
+  - Analogical prompting
+
+## Exercícios Práticos
+
+### Exercício 1: Few-Shot Classifier
+
+### Exercício 2: Chain-of-Thought Math Solver
+
+### Exercício 3: Simple ReAct Agent
+
+## Conclusão
+
+Neste capítulo, você dominou as técnicas fundamentais de prompting e raciocínio que são essenciais para trabalhar com LLMs e construir agentes de IA eficazes.
+
+**O que você aprendeu:**
+
+- **Prompt Engineering**: Como estruturar prompts efetivos usando markdown, XML e JSON
+- **In-Context Learning**: Zero-shot, few-shot e many-shot learning para adaptar modelos sem fine-tuning
+- **Chain-of-Thought**: Como ensinar modelos a raciocinar passo-a-passo em problemas complexos
+- **ReAct**: Fundamentos de reasoning + acting para agentes autônomos
+- **Self-Reflection**: Como modelos podem melhorar suas próprias respostas
+
+Essas técnicas formam a **base conceitual e prática** para todos os sistemas de agentes que construiremos nos próximos capítulos. Dominar prompting não é opcional para quem trabalha com agentes de IA - é a linguagem fundamental de comunicação com LLMs.
+
+No próximo capítulo (Capítulo 5: Dominando LLMs na Prática), aplicaremos esse conhecimento explorando configurações avançadas de geração (temperature, top-p, etc.), otimização de context window, e estratégias de custo/latência para sistemas em produção.
+
+Prepare-se para colocar todo esse conhecimento em prática!
