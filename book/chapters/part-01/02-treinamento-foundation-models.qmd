@@ -347,81 +347,25 @@ Um pipeline típico de produção tem múltiplos estágios: Language Filtering, 
 Aplicando heurísticas de qualidade textual:
 
 ```python
-import math
-from collections import Counter
-
-def calculate_entropy(text):
-    """Calcula entropia de Shannon dos tokens (diversidade vocabular)"""
-    words = text.lower().split()
-    if not words:
-        return 0.0
-
-    # Conta frequência de cada palavra
-    word_counts = Counter(words)
-    total_words = len(words)
-
-    # Calcula entropia: H = -Σ(p(x) * log2(p(x)))
-    entropy = 0.0
-    for count in word_counts.values():
-        probability = count / total_words
-        entropy -= probability * math.log2(probability)
-
-    return entropy
-
-def count_stopwords(text):
-    """Conta stopwords comuns (palavras funcionais)"""
-    # Stopwords básicas em inglês
-    stopwords = {
-        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
-        'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
-        'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
-        'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their'
-    }
-
-    words = text.lower().split()
-    stopword_count = sum(1 for word in words if word in stopwords)
-    return stopword_count
-
-def count_uppercase(text):
-    """Conta caracteres maiúsculos"""
-    return sum(1 for c in text if c.isupper())
-
-def count_duplicates(lines):
-    """Calcula proporção de linhas duplicadas"""
-    if not lines:
-        return 0.0
-    line_counts = Counter(lines)
-    duplicates = sum(count - 1 for count in line_counts.values() if count > 1)
-    return duplicates / len(lines)
-
 def is_high_quality(text):
-    # Proporção de stopwords (palavras comuns)
-    words = text.split()
-    if len(words) == 0:
-        return False
-
-    stopword_ratio = count_stopwords(text) / len(words)
+    """Verifica qualidade do texto usando múltiplas heurísticas."""
+    stopword_ratio = count_stopwords(text) / len(text.split())
     if stopword_ratio < 0.2:  # Muito técnico ou spam
         return False
 
-    # Entropia de tokens (diversidade vocabular)
-    token_entropy = calculate_entropy(text)
-    if token_entropy < 3.0:  # Muito repetitivo
+    if calculate_entropy(text) < 3.0:  # Muito repetitivo
         return False
 
-    # Proporção de letras maiúsculas
-    if len(text) > 0:
-        upper_ratio = count_uppercase(text) / len(text)
-        if upper_ratio > 0.3:  # MUITO SPAM ASSIM
-            return False
-
-    # Número de linhas duplicadas
-    duplicate_lines = count_duplicates(text.split('\n'))
-    if duplicate_lines > 0.5:  # Mais de 50% repetido
+    if count_uppercase(text) / len(text) > 0.3:  # MUITO SPAM
         return False
 
     return True
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para a implementação completa com todas as funções auxiliares (`calculate_entropy`, `count_stopwords`, `count_duplicates`), veja o @sec-exemplo-quality-metrics.
+:::
 
 **Remove ~20-30% adicional** (conteúdo de baixíssima qualidade)
 
@@ -458,36 +402,26 @@ Locality-Sensitive Hashing (LSH) acelera a busca por duplicatas [@indyk1998appro
 ```python
 from datasketch import MinHash, MinHashLSH
 
-# Configuração LSH
-# threshold=0.8 significa detectar docs com Jaccard similarity >= 80%
+# Configurar LSH para detectar docs com similaridade >= 80%
 lsh = MinHashLSH(threshold=0.8, num_perm=128)
 
 def get_minhash(text, num_perm=128):
-    """Cria MinHash signature de um documento"""
     m = MinHash(num_perm=num_perm)
-    # Tokeniza em palavras (ou use n-gramas para mais robustez)
-    words = text.lower().split()
-    for word in words:
+    for word in text.lower().split():
         m.update(word.encode('utf8'))
     return m
 
-# Indexar documentos
-docs = {
-    "doc1": "A capital da França é Paris",
-    "doc2": "Paris é a capital da França",
-    "doc3": "Berlin é a capital da Alemanha"
-}
-
+# Indexar e buscar duplicatas
 for doc_id, text in docs.items():
-    m = get_minhash(text)
-    lsh.insert(doc_id, m)
+    lsh.insert(doc_id, get_minhash(text))
 
-# Buscar near-duplicates de um novo documento
-query_text = "A França tem Paris como capital"
-query_minhash = get_minhash(query_text)
-duplicates = lsh.query(query_minhash)
-print(f"Duplicates found: {duplicates}")  # ['doc1', 'doc2']
+duplicates = lsh.query(get_minhash("A França tem Paris como capital"))
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para o exemplo completo com explicação detalhada do algoritmo MinHash e LSH, veja o @sec-exemplo-minhash-dedup.
+:::
 
 **Performance**: LSH permite buscar duplicatas em **O(1)** em média (tempo constante), em vez de O(n) comparando com todos os documentos. Isso é crucial quando processando bilhões de documentos.
 
@@ -561,12 +495,70 @@ Textos médicos, históricos ou jornalísticos sobre tópicos sensíveis podem s
 
 Trade-off fundamental: filtrar agressivamente remove conteúdo tóxico mas também pode remover discussões legítimas sobre tópicos sensíveis. A calibração correta requer balanceamento cuidadoso e consciente entre segurança e representatividade.
 
-**Estágio 6: Copyright Filtering**
+**Estágio 6: Copyright Filtering e Implicações Legais**
 
-- Detecta trechos de livros conhecidos usando n-gram matching
-- Remove artigos de jornais pagos
-- Filtra código com licenças restritivas
-- **Difícil**: Linha tênue entre "fair use" e violação
+A filtragem de conteúdo protegido por direitos autorais é um dos desafios mais complexos e controversos no treinamento de LLMs. Aqui a linha entre o tecnicamente possível e o eticamente/legalmente aceitável fica especialmente turva.
+
+**Técnicas de Detecção:**
+
+- **N-gram matching**: Detecta trechos de livros conhecidos comparando sequências de palavras
+- **Fingerprinting**: Identifica artigos de jornais pagos via hashing
+- **License detection**: Filtra código com licenças restritivas (GPL strict, proprietary)
+- **Metadata checking**: Verifica robots.txt e meta tags de propriedade
+
+**O Dilema Legal e Ético**
+
+A questão central é: **treinar um modelo em dados protegidos constitui "fair use" ou é violação de copyright?** Esta pergunta ainda não tem resposta definitiva na maioria das jurisdições.
+
+**Argumentos pró "Fair Use":**
+1. **Transformative use**: O modelo não reproduz o conteúdo original, mas aprende padrões estatísticos
+2. **Análogo a leitura humana**: Humanos leem livros protegidos para aprender a escrever
+3. **Uso não-comercial direto**: O treinamento em si não comercializa o conteúdo
+
+**Argumentos contra:**
+1. **Memorização**: Modelos podem reproduzir trechos literais de dados de treinamento
+2. **Competição**: Modelos treinados competem com o material original
+3. **Escala**: Diferença qualitativa entre um humano ler e processar milhões de obras
+
+**Casos Reais e Processos em Andamento**
+
+Até 2024, múltiplos processos judiciais estão em curso:
+
+1. **Getty Images vs Stability AI** (2023): Alegação de uso indevido de milhões de imagens protegidas para treinar modelos de geração de imagens
+2. **Authors Guild vs OpenAI** (2023): Autores alegando que GPT foi treinado em suas obras sem permissão
+3. **The New York Times vs OpenAI/Microsoft** (2023): Alegação de uso indevido de artigos protegidos
+
+Estes casos estabelecerão precedentes importantes para a indústria.
+
+**LGPD, GDPR e Privacidade de Dados**
+
+Além de copyright, há questões de privacidade de dados pessoais:
+
+**GDPR (Europa) - Implicações para LLMs:**
+- **Direito ao esquecimento**: Como "remover" dados de um modelo já treinado?
+- **Consentimento**: Dados pessoais requerem consentimento explícito para processamento
+- **Transparência**: Usuários têm direito de saber se seus dados foram usados
+
+**LGPD (Brasil) - Considerações similares:**
+- **Base legal**: Treinar em dados pessoais sem consentimento viola LGPD Art. 7°
+- **Dados sensíveis**: Informações sobre saúde, orientação sexual, etc. requerem proteções adicionais
+- **Responsabilização**: Quem é responsável se o modelo vazar PII?
+
+**Consequências Práticas para Desenvolvedores:**
+
+1. **Auditorias de dados**: Documentar origem e licenças de todos os dados de treinamento
+2. **Filtros conservadores**: Na dúvida, remover conteúdo questionável
+3. **Modelos defensivos**: Implementar mecanismos anti-memorização
+4. **Transparência**: Publicar cards de modelo documentando fontes de dados
+
+**Recomendações Éticas:**
+
+- **Priorizar dados permissivos**: Usar Common Crawl, Wikipedia, código open-source
+- **Respeitar opt-out**: Honrar robots.txt e meta tags de exclusão
+- **Investir em dados sintéticos**: Gerar dados via modelos já treinados (evita questões legais)
+- **Colaborar com criadores**: Estabelecer parcerias com detentores de direitos
+
+A realidade é que os limites legais ainda estão sendo definidos pelos tribunais. Enquanto isso, a responsabilidade ética recai sobre desenvolvedores e organizações em praticar a devida diligência e transparência.
 
 **Resultado Final**
 
@@ -1931,6 +1923,225 @@ print("\n💡 Observe que Code Llama tokeniza código mais eficientemente!")
 1. Qual tokenizer é mais eficiente para texto em português?
 2. Como tokenizers otimizados para código diferem dos genéricos?
 3. Qual impacto isso tem em aplicações de agentes que processam código?
+
+
+## Exemplos de Código Completos
+
+Esta seção contém implementações completas dos conceitos apresentados neste capítulo.
+
+### Exemplo 1: Métricas de Qualidade de Dados {#sec-exemplo-quality-metrics}
+
+Implementação completa das heurísticas para avaliar qualidade de texto em dados de treinamento.
+
+```python
+import math
+from collections import Counter
+
+def calculate_entropy(text):
+    """
+    Calcula entropia de Shannon dos tokens (diversidade vocabular).
+
+    Entropia mede a "surpresa média" ou diversidade do vocabulário.
+    - Baixa entropia: Texto repetitivo (ruim)
+    - Alta entropia: Vocabulário diverso (bom)
+    """
+    words = text.lower().split()
+    if not words:
+        return 0.0
+
+    # Conta frequência de cada palavra
+    word_counts = Counter(words)
+    total_words = len(words)
+
+    # Calcula entropia: H = -Σ(p(x) * log2(p(x)))
+    entropy = 0.0
+    for count in word_counts.values():
+        probability = count / total_words
+        entropy -= probability * math.log2(probability)
+
+    return entropy
+
+def count_stopwords(text):
+    """
+    Conta stopwords comuns (palavras funcionais).
+
+    Stopwords são palavras gramaticais comuns como "the", "is", "a".
+    Proporção adequada de stopwords indica linguagem natural.
+    """
+    # Stopwords básicas em inglês
+    stopwords = {
+        'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'i',
+        'it', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at',
+        'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she',
+        'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their'
+    }
+
+    words = text.lower().split()
+    stopword_count = sum(1 for word in words if word in stopwords)
+    return stopword_count
+
+def count_uppercase(text):
+    """Conta caracteres maiúsculos (detecta spam/shouting)."""
+    return sum(1 for c in text if c.isupper())
+
+def count_duplicates(lines):
+    """
+    Calcula proporção de linhas duplicadas.
+
+    Alto índice de duplicação pode indicar:
+    - Conteúdo auto-gerado
+    - Logs repetitivos
+    - Spam
+    """
+    if not lines:
+        return 0.0
+    line_counts = Counter(lines)
+    duplicates = sum(count - 1 for count in line_counts.values() if count > 1)
+    return duplicates / len(lines)
+
+def is_high_quality(text):
+    """
+    Aplica múltiplas heurísticas para filtrar texto de baixa qualidade.
+
+    Returns:
+        True se o texto passa em todos os filtros
+    """
+    words = text.split()
+    if len(words) == 0:
+        return False
+
+    # Heurística 1: Proporção de stopwords
+    stopword_ratio = count_stopwords(text) / len(words)
+    if stopword_ratio < 0.2:  # Muito técnico ou spam
+        return False
+
+    # Heurística 2: Entropia de tokens (diversidade vocabular)
+    token_entropy = calculate_entropy(text)
+    if token_entropy < 3.0:  # Muito repetitivo
+        return False
+
+    # Heurística 3: Proporção de letras maiúsculas
+    if len(text) > 0:
+        upper_ratio = count_uppercase(text) / len(text)
+        if upper_ratio > 0.3:  # MUITO SPAM ASSIM
+            return False
+
+    # Heurística 4: Linhas duplicadas
+    duplicate_lines = count_duplicates(text.split('\n'))
+    if duplicate_lines > 0.5:  # Mais de 50% repetido
+        return False
+
+    return True
+
+# Exemplo de uso
+text_good = """
+Natural language processing has revolutionized how we interact with machines.
+Modern transformer models can understand context and generate human-like text.
+These capabilities emerge from training on massive datasets.
+"""
+
+text_bad_spam = """
+BUY NOW!!! CLICK HERE!!! LIMITED OFFER!!!
+HURRY UP!!! DON'T MISS OUT!!!
+"""
+
+print(f"Texto bom: {is_high_quality(text_good)}")  # True
+print(f"Texto spam: {is_high_quality(text_bad_spam)}")  # False
+```
+
+### Exemplo 2: Deduplicação com MinHash e LSH {#sec-exemplo-minhash-dedup}
+
+Implementação completa de deduplicação eficiente usando MinHash e Locality-Sensitive Hashing.
+
+```python
+from datasketch import MinHash, MinHashLSH
+
+def get_minhash(text, num_perm=128):
+    """
+    Cria MinHash signature de um documento.
+
+    MinHash cria uma "impressão digital" compacta que preserva
+    similaridade de Jaccard entre documentos.
+
+    Args:
+        text: Documento de entrada
+        num_perm: Número de permutações (trade-off precisão vs memória)
+
+    Returns:
+        MinHash object representando o documento
+    """
+    m = MinHash(num_perm=num_perm)
+    # Tokeniza em palavras (ou use n-gramas para mais robustez)
+    words = text.lower().split()
+    for word in words:
+        m.update(word.encode('utf8'))
+    return m
+
+def deduplicate_documents(docs, threshold=0.8):
+    """
+    Remove documentos duplicados ou near-duplicates.
+
+    Args:
+        docs: Dict {doc_id: text}
+        threshold: Similaridade Jaccard mínima para considerar duplicata
+
+    Returns:
+        Set de doc_ids duplicados (para remover)
+    """
+    # Configuração LSH
+    # threshold=0.8 significa detectar docs com Jaccard similarity >= 80%
+    lsh = MinHashLSH(threshold=threshold, num_perm=128)
+
+    duplicates_to_remove = set()
+    doc_hashes = {}
+
+    # Indexar documentos
+    for doc_id, text in docs.items():
+        m = get_minhash(text)
+        doc_hashes[doc_id] = m
+
+        # Buscar duplicatas já indexadas
+        duplicates = lsh.query(m)
+
+        if duplicates:
+            # Se já existe duplicata, marcar este documento para remoção
+            duplicates_to_remove.add(doc_id)
+            print(f"Duplicata encontrada: {doc_id} similar a {duplicates}")
+        else:
+            # Se não é duplicata, adicionar ao índice
+            lsh.insert(doc_id, m)
+
+    return duplicates_to_remove
+
+# Exemplo de uso
+docs = {
+    "doc1": "A capital da França é Paris",
+    "doc2": "Paris é a capital da França",  # Near-duplicate de doc1
+    "doc3": "Berlin é a capital da Alemanha",
+    "doc4": "A França tem Paris como capital",  # Near-duplicate de doc1
+    "doc5": "Londres é a capital da Inglaterra"
+}
+
+duplicates = deduplicate_documents(docs, threshold=0.7)
+print(f"\nDocumentos duplicados: {duplicates}")
+print(f"Documentos únicos: {set(docs.keys()) - duplicates}")
+
+# Análise de performance
+print(f"\nRedução: {len(duplicates)}/{len(docs)} documentos removidos")
+print(f"Taxa de compressão: {(1 - len(duplicates)/len(docs)) * 100:.1f}%")
+```
+
+**Por que MinHash + LSH é eficiente:**
+
+1. **MinHash**: Reduz documento de milhares de palavras para ~128 números
+2. **LSH**: Busca em tempo O(1) médio em vez de O(n)
+3. **Escalável**: Funciona com bilhões de documentos
+
+**Parâmetros importantes:**
+
+- `num_perm`: Mais permutações = mais precisão, mais memória (128 é padrão)
+- `threshold`: Mais alto = apenas duplicatas muito similares (0.8-0.9 típico)
+- `num_bands`: Trade-off sensibilidade vs false positives
 
 ## Conclusão
 
