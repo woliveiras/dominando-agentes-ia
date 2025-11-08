@@ -2,7 +2,7 @@
 
 :::{.callout-note}
 # Sobre estes exercícios
-Estes exercícios complementam o [Capítulo 2: Treinamento de Foundation Models](02-treinamento-foundation-models.qmd).
+Estes exercícios complementam o [Capítulo 2: Treinamento de Foundation Models](../02-treinamento-foundation-models.qmd).
 
 Recomenda-se completar a leitura do capítulo antes de iniciar os exercícios práticos.
 :::

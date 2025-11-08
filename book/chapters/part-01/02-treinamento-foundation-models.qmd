@@ -1544,7 +1544,7 @@ Neste capítulo você compreendeu **o que** são capacidades emergentes e **por 
 
 Este capítulo apresentou conceitos fundamentais sobre treinamento de foundation models, incluindo pré-treinamento, curadoria de dados, tokenização e capacidades emergentes.
 
-Para consolidar seu entendimento através de implementação prática, consulte os [**Exercícios Práticos do Capítulo 2**](02-exercicios.qmd), que incluem:
+Para consolidar seu entendimento através de implementação prática, consulte os [**Exercícios Práticos do Capítulo 2**](exercises/02-chapter-02-exercicios.qmd), que incluem:
 
 1. **Análise de Eficiência de Tokenização**: Compare tokenização entre idiomas e calcule custos de API
 2. **Data Cleaning Pipeline**: Implemente pipeline completo de limpeza de dados
