@@ -25,6 +25,7 @@ book:
         - chapters/part-01/exercises/03-exercises.qmd
         - chapters/part-01/exercises/04-exercises.qmd
         - chapters/part-01/exercises/05-exercises.qmd
+        - chapters/part-01/exercises/06-exercises.qmd
     # - part: "Parte II: Construindo Sistemas de Agentes"
     #   chapters:
     #     - chapters/part-02/05-retrieval-augmented-generation.qmd

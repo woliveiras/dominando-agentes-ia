@@ -1,0 +1,695 @@
+# Exercícios Práticos: Embeddings e Busca Semântica {.unnumbered}
+
+Os exercícios deste capítulo consolidam os conceitos de embeddings, vector databases e semantic search através de implementações práticas. Você construirá sistemas completos de busca semântica, experimentará com fine-tuning de embeddings para domínios específicos, e implementará hybrid search combinando técnicas vetoriais e léxicas.
+
+---
+
+## Exercício 1: Semantic Search Engine
+
+**Objetivo:** Implementar um sistema completo de busca semântica usando FAISS e Sentence Transformers, incluindo chunking, indexação e avaliação quantitativa.
+
+**Por que?** Semantic search é a aplicação mais comum de embeddings em produção. Este exercício simula a construção de um sistema de busca para documentação técnica, onde usuários fazem perguntas naturais e o sistema recupera os documentos mais relevantes.
+
+**Código:**
+
+```python
+# uv pip install sentence-transformers faiss-cpu nltk scikit-learn
+
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+import json
+import nltk
+from sklearn.metrics import ndcg_score
+
+nltk.download('punkt')
+
+class SemanticSearchEngine:
+    """Sistema completo de busca semântica com FAISS."""
+    
+    def __init__(self, model_name='all-mpnet-base-v2'):
+        self.model = SentenceTransformer(model_name)
+        self.dimension = self.model.get_sentence_embedding_dimension()
+        self.index = None
+        self.chunks = []
+        self.metadata = []
+    
+    def paragraph_chunking(self, text, target_size=500, max_size=600, overlap_pct=0.15):
+        """
+        Chunking baseado em parágrafos com overlap.
+        
+        Args:
+            text: documento completo
+            target_size: tamanho-alvo em tokens
+            max_size: máximo antes de forçar split
+            overlap_pct: percentual de overlap entre chunks
+        """
+        paragraphs = text.split('\n\n')
+        chunks = []
+        current_chunk = []
+        current_length = 0
+        
+        for para in paragraphs:
+            # Estimar tokens (aproximação: palavras * 1.3)
+            para_length = len(para.split()) * 1.3
+            
+            # Parágrafo muito grande: split em sentenças
+            if para_length > max_size:
+                if current_chunk:
+                    chunks.append('\n\n'.join(current_chunk))
+                    current_chunk = []
+                    current_length = 0
+                
+                # Split em sentenças
+                sentences = nltk.sent_tokenize(para)
+                for sent in sentences:
+                    sent_length = len(sent.split()) * 1.3
+                    if current_length + sent_length > target_size and current_chunk:
+                        chunks.append(' '.join(current_chunk))
+                        current_chunk = []
+                        current_length = 0
+                    current_chunk.append(sent)
+                    current_length += sent_length
+                continue
+            
+            # Adicionar parágrafo excederia target: finalizar chunk
+            if current_length + para_length > target_size and current_chunk:
+                chunk_text = '\n\n'.join(current_chunk)
+                chunks.append(chunk_text)
+                
+                # Adicionar overlap do chunk anterior
+                overlap_size = int(len(current_chunk) * overlap_pct)
+                current_chunk = current_chunk[-overlap_size:] if overlap_size > 0 else []
+                current_length = sum(len(p.split()) * 1.3 for p in current_chunk)
+            
+            current_chunk.append(para)
+            current_length += para_length
+        
+        if current_chunk:
+            chunks.append('\n\n'.join(current_chunk))
+        
+        return chunks
+    
+    def index_documents(self, documents):
+        """
+        Indexa documentos: chunking → embeddings → FAISS HNSW.
+        
+        Args:
+            documents: lista de dicts com 'text', 'source', 'doc_id'
+        """
+        print(f"Processando {len(documents)} documentos...")
+        
+        for doc in documents:
+            chunks = self.paragraph_chunking(doc['text'])
+            
+            for chunk_id, chunk in enumerate(chunks):
+                self.chunks.append(chunk)
+                self.metadata.append({
+                    'doc_id': doc['doc_id'],
+                    'chunk_id': chunk_id,
+                    'source': doc.get('source', 'unknown')
+                })
+        
+        print(f"Gerando embeddings para {len(self.chunks)} chunks...")
+        embeddings = self.model.encode(
+            self.chunks,
+            batch_size=32,
+            show_progress_bar=True,
+            normalize_embeddings=True
+        )
+        
+        # Construir índice HNSW
+        print("Construindo índice FAISS HNSW...")
+        self.index = faiss.IndexHNSWFlat(self.dimension, 32)
+        self.index.add(embeddings.astype('float32'))
+        
+        print(f"✓ Indexação completa: {len(self.chunks)} chunks indexados")
+    
+    def search(self, query, top_k=5):
+        """
+        Busca semântica retornando top-k chunks mais relevantes.
+        
+        Returns:
+            Lista de dicts com 'chunk', 'score', 'metadata'
+        """
+        query_embedding = self.model.encode(
+            [query],
+            normalize_embeddings=True
+        ).astype('float32')
+        
+        distances, indices = self.index.search(query_embedding, top_k)
+        
+        results = []
+        for dist, idx in zip(distances[0], indices[0]):
+            results.append({
+                'chunk': self.chunks[idx],
+                'score': float(dist),
+                'metadata': self.metadata[idx]
+            })
+        
+        return results
+    
+    def evaluate(self, test_queries, ground_truth):
+        """
+        Avalia sistema com métricas Precision@5 e NDCG.
+        
+        Args:
+            test_queries: lista de queries de teste
+            ground_truth: lista de listas com doc_ids relevantes por query
+        
+        Returns:
+            Dict com métricas agregadas
+        """
+        all_precision = []
+        all_ndcg = []
+        
+        for query, relevant_doc_ids in zip(test_queries, ground_truth):
+            results = self.search(query, top_k=10)
+            retrieved_doc_ids = [r['metadata']['doc_id'] for r in results]
+            
+            # Precision@5
+            relevant_in_top5 = len(set(retrieved_doc_ids[:5]) & set(relevant_doc_ids))
+            all_precision.append(relevant_in_top5 / 5.0)
+            
+            # NDCG
+            true_relevance = [1 if doc_id in relevant_doc_ids else 0 
+                            for doc_id in retrieved_doc_ids]
+            predicted_scores = list(range(len(true_relevance), 0, -1))
+            
+            ndcg = ndcg_score([true_relevance], [predicted_scores])
+            all_ndcg.append(ndcg)
+        
+        return {
+            'precision_at_5': np.mean(all_precision),
+            'ndcg': np.mean(all_ndcg),
+            'num_queries': len(test_queries)
+        }
+
+
+# Carregar e processar documentos
+with open('book/datasets/documents_for_search.jsonl', 'r') as f:
+    documents = [json.loads(line) for line in f]
+
+# Criar e indexar
+engine = SemanticSearchEngine()
+engine.index_documents(documents)
+
+# Testar busca
+query = "Como configurar autenticação OAuth2?"
+results = engine.search(query, top_k=3)
+
+print(f"\nQuery: {query}\n")
+for i, result in enumerate(results, 1):
+    print(f"{i}. [Score: {result['score']:.4f}] {result['metadata']['source']}")
+    print(f"   {result['chunk'][:200]}...\n")
+
+# Avaliar com test set
+with open('book/datasets/query_relevance_pairs.jsonl', 'r') as f:
+    test_data = [json.loads(line) for line in f]
+
+test_queries = [item['query'] for item in test_data]
+ground_truth = [item['relevant_doc_ids'] for item in test_data]
+
+metrics = engine.evaluate(test_queries, ground_truth)
+print(f"\nMétricas de Avaliação:")
+print(f"Precision@5: {metrics['precision_at_5']:.3f}")
+print(f"NDCG: {metrics['ndcg']:.3f}")
+print(f"Queries testadas: {metrics['num_queries']}")
+```
+
+**Meta de performance:** Precision@5 > 0.70
+
+**Desafios:**
+
+1. Experimente diferentes estratégias de chunking (fixed-size, semantic) e compare resultados
+2. Teste diferentes modelos (all-MiniLM-L6-v2, all-mpnet-base-v2) e analise trade-off qualidade/latência
+3. Implemente re-ranking dos top-10 resultados usando um cross-encoder
+4. Adicione filtros por metadata (ex: buscar apenas em documentos de categoria específica)
+
+**Reflexão:** 
+- Em que situações chunking baseado em parágrafos falha?
+- Como você lidaria com documentos altamente estruturados (tabelas, código)?
+- Qual o impacto do overlap no recall? E no armazenamento?
+
+---
+
+## Exercício 2: Custom Embedding Fine-tuning
+
+**Objetivo:** Fine-tunar um modelo Sentence Transformer para um domínio específico usando dados sintéticos gerados por LLM, comparando performance com baseline.
+
+**Por que?** Embeddings pré-treinados são genéricos. Em domínios altamente especializados (medicina, direito, finanças), fine-tuning pode melhorar significativamente a qualidade da busca. Este exercício simula adaptação de embeddings para documentação técnica de uma empresa.
+
+**Código:**
+
+```python
+# uv pip install sentence-transformers torch openai
+
+from sentence_transformers import SentenceTransformer, losses, InputExample
+from torch.utils.data import DataLoader
+import json
+import openai
+import numpy as np
+
+# Configurar OpenAI para geração de dados sintéticos
+openai.api_key = 'sua-api-key'
+
+def generate_synthetic_queries(document, num_queries=5):
+    """
+    Gera queries sintéticas usando LLM dado um documento.
+    
+    Returns:
+        Lista de (query, documento) pairs
+    """
+    prompt = f"""Dado o seguinte documento técnico, gere {num_queries} perguntas diferentes que um usuário faria para encontrar este documento.
+
+Varie o nível de especificidade:
+- 2 perguntas gerais sobre o tópico principal
+- 2 perguntas específicas sobre detalhes técnicos
+- 1 pergunta usando terminologia alternativa
+
+Documento:
+{document[:1000]}
+
+Gere apenas as perguntas, uma por linha."""
+
+    response = openai.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0.7
+    )
+    
+    queries = response.choices[0].message.content.strip().split('\n')
+    queries = [q.strip('- 0123456789.') for q in queries if q.strip()]
+    
+    return [(query, document) for query in queries]
+
+
+def create_training_data(documents, queries_per_doc=5):
+    """
+    Gera dataset de treino sintético.
+    
+    Returns:
+        Lista de InputExample para Sentence Transformers
+    """
+    train_examples = []
+    
+    print(f"Gerando dados sintéticos para {len(documents)} documentos...")
+    
+    for i, doc in enumerate(documents):
+        if i % 10 == 0:
+            print(f"  Processando documento {i+1}/{len(documents)}...")
+        
+        pairs = generate_synthetic_queries(doc['text'], queries_per_doc)
+        
+        for query, document in pairs:
+            # InputExample para MultipleNegativesRankingLoss
+            # Formato: (query, documento_relevante)
+            # Negativos são criados automaticamente do batch
+            train_examples.append(InputExample(texts=[query, document]))
+    
+    print(f"✓ Gerados {len(train_examples)} pares de treino")
+    return train_examples
+
+
+def fine_tune_model(base_model_name, train_examples, output_path, epochs=3):
+    """
+    Fine-tuna modelo com contrastive learning.
+    
+    Args:
+        base_model_name: modelo base (ex: 'all-MiniLM-L6-v2')
+        train_examples: lista de InputExample
+        output_path: onde salvar modelo fine-tuned
+        epochs: número de épocas de treino
+    """
+    print(f"\nIniciando fine-tuning de {base_model_name}...")
+    
+    # Carregar modelo base
+    model = SentenceTransformer(base_model_name)
+    
+    # Preparar DataLoader
+    train_dataloader = DataLoader(
+        train_examples,
+        shuffle=True,
+        batch_size=16
+    )
+    
+    # MultipleNegativesRankingLoss: implementa InfoNCE
+    # Com batch=16, cada exemplo vê 15 negativos automaticamente
+    train_loss = losses.MultipleNegativesRankingLoss(model=model)
+    
+    # Fine-tune
+    model.fit(
+        train_objectives=[(train_dataloader, train_loss)],
+        epochs=epochs,
+        warmup_steps=100,
+        output_path=output_path,
+        show_progress_bar=True
+    )
+    
+    print(f"✓ Fine-tuning completo. Modelo salvo em {output_path}")
+    return model
+
+
+def compare_models(baseline_model, finetuned_model, test_queries, ground_truth, documents):
+    """
+    Compara baseline vs fine-tuned em test set.
+    """
+    print("\n=== Comparação Baseline vs Fine-tuned ===\n")
+    
+    # Criar índices para ambos modelos
+    doc_texts = [doc['text'] for doc in documents]
+    
+    baseline_embeddings = baseline_model.encode(doc_texts, normalize_embeddings=True)
+    finetuned_embeddings = finetuned_model.encode(doc_texts, normalize_embeddings=True)
+    
+    baseline_results = []
+    finetuned_results = []
+    
+    for query, relevant_doc_ids in zip(test_queries, ground_truth):
+        # Baseline
+        query_emb_base = baseline_model.encode([query], normalize_embeddings=True)
+        similarities_base = np.dot(query_emb_base, baseline_embeddings.T)[0]
+        top5_base = np.argsort(similarities_base)[-5:][::-1]
+        baseline_results.append(len(set(top5_base) & set(relevant_doc_ids)) / 5.0)
+        
+        # Fine-tuned
+        query_emb_ft = finetuned_model.encode([query], normalize_embeddings=True)
+        similarities_ft = np.dot(query_emb_ft, finetuned_embeddings.T)[0]
+        top5_ft = np.argsort(similarities_ft)[-5:][::-1]
+        finetuned_results.append(len(set(top5_ft) & set(relevant_doc_ids)) / 5.0)
+    
+    baseline_p5 = np.mean(baseline_results)
+    finetuned_p5 = np.mean(finetuned_results)
+    improvement = ((finetuned_p5 - baseline_p5) / baseline_p5) * 100
+    
+    print(f"Baseline Precision@5:    {baseline_p5:.3f}")
+    print(f"Fine-tuned Precision@5:  {finetuned_p5:.3f}")
+    print(f"Melhoria relativa:       {improvement:+.1f}%")
+    
+    return {
+        'baseline': baseline_p5,
+        'finetuned': finetuned_p5,
+        'improvement_pct': improvement
+    }
+
+
+# Carregar documentos
+with open('book/datasets/documents_for_search.jsonl', 'r') as f:
+    documents = [json.loads(line) for line in f]
+
+# Gerar dados de treino sintéticos
+train_examples = create_training_data(documents[:50], queries_per_doc=5)
+
+# Salvar dados sintéticos (opcional, para reproduzibilidade)
+with open('book/datasets/embedding_training_triplets.jsonl', 'w') as f:
+    for example in train_examples:
+        f.write(json.dumps({'query': example.texts[0], 'document': example.texts[1]}) + '\n')
+
+# Fine-tune
+base_model_name = 'all-MiniLM-L6-v2'
+output_path = './models/finetuned-embeddings'
+
+finetuned_model = fine_tune_model(
+    base_model_name,
+    train_examples,
+    output_path,
+    epochs=3
+)
+
+# Comparar com baseline
+baseline_model = SentenceTransformer(base_model_name)
+
+with open('book/datasets/query_relevance_pairs.jsonl', 'r') as f:
+    test_data = [json.loads(line) for line in f]
+
+test_queries = [item['query'] for item in test_data]
+ground_truth = [item['relevant_doc_ids'] for item in test_data]
+
+metrics = compare_models(
+    baseline_model,
+    finetuned_model,
+    test_queries,
+    ground_truth,
+    documents
+)
+```
+
+**Meta:** Melhoria relativa >10% em Precision@5
+
+**Desafios:**
+
+1. Compare MultipleNegativesRankingLoss vs TripletLoss - qual performa melhor?
+2. Experimente com diferentes tamanhos de batch (8, 16, 32) - como afeta qualidade?
+3. Implemente hard negative mining: selecionar negativos similares ao positive
+4. Use um LLM menor (GPT-3.5) para geração sintética e compare custo vs qualidade
+
+**Reflexão:**
+- Quando dados sintéticos são suficientes? Quando você precisa de dados reais?
+- Como validar se o modelo não está overfitting no domínio específico?
+- Qual o custo total de gerar 1000+ pares sintéticos via API?
+
+---
+
+## Exercício 3: Hybrid Search Implementation
+
+**Objetivo:** Implementar hybrid search combinando busca semântica (FAISS) com keyword search (BM25), analisando quando cada abordagem é superior.
+
+**Por que?** Semantic search captura significado, mas pode falhar em matches exatos de nomes próprios, códigos, ou termos técnicos específicos. Hybrid search combina o melhor dos dois mundos, sendo a abordagem dominante em sistemas de produção.
+
+**Código:**
+
+```python
+# uv pip install sentence-transformers faiss-cpu rank-bm25
+
+from sentence_transformers import SentenceTransformer
+import faiss
+import numpy as np
+from rank_bm25 import BM25Okapi
+import json
+
+class HybridSearchEngine:
+    """
+    Busca híbrida: semantic (embeddings) + lexical (BM25).
+    """
+    
+    def __init__(self, model_name='all-mpnet-base-v2'):
+        self.model = SentenceTransformer(model_name)
+        self.dimension = self.model.get_sentence_embedding_dimension()
+        self.index = None
+        self.bm25 = None
+        self.chunks = []
+        self.metadata = []
+    
+    def index_documents(self, documents):
+        """
+        Indexação dual: FAISS para semantic + BM25 para keyword.
+        """
+        print("Processando documentos para indexação híbrida...")
+        
+        # Extrair chunks (simplificado: parágrafos)
+        for doc in documents:
+            paragraphs = doc['text'].split('\n\n')
+            for chunk_id, chunk in enumerate(paragraphs):
+                if len(chunk.strip()) < 50:  # Skip chunks muito pequenos
+                    continue
+                self.chunks.append(chunk)
+                self.metadata.append({
+                    'doc_id': doc['doc_id'],
+                    'chunk_id': chunk_id,
+                    'source': doc.get('source', 'unknown')
+                })
+        
+        # Índice vetorial (FAISS)
+        print(f"Criando índice FAISS para {len(self.chunks)} chunks...")
+        embeddings = self.model.encode(
+            self.chunks,
+            batch_size=32,
+            show_progress_bar=True,
+            normalize_embeddings=True
+        )
+        
+        self.index = faiss.IndexHNSWFlat(self.dimension, 32)
+        self.index.add(embeddings.astype('float32'))
+        
+        # Índice BM25
+        print("Criando índice BM25...")
+        tokenized_chunks = [chunk.lower().split() for chunk in self.chunks]
+        self.bm25 = BM25Okapi(tokenized_chunks)
+        
+        print(f"✓ Indexação completa: {len(self.chunks)} chunks")
+    
+    def semantic_search(self, query, top_k=10):
+        """Busca puramente semântica."""
+        query_embedding = self.model.encode(
+            [query],
+            normalize_embeddings=True
+        ).astype('float32')
+        
+        distances, indices = self.index.search(query_embedding, top_k)
+        
+        # Retornar como dict: idx -> score
+        return {indices[0][i]: float(distances[0][i]) for i in range(len(indices[0]))}
+    
+    def keyword_search(self, query, top_k=10):
+        """Busca puramente BM25."""
+        bm25_scores = self.bm25.get_scores(query.lower().split())
+        
+        # Top-k indices
+        top_indices = np.argsort(bm25_scores)[-top_k:][::-1]
+        
+        # Normalizar scores para [0, 1]
+        max_score = max(bm25_scores) if max(bm25_scores) > 0 else 1
+        normalized_scores = bm25_scores / max_score
+        
+        # Retornar como dict: idx -> score
+        return {idx: float(normalized_scores[idx]) for idx in top_indices}
+    
+    def hybrid_search(self, query, top_k=5, alpha=0.7):
+        """
+        Busca híbrida: combina semantic e keyword.
+        
+        Args:
+            alpha: peso [0, 1]. 1.0 = só semantic, 0.0 = só BM25
+        
+        Returns:
+            Lista de resultados ordenados por score combinado
+        """
+        # Buscar com ambos métodos (top-k maior para garantir cobertura)
+        semantic_results = self.semantic_search(query, top_k=top_k*2)
+        keyword_results = self.keyword_search(query, top_k=top_k*2)
+        
+        # Combinar scores
+        all_indices = set(semantic_results.keys()) | set(keyword_results.keys())
+        combined_scores = {}
+        
+        for idx in all_indices:
+            semantic_score = semantic_results.get(idx, 0.0)
+            keyword_score = keyword_results.get(idx, 0.0)
+            
+            combined_scores[idx] = alpha * semantic_score + (1 - alpha) * keyword_score
+        
+        # Ordenar e retornar top-k
+        ranked_indices = sorted(
+            combined_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_k]
+        
+        results = []
+        for idx, score in ranked_indices:
+            results.append({
+                'chunk': self.chunks[idx],
+                'score': score,
+                'semantic_score': semantic_results.get(idx, 0.0),
+                'keyword_score': keyword_results.get(idx, 0.0),
+                'metadata': self.metadata[idx]
+            })
+        
+        return results
+    
+    def compare_strategies(self, test_queries, ground_truth, alphas=[0.5, 0.7, 0.9]):
+        """
+        Compara semantic puro vs hybrid com diferentes alphas.
+        """
+        results = {}
+        
+        for alpha in [1.0] + alphas:  # 1.0 = semantic puro
+            precision_scores = []
+            
+            for query, relevant_doc_ids in zip(test_queries, ground_truth):
+                if alpha == 1.0:
+                    # Semantic puro
+                    search_results = self.semantic_search(query, top_k=5)
+                    retrieved = list(search_results.keys())
+                else:
+                    # Hybrid
+                    search_results = self.hybrid_search(query, top_k=5, alpha=alpha)
+                    retrieved = [self.chunks.index(r['chunk']) for r in search_results]
+                
+                retrieved_doc_ids = [self.metadata[idx]['doc_id'] for idx in retrieved]
+                relevant_in_top5 = len(set(retrieved_doc_ids) & set(relevant_doc_ids))
+                precision_scores.append(relevant_in_top5 / 5.0)
+            
+            label = "Semantic" if alpha == 1.0 else f"Hybrid (α={alpha})"
+            results[label] = np.mean(precision_scores)
+        
+        # Imprimir comparação
+        print("\n=== Comparação de Estratégias ===\n")
+        for label, precision in results.items():
+            print(f"{label:20s}: Precision@5 = {precision:.3f}")
+        
+        return results
+
+
+# Carregar documentos
+with open('book/datasets/documents_for_search.jsonl', 'r') as f:
+    documents = [json.loads(line) for line in f]
+
+# Criar engine híbrido
+engine = HybridSearchEngine()
+engine.index_documents(documents)
+
+# Testar query com nomes próprios (favor keyword search)
+query1 = "configuração do servidor Nginx versão 1.21"
+print(f"\nQuery 1: {query1}")
+print("\nResultados Híbridos (α=0.7):")
+results = engine.hybrid_search(query1, top_k=3, alpha=0.7)
+for i, r in enumerate(results, 1):
+    print(f"{i}. [Score: {r['score']:.3f} | Sem: {r['semantic_score']:.3f} | Key: {r['keyword_score']:.3f}]")
+    print(f"   {r['chunk'][:150]}...\n")
+
+# Testar query conceitual (favor semantic search)
+query2 = "Como garantir segurança em aplicações web?"
+print(f"\nQuery 2: {query2}")
+print("\nResultados Híbridos (α=0.7):")
+results = engine.hybrid_search(query2, top_k=3, alpha=0.7)
+for i, r in enumerate(results, 1):
+    print(f"{i}. [Score: {r['score']:.3f} | Sem: {r['semantic_score']:.3f} | Key: {r['keyword_score']:.3f}]")
+    print(f"   {r['chunk'][:150]}...\n")
+
+# Comparar estratégias em test set
+with open('book/datasets/query_relevance_pairs.jsonl', 'r') as f:
+    test_data = [json.loads(line) for line in f]
+
+test_queries = [item['query'] for item in test_data]
+ground_truth = [item['relevant_doc_ids'] for item in test_data]
+
+comparison = engine.compare_strategies(
+    test_queries,
+    ground_truth,
+    alphas=[0.5, 0.7, 0.9]
+)
+```
+
+**Insight esperado:** Queries com nomes próprios ou termos técnicos específicos beneficiam mais de hybrid search (alpha baixo favorece BM25). Queries conceituais beneficiam de semantic search (alpha alto).
+
+**Desafios:**
+
+1. Implemente análise por tipo de query: classifique queries como "factual" vs "conceitual" e ajuste alpha dinamicamente
+2. Adicione boosting por metadata: documentos mais recentes recebem peso maior
+3. Experimente com diferentes tokenizações para BM25 (stemming, lemmatização)
+4. Implemente reciprocal rank fusion como alternativa à combinação linear de scores
+
+**Reflexão:**
+- Por que alpha=0.7 é frequentemente o melhor? O que isso revela sobre semantic vs keyword?
+- Como você lidaria com queries multi-idioma em hybrid search?
+- Qual o overhead de latência de manter dois índices? Vale a pena?
+
+---
+
+## Conclusão dos Exercícios
+
+Através destes exercícios, você:
+
+1. **Construiu um sistema completo de semantic search** com chunking, indexação FAISS e avaliação quantitativa
+2. **Fine-tunou embeddings para domínio específico** usando dados sintéticos gerados por LLM
+3. **Implementou hybrid search** combinando busca vetorial e léxica com análise de trade-offs
+
+Esses são os building blocks fundamentais para sistemas de RAG (Retrieval-Augmented Generation) que exploraremos na Parte II. Você agora tem experiência prática com as técnicas que alimentam assistentes de IA modernos, chatbots corporativos e sistemas de busca inteligentes.
+
+**Próximos passos sugeridos:**
+
+- Aplique estas técnicas a um corpus real de sua área de interesse
+- Experimente com modelos multilíngues para busca cross-lingual
+- Implemente re-ranking com cross-encoders para máxima qualidade
+- Integre com vector databases gerenciados (Pinecone, Weaviate) para escala de produção
