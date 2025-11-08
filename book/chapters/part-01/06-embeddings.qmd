@@ -1012,14 +1012,23 @@ Vamos explorar as principais métricas usadas para avaliar sistemas de semantic 
 
 ```python
 from sklearn.metrics import ndcg_score
+import numpy as np
 
 def evaluate_search_system(search_engine, test_queries, ground_truth):
     """
-    test_queries: lista de queries
-    ground_truth: dict {query_id: [list of relevant doc_ids]}
+    Avalia sistema de busca em test set com ground truth.
+    
+    Args:
+        search_engine: Engine com método search(query, top_k)
+        test_queries: lista de queries de teste
+        ground_truth: dict {query_id: [list of relevant doc_ids]}
+    
+    Returns:
+        dict com Precision@5, Recall@10, NDCG agregados
     """
     all_ndcg = []
     all_precision_at_5 = []
+    all_recall_at_10 = []
 
     for query_id, query in enumerate(test_queries):
         results = search_engine.search(query, top_k=10)
@@ -1029,19 +1038,25 @@ def evaluate_search_system(search_engine, test_queries, ground_truth):
         # Precision@5
         relevant_in_top5 = len(set(retrieved_doc_ids[:5]) & set(relevant_doc_ids))
         all_precision_at_5.append(relevant_in_top5 / 5.0)
+        
+        # Recall@10
+        relevant_in_top10 = len(set(retrieved_doc_ids[:10]) & set(relevant_doc_ids))
+        all_recall_at_10.append(relevant_in_top10 / len(relevant_doc_ids) if relevant_doc_ids else 0)
 
-        # NDCG
-        # Criar relevance scores: 1 se relevante, 0 se não
+        # NDCG - usar scores reais de similaridade
         true_relevance = [1 if doc_id in relevant_doc_ids else 0
                           for doc_id in retrieved_doc_ids]
-        predicted_relevance = list(range(len(true_relevance), 0, -1))  # Posição como score
-
-        ndcg = ndcg_score([true_relevance], [predicted_relevance])
-        all_ndcg.append(ndcg)
+        # Usar scores de similaridade dos resultados como predicted scores
+        predicted_scores = [r['score'] for r in results]
+        
+        if sum(true_relevance) > 0:  # Apenas se há documentos relevantes
+            ndcg = ndcg_score([true_relevance], [predicted_scores])
+            all_ndcg.append(ndcg)
 
     return {
-        'mean_precision_at_5': np.mean(all_precision_at_5),
-        'mean_ndcg': np.mean(all_ndcg)
+        'p@5': np.mean(all_precision_at_5),
+        'r@10': np.mean(all_recall_at_10),
+        'ndcg': np.mean(all_ndcg) if all_ndcg else 0.0
     }
 ```
 
@@ -1184,38 +1199,150 @@ def generate_synthetic_queries(document, num_queries=5):
 
 Com 1000 documentos gerando 5 queries cada = 5000 pares de treino sintéticos. Estudos mostram que fine-tuning com synthetic data atinge 80-90% da performance de dados reais [@dai2023promptagator], a fração do custo.
 
-### Avaliação: Medir Melhoria
+### Avaliação: Medir Melhoria é Essencial
 
-Após fine-tuning, é crítico validar melhoria em held-out test set antes de deploy:
+Após investir tempo e recursos em fine-tuning, validar a melhoria real em um held-out test set é absolutamente crítico antes de qualquer deploy em produção. Essa etapa não é opcional ou meramente burocrática, é a única forma confiável de responder três questões fundamentais: o fine-tuning realmente melhorou o modelo? A melhoria é suficiente para justificar a complexidade operacional adicional de manter um modelo customizado? O modelo generalizou além dos exemplos de treinamento ou apenas memorizou padrões específicos?
+
+Um erro comum é avaliar apenas em exemplos similares aos de treinamento, criando uma falsa sensação de sucesso. O test set deve ser verdadeiramente independente, coletado de fontes diferentes ou em períodos diferentes, representando queries reais que usuários farão em produção. Idealmente, deve conter pelo menos 100-200 queries com relevância manualmente validada por especialistas do domínio, não apenas pelo time técnico.
+
+A metodologia de avaliação deve comparar três configurações sistematicamente: o modelo baseline pré-treinado sem adaptação (para estabelecer performance de partida), o modelo após fine-tuning (para medir ganho absoluto), e opcionalmente configurações intermediárias como apenas aumentar batch size ou ajustar learning rate (para isolar o efeito do fine-tuning de outros fatores). Reporte múltiplas métricas complementares, Precision@5 e NDCG no mínimo, pois cada uma captura aspectos diferentes da qualidade de retrieval:
 
 ```python
 def compare_models(baseline_model, finetuned_model, test_queries, ground_truth):
-    """Compara baseline vs fine-tuned em métricas chave."""
-
-    baseline_results = evaluate_on_testset(baseline_model, test_queries, ground_truth)
-    finetuned_results = evaluate_on_testset(finetuned_model, test_queries, ground_truth)
-
-    print(f"Baseline - Precision@5: {baseline_results['p@5']:.3f}, NDCG: {baseline_results['ndcg']:.3f}")
-    print(f"Fine-tuned - Precision@5: {finetuned_results['p@5']:.3f}, NDCG: {finetuned_results['ndcg']:.3f}")
-    print(f"Melhoria relativa: {((finetuned_results['p@5'] - baseline_results['p@5']) / baseline_results['p@5'] * 100):.1f}%")
+    """
+    Compara baseline vs fine-tuned em métricas chave.
+    
+    Args:
+        baseline_model: SentenceTransformer pré-treinado original
+        finetuned_model: SentenceTransformer após fine-tuning
+        test_queries: lista de strings com queries do test set
+        ground_truth: dict {query_id: [list of relevant doc_ids]}
+    
+    Returns:
+        dict com métricas comparativas e análise de melhoria
+    """
+    from sentence_transformers import SentenceTransformer
+    import faiss
+    import numpy as np
+    
+    print("=== Avaliação Comparativa de Modelos ===\n")
+    
+    def evaluate_model(model, queries, docs_corpus, ground_truth):
+        """Helper para avaliar um modelo."""
+        # Gerar embeddings
+        doc_embeddings = model.encode(docs_corpus, normalize_embeddings=True)
+        
+        # Criar índice FAISS
+        index = faiss.IndexFlatIP(doc_embeddings.shape[1])
+        index.add(doc_embeddings.astype('float32'))
+        
+        all_p5 = []
+        all_ndcg = []
+        all_r10 = []
+        
+        for query_id, query in enumerate(queries):
+            # Buscar
+            query_emb = model.encode([query], normalize_embeddings=True)
+            distances, indices = index.search(query_emb.astype('float32'), k=10)
+            
+            retrieved_ids = indices[0].tolist()
+            relevant_ids = ground_truth[query_id]
+            
+            # Precision@5
+            relevant_in_top5 = len(set(retrieved_ids[:5]) & set(relevant_ids))
+            all_p5.append(relevant_in_top5 / 5.0)
+            
+            # Recall@10
+            relevant_in_top10 = len(set(retrieved_ids[:10]) & set(relevant_ids))
+            all_r10.append(relevant_in_top10 / len(relevant_ids) if relevant_ids else 0)
+            
+            # NDCG
+            true_relevance = [1 if idx in relevant_ids else 0 for idx in retrieved_ids]
+            predicted_scores = distances[0].tolist()
+            
+            if sum(true_relevance) > 0:
+                from sklearn.metrics import ndcg_score
+                ndcg = ndcg_score([true_relevance], [predicted_scores])
+                all_ndcg.append(ndcg)
+        
+        return {
+            'p@5': np.mean(all_p5),
+            'ndcg': np.mean(all_ndcg) if all_ndcg else 0.0,
+            'r@10': np.mean(all_r10)
+        }
+    
+    # Avaliar baseline
+    print("Avaliando modelo baseline...")
+    # Nota: você precisa passar docs_corpus - corpus completo de documentos
+    # baseline_results = evaluate_model(baseline_model, test_queries, docs_corpus, ground_truth)
+    
+    # Avaliar fine-tuned
+    print("Avaliando modelo fine-tuned...")
+    # finetuned_results = evaluate_model(finetuned_model, test_queries, docs_corpus, ground_truth)
+    
+    # Para demonstração, usando valores simulados
+    # Em produção real, descomente as linhas acima e comente estas
+    baseline_results = {'p@5': 0.65, 'ndcg': 0.58, 'r@10': 0.72}
+    finetuned_results = {'p@5': 0.74, 'ndcg': 0.67, 'r@10': 0.79}
+    
+    # Comparação detalhada
+    print("\n--- Resultados ---")
+    print(f"Baseline:")
+    print(f"  Precision@5: {baseline_results['p@5']:.3f}")
+    print(f"  NDCG: {baseline_results['ndcg']:.3f}")
+    print(f"  Recall@10: {baseline_results['r@10']:.3f}")
+    
+    print(f"\nFine-tuned:")
+    print(f"  Precision@5: {finetuned_results['p@5']:.3f}")
+    print(f"  NDCG: {finetuned_results['ndcg']:.3f}")
+    print(f"  Recall@10: {finetuned_results['r@10']:.3f}")
+    
+    # Calcular melhorias relativas
+    p5_improvement = ((finetuned_results['p@5'] - baseline_results['p@5']) 
+                      / baseline_results['p@5'] * 100)
+    ndcg_improvement = ((finetuned_results['ndcg'] - baseline_results['ndcg']) 
+                        / baseline_results['ndcg'] * 100)
+    
+    print(f"\n--- Melhoria Relativa ---")
+    print(f"Precision@5: {p5_improvement:+.1f}%")
+    print(f"NDCG: {ndcg_improvement:+.1f}%")
+    
+    # Análise de viabilidade
+    print(f"\n--- Análise de Viabilidade ---")
+    if p5_improvement > 10:
+        print("✓ Melhoria >10% em P@5: Fine-tuning justificado")
+    else:
+        print("✗ Melhoria <10% em P@5: Considere otimizações mais simples primeiro")
+    
+    return {
+        'baseline': baseline_results,
+        'finetuned': finetuned_results,
+        'improvements': {
+            'p@5': p5_improvement,
+            'ndcg': ndcg_improvement
+        }
+    }
 ```
+
+**Critérios de sucesso quantitativos:** A meta mínima deve ser melhoria de >10% em Precision@5 para justificar a complexidade operacional adicional de manter um modelo customizado. Melhorias de 5-10% são limítrofes e podem não compensar o overhead de re-treinamento periódico, monitoramento de drift, e gestão de versões. Melhorias abaixo de 5% sugerem que esforços seriam melhor direcionados para otimizações arquiteturais como implementar hybrid search, melhorar estratégias de chunking, ou aumentar qualidade dos dados de treinamento sintético.
+
+Adicionalmente, realize análise qualitativa inspecionando manualmente 20-30 queries do test set onde houve maior divergência entre baseline e fine-tuned. Isso revela se o modelo está realmente aprendendo padrões úteis do domínio ou apenas memorizando artefatos dos dados sintéticos. Queries onde fine-tuned melhora dramaticamente indicam vocabulário domain-specific sendo capturado; queries onde fine-tuned piora podem revelar overfitting ou viés nos dados de treinamento.
 
 ::: {.callout-note}
 # Implementação Completa
 Para a implementação completa de fine-tuning de embeddings com contrastive learning, geração de dados sintéticos e avaliação, veja o @sec-exemplo-fine-tuning.
 :::
 
-Meta: melhoria de >10% em Precision@5 para justificar complexidade adicional de manter modelo custom.
-
 ## Embeddings em Sistemas de Agentes
 
-Embeddings são a tecnologia foundational que viabiliza agentes inteligentes modernos. Enquanto este capítulo focou em fundamentos técnicos, vejamos brevemente como embeddings se integram em arquiteturas de agentes - conceitos que exploraremos profundamente na Parte II do livro.
+Embeddings são a tecnologia base que viabiliza agentes inteligentes modernos. Enquanto este capítulo focou em fundamentos técnicos, vejamos brevemente como embeddings se integram em arquiteturas de agentes - conceitos que exploraremos profundamente na Parte II do livro.
 
 ### RAG: Expandindo Conhecimento Além do Treinamento
 
 Retrieval-Augmented Generation [@lewis2020retrieval] resolve uma limitação fundamental de LLMs: conhecimento estático congelado no momento do treinamento. RAG permite que agentes acessem documentos externos dinamicamente, expandindo seu conhecimento para incluir informação proprietária, atualizada, ou específica de domínio.
 
 O pipeline RAG combina tudo que aprendemos neste capítulo:
+
 1. **Indexação offline:** Documentos → chunking → embeddings → vector database
 2. **Retrieval online:** Query do usuário → embedding → busca vetorial → top-k chunks relevantes
 3. **Augmentation:** Injetar chunks recuperados no prompt do LLM
@@ -1253,6 +1380,7 @@ RAG é a arquitetura dominante para assistentes de documentação, chatbots corp
 LLMs têm context windows limitados (4K-128K tokens). Para conversas longas ou agentes que operam durante dias, **memory systems** usam embeddings para armazenar e recuperar contexto histórico relevante seletivamente.
 
 A arquitetura típica mantém dois tipos de memória:
+
 - **Working memory:** Últimas N turns da conversa (sempre no context window)
 - **Long-term memory:** Histórico completo embedado em vector database
 
@@ -1283,7 +1411,7 @@ relevant_tools = [list(tool_descriptions.keys())[i] for i in indices[0]]
 # ["get_weather", "search_location", ...]
 ```
 
-Essa abordagem escala para thousands de tools, mantendo context window gerenciável.
+Essa abordagem escala para milhares de tools, mantendo context window gerenciável.
 
 ### Multi-Modal Embeddings: Além de Texto
 
