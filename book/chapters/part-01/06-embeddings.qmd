@@ -163,7 +163,7 @@ Enquanto bi-encoders priorizam eficiência, **cross-encoders** sacrificam veloci
 
 A vantagem é significativa. Em benchmarks de Semantic Textual Similarity (STS), cross-encoders tipicamente superam bi-encoders em 5-10 pontos percentuais. Para a query "tratamento de diabetes tipo 2", um bi-encoder pode ranquear documentos baseado apenas em overlap semântico geral, enquanto um cross-encoder pode capturar que "tipo 2" especificamente se relaciona com "resistência à insulina" no documento, não apenas "diabetes" genericamente.
 
-O custo é proibitivo para busca direta. Para comparar uma query contra 1 milhão de documentos, um cross-encoder requer 1 milhão de forward passes - cada um processando query+documento juntos. Em hardware típico, isso leva minutos, não milissegundos. A solução prática é **re-ranking em dois estágios**: use um bi-encoder rápido para recuperar os top-100 candidatos (~10-50ms), depois refine apenas esses 100 com um cross-encoder (~200-500ms total). Esse pipeline híbrido captura 95-98% da qualidade de um cross-encoder puro a fração do custo computacional.
+O custo é proibitivo para busca direta. Para comparar uma query contra 1 milhão de documentos, um cross-encoder requer 1 milhão de forward passes, cada um processando query + documento juntos. Em hardware típico, isso leva minutos, não milissegundos. A solução prática é **re-ranking em dois estágios**: use um bi-encoder rápido para recuperar os top-100 candidatos (~10-50ms), depois refine apenas esses 100 com um cross-encoder (~200-500ms total). Esse pipeline híbrido captura 95-98% da qualidade de um cross-encoder puro a fração do custo computacional.
 
 ```python
 from sentence_transformers import SentenceTransformer, CrossEncoder
@@ -194,9 +194,21 @@ final_results = [top_100_docs[i] for i in reranked_indices[:10]]
 
 Quando vale a pena adicionar re-ranking? Quando Precision@5 do bi-encoder está entre 0.60-0.75 - suficiente para recall inicial mas com espaço para melhoria, quando latências de 200-500ms são aceitáveis, tipicamente em aplicações não-interativas ou onde qualidade supera velocidade, e especialmente em domínios especializados onde nuances semânticas são críticas, como medicina, direito ou pesquisa científica. Para aplicações que já atingem >0.80 Precision@5 com bi-encoder, o ganho marginal raramente justifica a complexidade adicional.
 
-### Família Sentence Transformers: Modelos Especializados
+Precision@5 é uma métrica que mede a **precisão dos 5 primeiros resultados** de um sistema de busca.
 
-A família Sentence Transformers oferece modelos especializados para diferentes trade-offs:
+```
+Precision@5 = (Número de documentos relevantes nos top-5) / 5
+```
+
+Valores típicos:
+
+- \> 0.70: Sistema aceitável para produção
+- \> 0.80: Sistema de boa qualidade
+- \> 0.85: Sistema de alta qualidade
+
+### Família Sentence Transformers
+
+A família Sentence Transformers é um conjunto diversificado de modelos pré-treinados e fine-tuned para gerar embeddings de alta qualidade. A Hugging Face oferece modelos especializados para diferentes desafios técnicos e domínios. Alguns dos mais populares incluem:
 
 **all-MiniLM-L6-v2** (384 dimensões): O "canivete suíço" de embeddings. Com apenas 80MB, oferece excelente qualidade para a maioria das tarefas. Ideal para aplicações com constraints de latência ou quando embeddings serão armazenados em memória. Processa ~5000 sentenças/segundo em CPU.
 
@@ -206,13 +218,13 @@ A família Sentence Transformers oferece modelos especializados para diferentes 
 
 ### OpenAI Embeddings: Qualidade Premium via API
 
-Os modelos de embedding da OpenAI representam o estado da arte em qualidade, treinados em corpora massivos e otimizados através de extenso RLHF (Reinforcement Learning from Human Feedback). No entanto, diferente de Sentence Transformers, são acessados via API, não podendo rodar localmente.
+Os modelos de embedding da OpenAI são treinados em corpora massivos e otimizados através de extenso RLHF (Reinforcement Learning from Human Feedback). No entanto, diferente de Sentence Transformers, são acessados via API, não podendo rodar localmente.
 
 **text-embedding-3-small** (1536 dimensões): Sucessor do ada-002, oferece melhor performance em benchmarks como MTEB (Massive Text Embedding Benchmark) a custo menor. Com $0.02 por 1M tokens (fevereiro 2024), é economicamente viável mesmo para aplicações em larga escala. Adequado quando embeddings serão usados uma vez e descartados, ou quando 1536 dimensões são aceitáveis para armazenamento.
 
-**text-embedding-3-large** (3072 dimensões): O topo da linha em qualidade. Supera text-embedding-3-small em ~2-4 pontos percentuais em benchmarks, crucial quando cada ponto de precisão importa - por exemplo, em sistemas de busca médica ou legal onde documentos incorretos podem ter consequências sérias. O custo 5x maior ($0.13 por 1M tokens) e dobro de armazenamento devem ser justificados pelos requisitos da aplicação.
+**text-embedding-3-large** (3072 dimensões): O topo da linha em qualidade. Supera text-embedding-3-small em ~2-4 pontos percentuais em benchmarks, crucial quando cada ponto de precisão importa, por exemplo, em sistemas de busca médica ou legal onde documentos incorretos podem ter consequências sérias. O custo 5x maior ($0.13 por 1M tokens) e dobro de armazenamento devem ser justificados pelos requisitos da aplicação.
 
-Uma característica única dos modelos OpenAI é **dimensionality reduction nativa**: você pode especificar dimensões menores (ex: 512 ao invés de 3072) e o modelo retornará vetores já otimizados para essa dimensão, mantendo maior informação que simples truncação pós-facto. Essa técnica, inspirada em **Matryoshka Representation Learning** [@kusupati2022matryoshka], treina embeddings onde as primeiras N dimensões capturam progressivamente mais informação - as primeiras 256 dimensões contêm a informação mais importante, as próximas 256 refinam, e assim por diante. Isso permite um único modelo servir múltiplos casos de uso: use 3072 dimensões quando qualidade é crítica, reduza para 512 quando armazenamento é limitado, ou até 256 para aplicações mobile com constraints extremos, tudo sem necessidade de re-treinar ou manter múltiplos modelos. O trade-off é gracioso: embeddings de 512 dimensões retêm ~90-95% da qualidade de 3072 dimensões, enquanto ocupam apenas 1/6 do espaço.
+Uma característica única dos modelos OpenAI é **dimensionality reduction nativa**: você pode especificar dimensões menores (ex: 512 ao invés de 3072) e o modelo retornará vetores já otimizados para essa dimensão, mantendo maior informação que simples truncação pós-facto. Essa técnica, inspirada em **Matryoshka Representation Learning** [@kusupati2022matryoshka], treina embeddings onde as primeiras N dimensões capturam progressivamente mais informação, as primeiras 256 dimensões contêm a informação mais importante, as próximas 256 refinam, e assim por diante. Isso permite um único modelo servir múltiplos casos de uso: use 3072 dimensões quando qualidade é crítica, reduza para 512 quando armazenamento é limitado, ou até 256 para aplicações mobile com constraints extremos, tudo sem necessidade de re-treinar ou manter múltiplos modelos. O trade-off é: embeddings de 512 dimensões retêm ~90-95% da qualidade de 3072 dimensões, enquanto ocupam apenas 1/6 do espaço.
 
 ### Modelos Multilíngues e Especializados
 
@@ -222,7 +234,7 @@ Uma característica única dos modelos OpenAI é **dimensionality reduction nati
 
 **nomic-embed-text-v1.5** (768 dimensões): Treinado com context length de 8192 tokens, 4-8x maior que modelos tradicionais. Permite embedding de documentos longos inteiros sem chunking, preservando contexto global. Trade-off: inferência 3-4x mais lenta.
 
-### Comparação Quantitativa: Qual Modelo Escolher?
+### Comparação Quantitativa Entre Modelos
 
 A escolha do modelo de embedding é uma das decisões arquiteturais mais impactantes em sistemas de agentes. Vejamos dados concretos em três dimensões críticas:
 
@@ -234,8 +246,10 @@ A escolha do modelo de embedding é uma das decisões arquiteturais mais impacta
 | text-embedding-3-large | 64.6 | 95 | $130 |
 | multilingual-e5-large | 64.2 | 45 | $0 (self-hosted) |
 
-*Latência média por documento de ~100 palavras, CPU Intel Xeon ou equivalente
-**Custo assumindo ~750 palavras/documento, incluindo custos de infraestrutura para self-hosted
+```
+* Latência média por documento de ~100 palavras, CPU Intel Xeon ou equivalente
+** Custo assumindo ~750 palavras/documento, incluindo custos de infraestrutura para self-hosted
+```
 
 MTEB (Massive Text Embedding Benchmark) [@muennighoff2022mteb] agrega performance em 58 datasets cobrindo classificação, clustering, reranking, retrieval, semantic textual similarity, e outras tarefas. Pontuações acima de 60 são consideradas estado da arte.
 
@@ -243,7 +257,7 @@ A decisão sobre qual modelo usar deve considerar seu contexto específico. Para
 
 ## Medidas de Similaridade
 
-Uma vez que temos embeddings, a questão crucial torna-se: como medir o quão "próximas" duas representações vetoriais estão? A escolha da métrica de similaridade não é mera tecnicidade - ela define fundamentalmente o que significa "documentos relacionados" em seu sistema.
+Uma vez que temos embeddings, a questão torna-se: como medir o quão "próximas" duas representações vetoriais estão? A escolha da métrica de similaridade não é mera tecnicidade, ela define o que significa "documentos relacionados" em seu sistema.
 
 ### Similaridade Cosseno: A Métrica Padrão
 
@@ -253,9 +267,9 @@ Similaridade cosseno mede o ângulo entre dois vetores, ignorando suas magnitude
 cos_sim(A, B) = (A · B) / (||A|| * ||B||)
 ```
 
-A intuição geométrica é elegante: vetores apontando na mesma direção (ângulo próximo de 0°) têm similaridade próxima de 1, vetores ortogonais (90°) têm similaridade 0, e vetores opostos (-180°) têm similaridade -1.
+A intuição geométrica é: vetores apontando na mesma direção (ângulo próximo de 0°) têm similaridade próxima de 1, vetores ortogonais (90°) têm similaridade 0, e vetores opostos (-180°) têm similaridade -1.
 
-Por que cosseno domina em NLP? Porque a **direção** de um embedding captura seu significado semântico, enquanto a magnitude frequentemente reflete apenas características acidentais como comprimento do documento. Considere duas descrições do mesmo produto - uma com 50 palavras e outra com 500. Seus embeddings apontarão na mesma direção (mesmo significado), mas terão magnitudes diferentes. Similaridade cosseno corretamente os identifica como similares.
+Por que cosseno domina em NLP? Porque a **direção** de um embedding captura seu significado semântico, enquanto a magnitude frequentemente reflete apenas características acidentais como comprimento do documento. Considere duas descrições do mesmo produto, uma com 50 palavras e outra com 500. Seus embeddings apontarão na mesma direção (mesmo significado), mas terão magnitudes diferentes. Similaridade cosseno corretamente os identifica como similares.
 
 ```python
 import numpy as np
@@ -318,7 +332,7 @@ def distance_to_similarity(dist):
     return 1 / (1 + dist)
 ```
 
-**Distância Manhattan** (L1) é uma variante que soma diferenças absolutas ao invés de quadráticas: `manhattan(A, B) = Σ|a_i - b_i|`. Computacionalmente mais barata, mas menos usada em practice pois não tem interpretação geométrica clara em espaços de alta dimensão.
+**Distância Manhattan** (L1) é uma variante que soma diferenças absolutas ao invés de quadráticas: `manhattan(A, B) = Σ|a_i - b_i|`. Também conhecida como "city block distance" ou "taxicab distance", ela mede distância como se você estivesse navegando em uma grade de ruas. Computacionalmente mais barata que Euclidiana (não requer operações de raiz quadrada), Manhattan é menos comum em embeddings densos de alta dimensão, mas encontra uso em contextos específicos: features esparsas, dados categóricos encodados como one-hot, ou quando simplicidade computacional é crítica e pode-se tolerar aproximações mais grosseiras de similaridade.
 
 ### Produto Interno (Dot Product): Eficiência com Normalização
 
@@ -332,15 +346,19 @@ dot_sim = np.dot(a_normalized, b_normalized)  # Apenas multiplicação e soma
 # Para 1M comparações, diferença de 10-20% em tempo de execução
 ```
 
-Muitos sistemas de vector databases (FAISS, Pinecone) otimizam especificamente para dot product, fazendo uso de instruções SIMD (Single Instruction, Multiple Data) de CPU/GPU. Ao escolher dot product como métrica, você habilita essas otimizações.
+Muitos sistemas de vector databases (como FAISS e Pinecone) otimizam especificamente para dot product, fazendo uso de instruções SIMD (Single Instruction, Multiple Data) de CPU/GPU. Ao escolher dot product como métrica, você habilita essas otimizações.
 
-### Decisão Estratégica: Qual Métrica Usar?
+### E Qual Métrica Usar?
 
-A escolha não é apenas técnica - ela define o comportamento do seu sistema. Similaridade cosseno, ou equivalentemente dot product com vetores normalizados, deve ser sua escolha padrão ao trabalhar com embeddings de modelos de linguagem modernos, especialmente quando documentos de diferentes comprimentos precisam ser comparáveis e o significado semântico é mais importante que features específicas, como ocorre tipicamente em busca semântica em documentação técnica. Distância euclidiana torna-se apropriada em situações onde a magnitude dos embeddings carrega informação relevante para a aplicação, particularmente ao trabalhar com embeddings não-normalizados onde escala importa ou em tarefas de clustering onde distância absoluta precisa ser interpretável, como ao agrupar representações de intensidade emocional onde magnitude pode indicar força do sentimento. Manhattan distance justifica-se principalmente quando se necessita de máxima eficiência computacional e pode-se sacrificar alguma precisão, ou quando trabalhando em espaços de baixa dimensão onde L1 mantém interpretabilidade clara, situações típicas ao processar features numéricas esparsas ou one-hot encodings onde operações mais simples já são suficientes.
+Similaridade cosseno, ou equivalentemente dot product com vetores normalizados, deve ser sua escolha padrão ao trabalhar com embeddings de modelos de linguagem modernos, especialmente quando documentos de diferentes comprimentos precisam ser comparáveis e o significado semântico é mais importante que features específicas, como ocorre tipicamente em busca semântica em documentação técnica. 
+
+Distância euclidiana torna-se apropriada em situações onde a magnitude dos embeddings carrega informação relevante para a aplicação, particularmente ao trabalhar com embeddings não-normalizados onde escala importa ou em tarefas de clustering onde distância absoluta precisa ser interpretável, como ao agrupar representações de intensidade emocional onde magnitude pode indicar força do sentimento. 
+
+Manhattan distance justifica-se quando se necessita de máxima eficiência computacional e pode-se sacrificar alguma precisão, ou quando trabalhando em espaços de baixa dimensão onde L1 mantém interpretabilidade clara, situações típicas ao processar features numéricas esparsas ou one-hot encodings onde operações mais simples já são suficientes.
 
 ### Impacto da Normalização
 
-Normalizar embeddings (transformar para ||v|| = 1) é uma decisão com consequências profundas:
+Além da escolha da métrica de similaridade, outra decisão fundamental é se normalizar os embeddings antes de compará-los. Normalizar significa transformar cada vetor para que tenha magnitude 1 (||v|| = 1), mantendo apenas sua direção. Essa escolha aparentemente simples tem consequências profundas na interpretação de similaridade e no comportamento do sistema de busca:
 
 ```python
 def l2_normalize(v):
