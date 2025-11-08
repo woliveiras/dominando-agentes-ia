@@ -1,4 +1,4 @@
-# Exercícios Práticos - Capítulo 2 {.unnumbered}
+# Exercícios Práticos - Treinamento de Foundation Models {.unnumbered}
 
 :::{.callout-note}
 # Sobre estes exercícios

@@ -22,6 +22,7 @@ book:
         - chapters/part-01/05-dominando-llms-pratica.qmd
         - chapters/part-01/06-embeddings.qmd
         - chapters/part-01/exercises/02-exercises.qmd
+        - chapters/part-01/exercises/03-exercises.qmd
     # - part: "Parte II: Construindo Sistemas de Agentes"
     #   chapters:
     #     - chapters/part-02/05-retrieval-augmented-generation.qmd

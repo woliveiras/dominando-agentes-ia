@@ -1,0 +1,203 @@
+# Exercícios Práticos: Fine-Tuning e Otimização {.unnumbered}
+
+Agora que você compreende técnicas de fine-tuning e otimização, vamos aplicar esse conhecimento adaptando modelos reais para tarefas específicas. Estes exercícios demonstram técnicas essenciais para construir agentes de IA eficientes em produção.
+
+## Exercício 1: Fine-Tuning com LoRA para Tradução de Termos Técnicos
+
+**Objetivo:** Fazer fine-tuning de um modelo pequeno usando LoRA para traduzir termos técnicos PT→EN.
+
+**Por que esse exercício?** Tradução de termos técnicos é uma tarefa perfeita para demonstrar fine-tuning porque modelos gerais frequentemente erram termos especializados, datasets pequenos são suficientes (50-100 exemplos), os resultados são facilmente mensuráveis, e tem aplicação prática para agentes que processam documentação técnica.
+
+**Código completo:** `book/sandbox/chapter-03/01-lora-fine-tuning.py`
+
+**Passo a Passo:**
+
+O código completo implementa fine-tuning com LoRA em 7 etapas principais:
+
+1. **Configuração inicial**: Carregamento do modelo base (GPT-2 ou LLaMA-2-7B)
+2. **Aplicação de LoRA**: Injeção de adapters low-rank com `r=16` e `lora_alpha=32`
+3. **Preparação do dataset**: Carregamento e tokenização de exemplos PT→EN
+4. **Treinamento**: 3 épocas com batch size 4 e gradient accumulation
+5. **Salvamento**: Persiste apenas os adapters LoRA (~100MB vs. ~14GB)
+6. **Avaliação**: Comparação entre modelo base e fine-tuned
+7. **Análise de resultados**: Métricas de performance e economia de recursos
+
+**Resultados esperados:**
+
+```
+📊 Parâmetros treináveis: ~65,536 (0.1% do total)
+💾 Redução de memória: ~99.9%
+⏱️ Tempo de treinamento: 5-10 minutos
+🎯 Accuracy em termos técnicos: >90%
+```
+
+**Desafios adicionais:**
+
+1. **Experimente com diferentes valores de `r`**: Teste r=8, r=16, r=32 e compare qualidade vs. custo
+2. **Target modules diferentes**: Adicione `k_proj`, `o_proj` ao `target_modules` e veja impacto
+3. **QLoRA**: Adicione quantização 4-bit ao modelo base antes de aplicar LoRA
+4. **Avalie quantitativamente**: Calcule BLEU score ou accuracy em dataset de teste
+
+**Reflexão:**
+
+- Como LoRA consegue adaptar o modelo usando <1% dos parâmetros?
+- Quando vale a pena usar LoRA vs. fine-tuning completo?
+- Como você escolheria o valor de `r` para diferentes tarefas?
+
+## Exercício 2: Quantização e Benchmark de Performance
+
+**Objetivo:** Quantizar um modelo e medir impacto em latência, memória e qualidade.
+
+**Por que esse exercício?** Quantização é crucial para rodar LLMs em hardware limitado. Este exercício demonstra como diferentes níveis de quantização afetam performance e qualidade, ajudando a entender trade-offs práticos para deployment em produção ou dispositivos edge.
+
+**Código completo:** `book/sandbox/chapter-03/02-quantization-benchmark.py`
+
+**Passo a Passo:**
+
+O código implementa um benchmark completo de quantização:
+
+1. **Setup**: Instalação de llama-cpp-python e download de modelos GGUF
+2. **Carregamento**: Teste de modelos Q8_0, Q5_K_M e Q4_K_M
+3. **Medição de memória**: Tracking de uso de RAM durante inferência
+4. **Medição de latência**: Tempo de carregamento e geração
+5. **Medição de throughput**: Tokens gerados por segundo
+6. **Comparação de qualidade**: Análise subjetiva dos outputs
+7. **Relatório final**: Tabela comparativa e recomendações
+
+**Para executar:**
+
+```bash
+# 1. Instalar dependências
+uv pip install llama-cpp-python psutil huggingface-hub
+
+# 2. Baixar modelos GGUF
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q4_K_M.gguf --local-dir ./models
+
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q5_K_M.gguf --local-dir ./models
+
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q8_0.gguf --local-dir ./models
+
+# 3. Executar benchmark
+python book/sandbox/chapter-03/02-quantization-benchmark.py
+```
+
+**Resultados esperados:**
+
+| Quantização | Memória (MB) | Load (s) | Tokens/s | Qualidade |
+|-------------|--------------|----------|----------|-----------|
+| Q8_0 | ~7,000 | 2-3s | 25-30 | 100% |
+| Q5_K_M | ~4,500 | 1-2s | 30-35 | ~99% |
+| Q4_K_M | ~3,500 | 1s | 35-40 | ~95-97% |
+
+**Desafios adicionais:**
+
+1. **Avaliação objetiva**: Use benchmarks (MMLU, HellaSwag) para medir degradação de qualidade
+2. **Profiling detalhado**: Use ferramentas de profiling para identificar gargalos
+3. **Otimizações adicionais**: Combine quantização com Flash Attention e KV-cache
+4. **Teste em diferentes hardwares**: Compare performance em CPU vs. GPU vs. Apple Silicon
+
+**Reflexão:**
+
+- Qual nível de quantização é ideal para seu caso de uso?
+- Como balancear qualidade vs. custo de infraestrutura?
+- Quando vale a pena usar Q4 vs. Q8?
+
+## Exercício 3: Implementando LLM-as-Judge para Avaliação
+
+**Objetivo:** Criar sistema de avaliação automática usando LLM como juiz.
+
+**Por que esse exercício?** LLM-as-judge é uma técnica poderosa para avaliação rápida e consistente de modelos. Este exercício demonstra como implementar um sistema simples de avaliação automática que pode substituir avaliação humana custosa durante iteração rápida de desenvolvimento.
+
+**Código completo:** `book/sandbox/chapter-03/03-llm-as-judge.py`
+
+**Pré-requisitos:**
+
+Este exercício requer uma chave de API da Anthropic. Cadastre-se em https://console.anthropic.com/ para obter uma chave gratuita (com créditos iniciais).
+
+```bash
+# Configurar API key
+export ANTHROPIC_API_KEY="sua-chave-aqui"
+```
+
+**Passo a Passo:**
+
+O código implementa um sistema completo de avaliação:
+
+1. **Setup**: Configuração do cliente Anthropic e carregamento de dataset
+2. **Prompt engineering**: Criação de prompt estruturado para o judge
+3. **Critérios de avaliação**: Correção factual, completude, clareza (0-5)
+4. **Avaliação automatizada**: Comparação de respostas de dois modelos
+5. **Parsing de resultados**: Extração de scores e justificativas
+6. **Agregação**: Cálculo de scores médios e ranking
+7. **Análise**: Identificação de padrões e vieses
+
+**Exemplo de output:**
+
+```
+🧪 AVALIAÇÃO COM LLM-AS-JUDGE
+
+Pergunta: Qual é a capital da França?
+
+Modelo A: Paris
+  Score: 5/5
+  Razão: Resposta correta e direta
+
+Modelo B: A capital francesa é Paris, localizada no norte do país.
+  Score: 4/5
+  Razão: Resposta correta mas com informação extra desnecessária
+
+📊 RESUMO COMPARATIVO
+Modelo A - Score médio: 4.67/5
+Modelo B - Score médio: 4.33/5
+
+Vencedor: Modelo A
+```
+
+**Desafios adicionais:**
+
+1. **Múltiplos judges**: Use GPT-4, Claude e Gemini e compare concordância
+2. **Calibração**: Compare com avaliação humana e ajuste prompts
+3. **Detecção de viés**: Identifique e mitigue viés de comprimento e estilo
+4. **Avaliação de código**: Adapte para avaliar qualidade de código gerado
+5. **Escalabilidade**: Implemente batching e caching para avaliar 1000+ exemplos
+
+**Reflexão:**
+
+- Quando LLM-as-judge pode substituir avaliação humana?
+- Como detectar e mitigar vieses do judge?
+- Qual modelo usar como judge para diferentes tarefas?
+- Como validar que o judge é confiável?
+
+## Projeto Final: Sistema Completo de Fine-Tuning
+
+**Objetivo:** Integrar todos os conceitos em um pipeline end-to-end.
+
+**Desafio:** Criar um sistema que:
+
+1. **Coleta dados**: Scrape ou gere dataset de treinamento para uma tarefa específica
+2. **Fine-tunes**: Aplique LoRA + quantização para adaptar modelo
+3. **Avalia**: Use LLM-as-judge para comparar com baseline
+4. **Optimiza**: Teste diferentes configurações e encontre melhor trade-off
+5. **Deploya**: Prepare modelo para produção com quantização apropriada
+
+**Sugestões de tarefas:**
+
+- Agente de suporte técnico especializado em Python
+- Assistente jurídico para análise de contratos
+- Gerador de commits messages a partir de diffs
+- Tradutor de documentação técnica PT↔EN
+- Revisor de código com foco em best practices
+
+**Entregáveis:**
+
+1. Dataset curado (mínimo 100 exemplos)
+2. Código de fine-tuning com LoRA
+3. Benchmark de quantização
+4. Avaliação com LLM-as-judge
+5. Relatório comparativo de performance
+6. Modelo deployável com instruções de uso
+
+Este projeto final consolida todo o aprendizado do capítulo e prepara você para construir agentes de IA profissionais em produção.

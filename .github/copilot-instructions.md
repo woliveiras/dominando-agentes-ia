@@ -16,35 +16,88 @@ Livro técnico sobre construção de sistemas de agentes inteligentes usando LLM
 - Estrutura: `# Capítulo X: Título {.unnumbered}` → Introdução → Conceitos → Exemplos → Exercícios → Conclusão
 - Exercícios em arquivo separado na pasta book/chapters/part-xx/exercises/xx-exercises.qmd
 
+### Exercícios
+
+- Exercícios em arquivo separado na pasta `book/chapters/part-xx/exercises/xx-exercises.qmd`
+- No final do capítulo, incluir seção breve referenciando os exercícios
+
+Formato da referência no capítulo:
+
+```markdown
+## Exercícios Práticos
+
+Este capítulo possui exercícios práticos hands-on que complementam o conteúdo teórico. Os exercícios cobrem [lista de tópicos]. Para acessar os exercícios completos, consulte o arquivo de exercícios da Parte [X].
+```
+
+Estrutura do arquivo de exercícios:
+
+```markdown
+# Exercícios Práticos: Título do Capítulo {.unnumbered}
+
+Introdução breve.
+
+## Exercício N: Título
+
+**Objetivo:** O que aprenderá
+
+**Por que?** Relevância prática
+
+**Código:**
+\`\`\`python
+# Código executável completo
+\`\`\`
+
+**Desafios:** (opcionais para aprofundamento)
+**Reflexão:** (perguntas sobre aplicação real)
+```
+
 ### Código
 
 - No corpo do texto, somente o trecho importante para o contexto
-- No final do capítulo, código completo
+- No final do capítulo, código completo em seção "Exemplos Completos de Código"
 
 Regras:
 
 - Todos os imports incluídos
 - Docstrings em funções
 - Comentários `# uv pip install ...` para dependências
-- Código também em arquivo separado em `book/sandbox/chapter-XX/`
+- Código completo no final do capítulo com labels `{#sec-exemplo-nome}`
+- Referências no texto usando `@sec-exemplo-nome` dentro de callout-note
+- Código executável (copy-paste-run)
 
-Exemplo: 
+Exemplo de referência no texto:
 
-**SEMPRE executável (copy-paste-run):**
-```python
-# uv pip install transformers torch  # Dependências no topo
-
-import torch
-from transformers import AutoModelForCausalLM
-
-def exemplo_funcional():
-    """Docstring clara."""
-    model = AutoModelForCausalLM.from_pretrained("gpt2")
-    return model
-
-# Exemplo de uso
-model = exemplo_funcional()
+```markdown
+::: {.callout-note}
+# Implementação Completa
+Para o exemplo completo de deduplicação com MinHash, veja o @sec-exemplo-minhash-dedup.
+:::
 ```
+
+Exemplo de código completo no final do capítulo:
+
+```markdown
+### Exemplo 1: Título do Exemplo {#sec-exemplo-nome}
+
+Descrição do que o exemplo faz.
+
+\`\`\`python
+# uv pip install biblioteca
+
+import biblioteca
+
+def funcao_exemplo():
+    """Docstring completa."""
+    # Implementação completa
+    pass
+\`\`\`
+
+**Resultados esperados:**
+- Métrica 1: valor
+- Métrica 2: valor
+```
+
+**IMPORTANTE:** O leitor não tem acesso ao diretório `book/sandbox/`. Nunca referencie este caminho no texto dos capítulos. Use apenas as referências `@sec-exemplo-*` para apontar para código no final do próprio capítulo.
 
 ### Callouts Quarto
 

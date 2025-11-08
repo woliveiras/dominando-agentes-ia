@@ -48,6 +48,60 @@ LoraConfig(
 ---
 
 ### 02-tokenization-analysis.py
+**Análise de Tokenização (mantido do original)**
+
+### 04-quantization-benchmark.py
+**Benchmark de Quantização**
+
+Compara diferentes níveis de quantização (Q8, Q5, Q4) medindo impacto em memória, latência e qualidade.
+
+**O que você vai aprender:**
+- Diferentes níveis de quantização GGUF
+- Trade-offs entre memória, velocidade e qualidade
+- Como escolher quantização ideal para seu caso
+- Benchmarking sistemático de modelos
+
+**Instalação:**
+```bash
+uv pip install llama-cpp-python psutil huggingface-hub
+```
+
+**Download de modelos:**
+```bash
+# Baixar modelos GGUF quantizados
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q4_K_M.gguf --local-dir ./models
+
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q5_K_M.gguf --local-dir ./models
+
+huggingface-cli download TheBloke/Llama-2-7B-GGUF \
+  llama-2-7b.Q8_0.gguf --local-dir ./models
+```
+
+**Execução:**
+```bash
+python 04-quantization-benchmark.py
+```
+
+**Requisitos:**
+- Modelos GGUF (download acima)
+- CPU com 8GB+ RAM (não precisa GPU)
+- Espaço em disco: ~15GB (todos os modelos)
+
+**Resultados esperados:**
+```
+Quantização   Memória        Load (s)     Gen (s)      Tokens/s
+Q8_0          7,000 MB       2-3s         4-6s         25-30
+Q5_K_M        4,500 MB       1-2s         3-5s         30-35
+              (64.3% mem)                              (115% speed)
+Q4_K_M        3,500 MB       1s           3-4s         35-40
+              (50.0% mem)                              (135% speed)
+```
+
+---
+
+### 02-tokenization-analysis.py
 **Análise de Tokenização e Custos de API**
 
 Analisa eficiência de tokenização para diferentes idiomas e calcula custos de API.
