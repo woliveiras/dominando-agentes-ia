@@ -1,0 +1,227 @@
+# Exercícios Práticos: Fundamentos de Prompting e Raciocínio {.unnumbered}
+
+Este capítulo apresentou técnicas fundamentais de prompting e raciocínio para sistemas de agentes de IA. Os exercícios a seguir permitem experimentar hands-on com as técnicas mais importantes: in-context learning com seleção dinâmica, chain-of-thought reasoning e o framework ReAct para agentes autônomos.
+
+## Exercício 1: Few-Shot Dynamic Classifier
+
+**Arquivo:** `sandbox/chapter-04/01-few-shot-classifier.py`  
+**Dataset:** `datasets/sentiment_examples.jsonl`
+
+**Objetivo:** Implementar um classificador de sentimento usando few-shot learning com **seleção dinâmica de exemplos** baseada em similaridade semântica.
+
+**Conceitos aplicados:**
+
+- In-Context Learning (ICL)
+- Embeddings para seleção de exemplos relevantes
+- Comparação empírica: seleção aleatória vs. semântica
+
+**O que você vai construir:**
+
+```python
+class FewShotSelector:
+    """Seleciona dinamicamente os k exemplos mais relevantes."""
+    
+    def select_similar(self, query: str, k: int = 3) -> List[Dict]:
+        """Seleciona exemplos por similaridade de cosseno."""
+        query_emb = self.model.encode([query])[0]
+        similarities = cosine_similarity([query_emb], self.embeddings)[0]
+        top_indices = np.argsort(similarities)[-k:][::-1]
+        return [self.examples[i] for i in top_indices]
+```
+
+**Resultado esperado:**
+
+```
+Avaliação: Seleção Aleatória
+Acurácia: 65.0% (13/20)
+
+Avaliação: Seleção Semântica
+Acurácia: 85.0% (17/20)
+
+Melhoria com seleção semântica: +20.0%
+```
+
+**Desafios adicionais:**
+
+1. Experimente diferentes valores de `k` (3, 5, 10 exemplos)
+2. Compare modelos de embedding (all-MiniLM-L6-v2 vs. multilingual-e5-base)
+3. Implemente diversidade nos exemplos (evitar redundância)
+
+**Questões para reflexão:**
+
+- Por que seleção semântica supera seleção aleatória?
+- Quando seleção aleatória pode ser preferível? (dica: custo computacional)
+- Como implementar cache de embeddings para reduzir latência?
+
+---
+
+## Exercício 2: Chain-of-Thought Math Solver
+
+**Arquivo:** `sandbox/chapter-04/02-cot-math-solver.py`  
+**Dataset:** `datasets/math_problems.jsonl`
+
+**Objetivo:** Implementar solver de problemas matemáticos comparando três abordagens: **zero-shot CoT**, **few-shot CoT** e **self-consistency**.
+
+**Conceitos aplicados:**
+
+- Zero-shot CoT: "Let's think step by step"
+- Few-shot CoT: exemplos com raciocínio explícito
+- Self-consistency: voting majoritário com múltiplas cadeias
+- Análise de trade-offs: acurácia vs. custo vs. latência
+
+**O que você vai construir:**
+
+```python
+def self_consistency_solve(
+    problem: str, 
+    n_samples: int = 5
+) -> Tuple[str, float]:
+    """
+    Gera N soluções independentes e retorna resposta por voting.
+    
+    Returns:
+        (resposta_final, confiança)
+    """
+    answers = []
+    for _ in range(n_samples):
+        reasoning = generate_cot(problem, temperature=0.7)
+        answer = extract_answer(reasoning)
+        answers.append(answer)
+    
+    # Voting majoritário
+    most_common = Counter(answers).most_common(1)[0]
+    confidence = most_common[1] / n_samples
+    
+    return most_common[0], confidence
+```
+
+**Resultado esperado:**
+
+```
+Zero-Shot CoT:
+Acurácia: 60.0% (9/15)
+Custo estimado: $0.003
+
+Few-Shot CoT:
+Acurácia: 73.3% (11/15)
+Custo estimado: $0.005
+
+Self-Consistency (N=5):
+Acurácia: 86.7% (13/15)
+Custo estimado: $0.025
+Confiança média: 0.85
+```
+
+**Desafios adicionais:**
+
+1. Implemente extração robusta de resposta numérica (regex aprimorado)
+2. Adicione detecção de contradições no raciocínio
+3. Compare "Think step by step" vs. "Solve carefully" vs. outros prompts
+4. Meça token usage real e calcule custo exato (se usar APIs)
+
+**Questões para reflexão:**
+
+- Self-consistency vale 5× no custo para seu caso de uso?
+- Como detectar quando o modelo está "adivinhando" vs. raciocinando?
+- Quando CoT piora a performance? (dica: tarefas muito simples)
+
+---
+
+## Exercício 3: Simple ReAct Agent
+
+**Arquivo:** `sandbox/chapter-04/03-simple-react-agent.py`
+
+**Objetivo:** Implementar agente ReAct básico com três ferramentas: **calculadora**, **API de temperatura** e **conversor de moeda**.
+
+**Conceitos aplicados:**
+
+- ReAct framework (Reasoning + Acting)
+- Parsing de Pensamento/Ação/Observação
+- Tool registry e dispatching
+- Loop iterativo com limite de passos (evitar loops infinitos)
+
+**O que você vai construir:**
+
+```python
+class ReactAgent:
+    """Agente ReAct com ferramentas."""
+    
+    def run(self, question: str, max_iterations: int = 5) -> str:
+        """
+        Loop Pensamento-Ação-Observação.
+        
+        1. Gera Pensamento (reasoning)
+        2. Escolhe Ação (tool + argumentos)
+        3. Executa tool → Observação
+        4. Repete até resposta final ou limite
+        """
+        for i in range(max_iterations):
+            thought, action = self._simulate_reasoning(question, history)
+            observation = self._execute_action(action)
+            
+            if self._is_final_answer(thought):
+                return thought
+        
+        return "Limite de iterações atingido."
+```
+
+**Ferramentas implementadas:**
+
+- `calculator(expression)`: Avalia expressões matemáticas
+- `get_temperature(city)`: Retorna temperatura (mock API)
+- `convert_currency(amount, from, to)`: Converte moedas (mock API)
+
+**Resultado esperado:**
+
+```
+Pergunta: Qual a temperatura em São Paulo?
+
+[Iteração 1]
+Pensamento: Preciso obter informações sobre temperatura
+Ação: get_temperature("São Paulo")
+Observação: 28°C
+
+[Iteração 2]
+Pensamento: Tenho a informação necessária
+Resposta Final: A temperatura em São Paulo é 28°C.
+```
+
+**Desafios adicionais:**
+
+1. Adicione retry logic quando parsing de Ação falha
+2. Implemente detecção de loops (agente repete mesma ação)
+3. Adicione logging estruturado (JSON) para debugging
+4. Compare ReAct vs. raciocínio direto (sem ferramentas)
+
+**Questões para reflexão:**
+
+- Quando ReAct é superior a raciocínio direto?
+- Como lidar com ferramentas que falham intermitentemente?
+- Como escalar de 3 ferramentas para 50+? (arquitetura modular)
+
+---
+
+::: {.callout-important title="Simulação vs. Produção"}
+Os exercícios usam **simulação de LLMs** para permitir execução sem API keys. 
+
+Para produção, seria necessário integrar com APIs reais. Por exemplo, para OpenAI:
+
+```python
+# Substituir simulate_llm_response() por:
+from openai import OpenAI
+
+client = OpenAI(api_key="sua-api-key")
+
+response = client.chat.completions.create(
+    model="gpt-4-turbo-preview",
+    messages=[{"role": "user", "content": prompt}],
+    temperature=0.7
+)
+
+output = response.choices[0].message.content
+```
+
+Veja `sandbox/chapter-04/README.md` para exemplos completos com OpenAI e Anthropic.
+
+Também seria possível utilizar modelos open source locais (Llama2, Falcon) via bibliotecas como `transformers`, `llama-cpp-python` ou ferramentas como Ollama e vLLM.
+:::

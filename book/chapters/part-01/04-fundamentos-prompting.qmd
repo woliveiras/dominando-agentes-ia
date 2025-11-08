@@ -50,24 +50,22 @@ Para cada risco, forneça:
 </FORMAT>
 
 <CONSTRAINTS>
-- Foque apenas em dados quantitativos apresentados
-- Não faça suposições sobre causas externas
-- Priorize riscos de liquidez sobre riscos estratégicos
+Foque apenas em dados quantitativos apresentados, sem fazer suposições sobre causas externas. Priorize riscos de liquidez sobre riscos estratégicos na análise.
 </CONSTRAINTS>
 """
 ```
 
 **Justificativa técnica para cada componente:**
 
-1. **ROLE (Contexto de Especialização)**: Ativa padrões específicos aprendidos durante pré-treinamento. Modelos expostos a milhões de documentos técnicos desenvolvem representações internas de "como especialistas de domínio X se comunicam". Especificar role alinha a distribuição de saída com esses padrões.
+O componente **ROLE** ativa padrões específicos aprendidos durante pré-treinamento. Modelos expostos a milhões de documentos técnicos desenvolvem representações internas de como especialistas de domínio se comunicam. Especificar role alinha a distribuição de saída com esses padrões, aumentando a qualidade técnica da resposta.
 
-2. **TASK (Objetivo Explícito)**: Define o objetivo de otimização para geração. Sem task explícita, modelo pode gerar continuações plausíveis mas irrelevantes (predição de próximo token não garante utilidade).
+O componente **TASK** define o objetivo de otimização para geração. Sem task explícita, o modelo pode gerar continuações plausíveis mas irrelevantes, já que predição de próximo token não garante utilidade prática. Uma task bem definida ancora o modelo no objetivo desejado.
 
-3. **CONTEXT (Informação Necessária)**: Fornece informação não disponível nos pesos do modelo. Foundation models possuem conhecimento geral, mas não dados específicos da sua aplicação.
+O **CONTEXT** fornece informação não disponível nos pesos do modelo. Foundation models possuem conhecimento geral sobre o mundo, mas não têm acesso a dados específicos da sua aplicação, como métricas financeiras atuais ou situações particulares que você precisa analisar.
 
-4. **FORMAT (Estrutura de Saída)**: Especifica schema de resposta. Crucial para parsing programático e integração em pipelines. Reduz variabilidade de formato em ~80% [@anthropic-api-reference].
+O **FORMAT** especifica o schema de resposta, sendo crucial para parsing programático e integração em pipelines. Formatos estruturados reduzem variabilidade em aproximadamente 80% [@anthropic-api-reference], facilitando o processamento automatizado das respostas.
 
-5. **CONSTRAINTS (Restrições e Guardrails)**: Define limites operacionais. Modelos tendem a "extrapolar" além do contexto fornecido (alucinação). Constraints explícitas reduzem esse comportamento.
+Por fim, **CONSTRAINTS** define limites operacionais. Modelos tendem a extrapolar além do contexto fornecido, fenômeno conhecido como alucinação. Constraints explícitas reduzem significativamente esse comportamento, mantendo o modelo focado nos dados disponíveis.
 
 ### Técnicas de Marcação Estrutural
 
@@ -121,9 +119,7 @@ A linguagem XML oferece uma estrutura hierárquica clara, ideal para prompts que
 </prompt>
 ```
 
-**Vantagens**: Hierarquia clara, parsing não-ambíguo, suporte nativo no Claude [@anthropic-api-reference].
-
-**Desvantagens**: Verbosidade aumenta contagem de tokens (15-30% mais tokens que Markdown equivalente).
+XML oferece hierarquia clara e parsing não-ambíguo, com suporte nativo otimizado no Claude [@anthropic-api-reference]. Como desvantagem principal, a verbosidade aumenta a contagem de tokens entre 15-30% comparado a Markdown equivalente, impactando custos em casos de alto volume.
 
 #### JSON (Recomendado para Integração Programática)
 
@@ -149,9 +145,7 @@ JSON é ideal para prompts que exigem integração direta com sistemas de softwa
 }
 ```
 
-**Vantagens**: Parsing trivial, integração direta com código, validação via JSON Schema.
-
-**Desvantagens**: Legibilidade reduzida para prompts complexos, modelos podem gerar JSON mal-formado (requer validação), sintaxe estrita (vírgulas, aspas) propensa a erros.
+JSON permite parsing trivial, integração direta com código e validação via JSON Schema. No entanto, apresenta legibilidade reduzida para prompts complexos, modelos podem gerar JSON mal-formado exigindo validação adicional, e a sintaxe estrita com vírgulas e aspas é propensa a erros de geração.
 
 #### Escolha de Formato: Matriz de Decisão
 
@@ -159,12 +153,12 @@ A escolha do formato de marcação deve considerar múltiplos fatores técnicos 
 
 | Critério | Markdown | XML | JSON |
 |----------|----------|-----|------|
-| **Legibilidade Humana** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
-| **Parsing Programático** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐⭐ |
-| **Hierarquia Complexa** | ⭐⭐ | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Eficiência de Tokens** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐⭐ |
-| **Robustez (Geração)** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| **Suporte Nativo LLM** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ (Claude) | ⭐⭐⭐ |
+| **Legibilidade Humana** | Excelente | Boa | Regular |
+| **Parsing Programático** | Regular | Excelente | Excelente |
+| **Hierarquia Complexa** | Regular | Excelente | Muito Boa |
+| **Eficiência de Tokens** | Excelente | Boa | Muito Boa |
+| **Robustez (Geração)** | Muito Boa | Muito Boa | Regular |
+| **Suporte Nativo LLM** | Excelente | Muito Boa (Claude) | Boa |
 
 ::: {.callout-note title="Metodologia de Avaliação"}
 As avaliações desta tabela baseiam-se em:
@@ -181,35 +175,11 @@ As avaliações desta tabela baseiam-se em:
 
 **Heurísticas de seleção:**
 
-**Use Markdown quando:**
+Markdown deve ser usado quando o prompt será lido ou editado por humanos frequentemente, especialmente em estruturas simples com apenas 1-2 níveis de hierarquia. É ideal para integração com documentação existente como READMEs e wikis, situações onde minimização de tokens é prioritária, e quando o formato de saída esperado é texto livre ou semi-estruturado. Exemplos típicos incluem prompts para usuários finais, documentação técnica e instruções de sistema.
 
-- Prompt será lido/editado por humanos frequentemente
-- Estrutura é simples (1-2 níveis de hierarquia)
-- Integração com documentação existente (READMEs, wikis)
-- Minimização de tokens é prioritária
-- Formato de saída é texto livre ou semi-estruturado
+XML é recomendado para hierarquias profundas e complexas com 3 ou mais níveis, extração estruturada de múltiplos campos aninhados, e especialmente quando Claude é o modelo primário devido ao suporte nativo otimizado. Use também quando houver necessidade de atributos e metadados através de XML attributes, ou quando parsing não-ambíguo for crítico. Casos comuns incluem extração de entidades de documentos legais e parsing de relatórios técnicos complexos.
 
-**Exemplo:** Prompts para usuários finais, documentação técnica, instruções de sistema.
-
-**Use XML quando:**
-
-- Hierarquia profunda e complexa (3+ níveis)
-- Extração estruturada de múltiplos campos aninhados
-- Claude é o modelo primário (suporte nativo otimizado)
-- Necessidade de atributos e metadados (XML attributes)
-- Parsing não-ambíguo é crítico
-
-**Exemplo:** Extração de entidades de documentos legais, parsing de relatórios técnicos complexos.
-
-**Use JSON quando:**
-
-- Saída será consumida diretamente por APIs/código
-- Validação via schema é necessária (JSON Schema)
-- Integração com sistemas existentes (REST APIs)
-- Tipos de dados precisam ser preservados (números, booleanos, arrays)
-- Pipeline de processamento requer formato padronizado
-
-**Exemplo:** Agentes que interagem com APIs, sistemas de extração de dados, integração com databases.
+JSON deve ser escolhido quando a saída será consumida diretamente por APIs ou código, validação via schema for necessária (usando JSON Schema), houver integração com sistemas existentes como REST APIs, tipos de dados precisarem ser preservados (números, booleanos, arrays), ou quando o pipeline de processamento requerer formato padronizado. Exemplos típicos são agentes que interagem com APIs, sistemas de extração de dados e integração com databases.
 
 #### Comparação Prática: Mesmo Prompt em Três Formatos
 
@@ -220,12 +190,7 @@ Para ilustrar as diferenças, considere a mesma tarefa de extração de informa�
 ```markdown
 # Tarefa: Extração de Dados de Produto
 
-Extraia as seguintes informações do texto:
-
-- **Nome**: Nome completo do produto
-- **Preço**: Valor em BRL (apenas número)
-- **Desconto**: Percentual de desconto (se houver)
-- **Avaliação**: Estrelas de 1-5
+Extraia as seguintes informações do texto: Nome completo do produto, Preço em BRL (apenas número), Desconto percentual (se houver), e Avaliação de 1 a 5 estrelas.
 
 ## Texto de Entrada:
 "Smartphone XPhone Pro - R$ 2.499,00 (20% OFF) ⭐⭐⭐⭐⭐"
@@ -328,31 +293,18 @@ prompt = CLASSIFICATION_TEMPLATE.substitute(
     entity="Contrato de prestação de serviços...",
     categories="CONTRATO, PROCURAÇÃO, ALVARÁ, CERTIDÃO",
     criteria="""
-    - CONTRATO: Acordo bilateral com obrigações
-    - PROCURAÇÃO: Delegação de poderes
-    - ALVARÁ: Autorização governamental
-    - CERTIDÃO: Documento comprobatório
+    CONTRATO refere-se a acordos bilaterais com obrigações entre partes. PROCURAÇÃO indica delegação de poderes de uma parte a outra. ALVARÁ representa autorização governamental para atividades específicas. CERTIDÃO é documento comprobatório emitido por órgão oficial.
     """
 )
 ```
 
 **Vantagens de templates:**
 
-1. **Manutenibilidade**: Alterações em um lugar propagam para todos os usos
-2. **Testabilidade**: Variações de prompts podem ser testadas sistematicamente
-3. **Versionamento**: Templates podem ser versionados como código
-4. **Reutilização**: Mesmo template serve múltiplos domínios com parametrização
+Templates oferecem manutenibilidade aprimorada porque alterações em um único lugar propagam automaticamente para todos os usos. Eles melhoram a testabilidade ao permitir que variações de prompts sejam testadas sistematicamente. Templates também podem ser versionados como código, facilitando controle de mudanças e rollback quando necessário. Por fim, proporcionam alta reutilização, onde o mesmo template pode servir múltiplos domínios através de parametrização simples.
 
 ### Templating em Produção
 
-Em sistemas de produção reais, normalmente escolhemos alguma ferramenta que nos ajude a gerenciar templates de forma eficiente. As opções mais comuns em 2024-2025 são:
-
-**Mais comuns (2024-2025):**
-
-- **LangChain PromptTemplate**: Framework especializado para LLMs
-- **f-strings Python**: Simplicidade para casos básicos
-- **Mustache/Handlebars**: São exemplos de ferramentas agnósticas a linguagem de programação
-- **Jinja2**: É um sistema de template amplamente usado em aplicações web, mas também é usado quando já presente no stack (Flask, Ansible)
+Em sistemas de produção reais, normalmente escolhemos alguma ferramenta que nos ajude a gerenciar templates de forma eficiente. LangChain PromptTemplate oferece framework especializado para LLMs com validação integrada. F-strings Python trazem simplicidade para casos básicos sem dependências. Mustache e Handlebars são agnósticos a linguagem de programação, facilitando consistência em stacks poliglota. Jinja2 é amplamente usado em aplicações web e já está presente em stacks Flask ou Ansible.
 
 Vamos ver exemplos práticos de cada abordagem.
 
@@ -494,11 +446,7 @@ resultado = zero_shot_classify(texto, categorias)
 3. **Conhecimento de cauda longa**: Tarefas de domínio específico falham frequentemente
 
 ::: {.callout-note title="Trade-off Latência vs. Acurácia"}
-Zero-shot minimiza tokens de input (tipicamente 50-200 tokens vs. 500-2000 em few-shot), resultando em:
-
-- **Latência**: 2-5× mais rápido
-- **Custo**: 3-10× mais barato
-- **Acurácia**: Frequentemente 10-30% inferior em tarefas complexas
+Zero-shot minimiza tokens de input (tipicamente 50-200 tokens vs. 500-2000 em few-shot), resultando em latência 2-5× mais rápida, custo 3-10× menor, mas acurácia frequentemente 10-30% inferior em tarefas complexas.
 
 Decisão deve basear-se em trade-off explícito entre performance e custo operacional.
 :::
@@ -519,93 +467,28 @@ O modelo aprende o mapeamento $x \rightarrow y$ através de pattern matching nos
 
 **Em termos práticos:** Few-shot learning funciona mostrando ao modelo alguns **exemplos do que você quer** antes de fazer a pergunta real. É como ensinar alguém a preencher um formulário mostrando 2-3 exemplos já preenchidos. O modelo reconhece o padrão nos exemplos (input → output, formato, estilo de resposta) e aplica esse mesmo padrão ao novo caso.
 
-Por exemplo, para classificar sentimento:
-
-- **Exemplo 1**: "Produto excelente!" → POSITIVO
-- **Exemplo 2**: "Péssima qualidade." → NEGATIVO  
-- **Exemplo 3**: "Produto ok." → NEUTRO
-- **Seu caso**: "Adorei a qualidade!" → ?
+Por exemplo, para classificar sentimento: "Produto excelente!" → POSITIVO, "Péssima qualidade." → NEGATIVO, "Produto ok." → NEUTRO. Com estes três exemplos, o modelo infere que "Adorei a qualidade!" deve ser classificado como POSITIVO.
 
 O modelo vê que você quer classificações em MAIÚSCULAS, com uma palavra só, baseado no tom do texto. Ele aplica esse padrão e responde: "POSITIVO".
 
-**Implementação com seleção dinâmica:**
+**Seleção dinâmica de exemplos:**
+
+Em vez de usar exemplos fixos, podemos selecionar dinamicamente os exemplos mais relevantes usando similaridade semântica:
 
 ```python
-from sentence_transformers import SentenceTransformer
-from sklearn.metrics.pairwise import cosine_similarity
-import numpy as np
-
 class FewShotSelector:
-    """
-    Seletor dinâmico de exemplos few-shot baseado em similaridade semântica.
-    """
-    
-    def __init__(self, example_bank: list[dict], k: int = 5):
-        """
-        Args:
-            example_bank: Lista de dicts com 'input' e 'output'
-            k: Número de exemplos a selecionar
-        """
-        self.example_bank = example_bank
-        self.k = k
-        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
-        
-        # Pré-computar embeddings
-        inputs = [ex['input'] for ex in example_bank]
-        self.embeddings = self.encoder.encode(inputs)
-    
     def select_examples(self, query: str) -> list[dict]:
-        """
-        Seleciona k exemplos mais similares ao query.
-        
-        Args:
-            query: Input atual para classificar
-        
-        Returns:
-            Lista de k exemplos mais relevantes
-        """
+        """Seleciona k exemplos mais similares ao query."""
         query_embedding = self.encoder.encode([query])
         similarities = cosine_similarity(query_embedding, self.embeddings)[0]
-        
-        # Top-k índices
         top_k_indices = np.argsort(similarities)[-self.k:][::-1]
-        
         return [self.example_bank[i] for i in top_k_indices]
-    
-    def build_prompt(self, query: str, task_description: str) -> str:
-        """
-        Constrói prompt few-shot com exemplos selecionados.
-        """
-        examples = self.select_examples(query)
-        
-        prompt_parts = [task_description, ""]
-        
-        for ex in examples:
-            prompt_parts.append(f"Input: {ex['input']}")
-            prompt_parts.append(f"Output: {ex['output']}")
-            prompt_parts.append("")
-        
-        prompt_parts.append(f"Input: {query}")
-        prompt_parts.append("Output:")
-        
-        return "\n".join(prompt_parts)
-
-# Uso
-bank = [
-    {"input": "Produto excelente!", "output": "POSITIVO"},
-    {"input": "Péssima qualidade.", "output": "NEGATIVO"},
-    {"input": "Produto ok.", "output": "NEUTRO"},
-    {"input": "Melhor compra que fiz!", "output": "POSITIVO"},
-    {"input": "Não recomendo.", "output": "NEGATIVO"},
-    # ... mais exemplos
-]
-
-selector = FewShotSelector(bank, k=3)
-prompt = selector.build_prompt(
-    query="Adorei a qualidade!",
-    task_description="Classifique o sentimento como POSITIVO, NEGATIVO ou NEUTRO:"
-)
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para implementação completa do seletor few-shot com embeddings e pré-computação, veja o @sec-exemplo-few-shot-selector.
+:::
 
 **Resultados empíricos**
 
@@ -635,72 +518,28 @@ Onde $\theta'$ são parâmetros após fine-tuning em $\mathcal{E}$.
 
 **Em termos práticos:** Many-shot learning envolve fornecer ao modelo uma grande quantidade de exemplos diretamente no prompt, aproveitando a enorme capacidade de context window dos modelos modernos. Isso permite que o modelo "aprenda" o comportamento desejado observando muitos exemplos, sem a necessidade de ajustar seus pesos.
 
-**Implementação para context windows longos:**
+**Gerenciamento de context window:**
+
+Para many-shot learning, é crucial gerenciar o context window do modelo para incluir o máximo de exemplos possível sem ultrapassar o limite:
 
 ```python
 class ManyShotPromptBuilder:
-    """
-    Construtor de prompts many-shot com gerenciamento de context window.
-    """
-    
-    def __init__(self, max_tokens: int = 100_000):
-        self.max_tokens = max_tokens
-    
-    def build_prompt(
-        self,
-        examples: list[dict],
-        query: str,
-        task_description: str,
-        tokenizer
-    ) -> str:
-        """
-        Constrói prompt many-shot respeitando limite de tokens.
-        
-        Args:
-            examples: Lista completa de exemplos disponíveis
-            query: Input atual
-            task_description: Descrição da tarefa
-            tokenizer: Tokenizer para contagem de tokens
-        
-        Returns:
-            Prompt otimizado para context window
-        """
-        # Tokens reservados para task description e query
-        overhead = len(tokenizer.encode(task_description + query)) + 100
+    def build_prompt(self, examples, query, task_description, tokenizer):
+        """Preenche context window com máximo de exemplos possível."""
         available_tokens = self.max_tokens - overhead
         
-        # Adicionar exemplos até preencher context window
-        selected_examples = []
-        current_tokens = 0
-        
         for ex in examples:
-            ex_text = f"Input: {ex['input']}\nOutput: {ex['output']}\n\n"
-            ex_tokens = len(tokenizer.encode(ex_text))
-            
             if current_tokens + ex_tokens > available_tokens:
                 break
-            
-            selected_examples.append(ex_text)
-            current_tokens += ex_tokens
-        
-        # Construir prompt final
-        prompt = task_description + "\n\n"
-        prompt += "".join(selected_examples)
-        prompt += f"Input: {query}\nOutput:"
+            selected_examples.append(ex)
         
         return prompt, len(selected_examples)
-
-# Uso
-builder = ManyShotPromptBuilder(max_tokens=128_000)  # Claude 3.5 Sonnet
-prompt, n_examples = builder.build_prompt(
-    examples=large_example_bank,  # 500+ exemplos
-    query="Novo input para classificar",
-    task_description="Classifique documentos legais...",
-    tokenizer=tiktoken.get_encoding("cl100k_base")
-)
-
-print(f"Prompt construído com {n_examples} exemplos")
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para implementação completa com gerenciamento inteligente de tokens e context window, veja o @sec-exemplo-many-shot-builder.
+:::
 
 **Trade-offs de many-shot:**
 
@@ -768,22 +607,14 @@ graph TD
 
 1. **Comece sempre avaliando volume**: Se você tem >10k chamadas/dia, fine-tuning provavelmente será mais econômico em 2-4 semanas de operação (ROI positivo)
 
-2. **Se volume for baixo/médio, avalie acurácia**: 
-   - Acurácia >90% geralmente requer many-shot ou fine-tuning
-   - Few-shot e zero-shot ficam tipicamente entre 60-85%
+2. **Se volume for baixo/médio, avalie acurácia**: Acurácia >90% geralmente requer many-shot ou fine-tuning, enquanto few-shot e zero-shot ficam tipicamente entre 60-85%.
 
-3. **Considere trade-offs de custo vs. latência**:
-   - Zero-shot: mais rápido e barato, mas menos preciso
-   - Few-shot: equilíbrio entre custo, latência e acurácia
-   - Many-shot: mais caro e lento, mas aproxima fine-tuning
+3. **Considere trade-offs de custo vs. latência**: Zero-shot é mais rápido e barato mas menos preciso. Few-shot equilibra custo, latência e acurácia. Many-shot é mais caro e lento, mas aproxima performance de fine-tuning.
 
 4. **Valide com dados reais**: Esta árvore é heurística. Sempre teste com seu dataset e métricas específicas antes de escalar para produção.
 
 ::: {.callout-warning title="Limitação da Heurística"}
-Esta árvore assume:
-- Dados de qualidade razoável (limpos, representativos)
-- Task bem definida (clear input-output mapping)
-- Modelo moderno (GPT-4, Claude 3+, Gemini Pro)
+Esta árvore assume dados de qualidade razoável (limpos, representativos), task bem definida (clear input-output mapping), e modelo moderno (GPT-4, Claude 3+, Gemini Pro).
 
 Para tarefas ambíguas, dados ruidosos ou modelos menores, os limites de acurácia podem ser diferentes.
 :::
@@ -856,9 +687,7 @@ resposta = zero_shot_cot(problema)
 
 **Resultados empíricos (do paper original):**
 
-- **GSM8K (problemas matemáticos)**: 17% → 52% de acurácia (+35%)
-- **SVAMP (problemas de palavras aritméticas)**: 64% → 92% (+28%)
-- **AQuA (álgebra)**: ~30% → ~70% (+40%)
+No benchmark GSM8K (problemas matemáticos), a acurácia saltou de 17% para 52% (+35 pontos percentuais). SVAMP (problemas de palavras aritméticas) melhorou de 64% para 92% (+28 pontos), enquanto AQuA (álgebra) passou de ~30% para ~70% (+40 pontos).
 
 **Variantes de Prompts Zero-Shot CoT**
 
@@ -900,10 +729,7 @@ prompt = f"{argumento}\n\nLet's evaluate this argument step by step, checking va
 
 **Quando zero-shot CoT funciona melhor:**
 
-- Problemas matemáticos e lógicos
-- Raciocínio de senso comum
-- Análise de código
-- Problemas que requerem múltiplos passos claros
+Zero-shot CoT é particularmente eficaz para problemas matemáticos e lógicos, raciocínio de senso comum, análise de código, e problemas que requerem múltiplos passos claros de dedução.
 
 ### Few-Shot CoT: Ensinando com Exemplos de Raciocínio
 
@@ -970,19 +796,11 @@ A:
 
 **Resultado empírico:**
 
-Em problemas aritméticos de palavras (GSM8K), a diferença é boa:
-
-- **Few-Shot ICL**: ~35% de acurácia
-- **Few-Shot CoT**: ~65% de acurácia (+30%)
-
-O custo adicional de CoT (2-3× mais tokens) frequentemente compensa pela redução de erros e necessidade de retrabalho.
+Em problemas aritméticos de palavras (GSM8K), Few-Shot ICL alcança ~35% de acurácia, enquanto Few-Shot CoT atinge ~65% (+30 pontos percentuais). O custo adicional de CoT (2-3× mais tokens) frequentemente compensa pela redução de erros e necessidade de retrabalho.
 
 **Quando few-shot CoT supera zero-shot:**
 
-- Problemas com estrutura de raciocínio específica do domínio
-- Quando você quer controlar o **estilo** do raciocínio
-- Tarefas onde zero-shot CoT ainda falha
-- Quando os exemplos podem demonstrar edge cases importantes
+Few-shot CoT é superior em problemas com estrutura de raciocínio específica do domínio, quando você quer controlar o estilo do raciocínio, em tarefas onde zero-shot CoT ainda falha, e quando os exemplos podem demonstrar edge cases importantes.
 
 **Quando usar cada abordagem:**
 
@@ -1001,48 +819,28 @@ Self-consistency gera **múltiplas cadeias de raciocínio** (com sampling de tem
 
 A ideia por trás desta abordagem é que se o mesmo resultado aparece por caminhos de raciocínio diferentes, provavelmente está correto.
 
-**Implementação básica:**
+**Conceito básico:**
 
 ```python
-from collections import Counter
-import re
-
 def self_consistency_cot(problema, n_samples=5):
-    """
-    Gera múltiplas cadeias de raciocínio e retorna resposta por voting.
-    
-    Args:
-        problema: Problema a resolver
-        n_samples: Número de cadeias independentes a gerar
-    """
-    prompt_base = f"{problema}\n\nLet's think step by step."
-    
+    """Gera múltiplas cadeias e retorna resposta por voting."""
     respostas = []
+    
     for i in range(n_samples):
-        # Gera cadeia de raciocínio com temperatura > 0 para diversidade
         output = llm.generate(prompt_base, temperature=0.7)
-        
-        # Extrai apenas a resposta final (número, categoria, etc.)
-        # Exemplo: "Resposta: 5" → "5"
         resposta = extrair_numero_final(output)
         respostas.append(resposta)
     
     # Voting majoritário
     contagem = Counter(respostas)
     resposta_final, votos = contagem.most_common(1)[0]
-    
     return resposta_final
-
-def extrair_numero_final(texto):
-    """Extrai número da resposta final (implementação simplificada)."""
-    # Procura por "Resposta: X" ou último número no texto
-    match = re.search(r'Resposta:\s*(\d+)', texto)
-    if match:
-        return int(match.group(1))
-    # Fallback: último número encontrado
-    numeros = re.findall(r'\d+', texto)
-    return int(numeros[-1]) if numeros else None
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para implementação completa com extração robusta de respostas e métricas de confiança, veja o @sec-exemplo-self-consistency.
+:::
 
 Se você não entende o que o `Counter` faz, aqui está uma explicação rápida: é uma classe do módulo `collections` que conta a frequência de elementos em um iterável. No nosso caso, estamos usando para contar quantas vezes cada resposta apareceu nas cadeias de raciocínio.
 
@@ -1074,27 +872,15 @@ resposta_final, votos = tupla
 3. **Voting filtra outliers**: Resposta correta tende a aparecer mais vezes
 4. **Confiança mensurável**: Proporção de votos indica certeza (4/5 = 80%)
 
-Nos estudos originais, self-consistency mostrou ganhos significativos:
-
-- GSM8K: CoT simples (52%) → Self-consistency (58%) (+6%)
-- SVAMP: CoT simples (92%) → Self-consistency (95%) (+3%)
-- Problemas complexos: ganhos maiores (+10-20%)
-
-Porém, o custo e latência aumentam proporcionalmente ao número de amostras.
+Nos estudos originais, self-consistency mostrou ganhos significativos: GSM8K melhorou de 52% (CoT simples) para 58% (+6 pontos), SVAMP de 92% para 95% (+3 pontos), e problemas complexos apresentaram ganhos ainda maiores (+10-20 pontos). Porém, o custo e latência aumentam proporcionalmente ao número de amostras.
 
 **Resumo rápido de self-consistency:**
 
--  Melhora acurácia significativamente
--  Filtra erros aleatórios através de voting
-- **Custo:** 5-10× mais caro (múltiplas gerações)
-- **Latência:** 5-10× mais lento (gerações sequenciais ou paralelas)
+Self-consistency melhora acurácia significativamente através de voting que filtra erros aleatórios, mas tem custo 5-10× maior (múltiplas gerações) e latência 5-10× mais lenta (gerações sequenciais ou paralelas).
 
 **Quando usar self-consistency:**
 
-- Problemas críticos onde acurácia é mais importante que o custo
-- Decisões de alto impacto (financeiras, médicas, legais)
-- Quando você pode fazer inferências em paralelo
-- Problemas onde o modelo erra inconsistentemente
+Use self-consistency em problemas críticos onde acurácia é mais importante que custo, decisões de alto impacto (financeiras, médicas, legais), quando você pode fazer inferências em paralelo, e em problemas onde o modelo erra inconsistentemente.
 
 ## Técnicas Avançadas de Reasoning
 
@@ -1167,200 +953,52 @@ Answer: Custaria R$150 para comprar 3 unidades do produto mais barato
 
 Perceba como o agente ReAct ajusta seu raciocínio com base nas observações, permitindo uma solução mais eficaz.
 
-Vamos implementar um agente ReAct simples em Python que pode usar ferramentas externas para ilustrar este conceito.
+**Estrutura básica de um agente ReAct:**
 
 ```python
-from typing import Dict, Callable, List, Tuple
-import re
-
 class ReActAgent:
-    """
-    Agente ReAct com registry de ferramentas.
-    """
-
     def __init__(self, tools: Dict[str, Callable]):
-        """
-        Args:
-            tools: Dicionário {nome_ferramenta: função_executável}
-        """
+        """Registry de ferramentas disponíveis."""
         self.tools = tools
         self.history = []
 
     def run(self, question: str, max_iterations: int = 7) -> str:
-        """
-        Loop Thought-Action-Observation até resposta final.
-
-        Args:
-            question: Pergunta do usuário
-            max_iterations: Limite de iterações para evitar loops infinitos
-
-        Returns:
-            Resposta final ou mensagem de timeout
-        """
-        prompt = self._build_initial_prompt(question)
-
+        """Loop Thought-Action-Observation até resposta final."""
         for i in range(max_iterations):
-            # Gera Thought + Action
             response = llm.generate(prompt, temperature=0.0)
-
-            # Parse do output
             thought, action, action_input = self._parse_response(response)
-
-            # Registra thought
-            self.history.append(f"Thought {i+1}: {thought}")
-
-            # Verifica se é resposta final
+            
             if self._is_final_answer(thought):
                 return self._extract_answer(response)
-
-            # Executa ação
-            if action not in self.tools:
-                observation = f"Erro: ferramenta '{action}' não existe"
-            else:
-                try:
-                    observation = self.tools[action](action_input)
-                except Exception as e:
-                    observation = f"Erro ao executar {action}: {str(e)}"
-
-            # Registra ação e observação
-            self.history.append(f"Action {i+1}: {action}[{action_input}]")
-            self.history.append(f"Observation {i+1}: {observation}")
-
-            # Atualiza prompt com nova observação
+            
+            observation = self.tools[action](action_input)
+            self.history.append(f"Thought/Action/Observation...")
             prompt = self._update_prompt(question, self.history)
+        
+        return "Limite de iterações atingido."
+```
 
-        return "Limite de iterações atingido sem resposta final."
+::: {.callout-note}
+# Implementação Completa
+Para implementação completa do agente ReAct com parsing robusto, tratamento de erros e exemplos de ferramentas, veja o @sec-exemplo-react-agent.
+:::
 
-    def _build_initial_prompt(self, question: str) -> str:
-        """Constrói prompt inicial com descrição de ferramentas."""
-        tools_desc = "\n".join([
-            f"- {name}: {func.__doc__}"
-            for name, func in self.tools.items()
-        ])
+**Ferramentas de exemplo:**
 
-        return f"""Answer the following question using available tools.
-
-Available Tools:
-{tools_desc}
-
-Use this format:
-Thought: [your reasoning about next step]
-Action: [tool_name]
-Action Input: [input for the tool]
-Observation: [result will be provided]
-... (repeat Thought/Action/Observation as needed)
-Thought: [final reasoning]
-Answer: [final answer to the user]
-
-Question: {question}
-
-Thought:"""
-
-    def _parse_response(self, response: str) -> Tuple[str, str, str]:
-        """
-        Extrai Thought, Action e Action Input do response.
-
-        Returns:
-            (thought, action_name, action_input)
-        """
-        thought_match = re.search(r'Thought:\s*(.+?)(?=\nAction:|\nAnswer:|$)',
-                                 response, re.DOTALL)
-        action_match = re.search(r'Action:\s*(\w+)', response)
-        input_match = re.search(r'Action Input:\s*(.+?)(?=\n|$)', response)
-
-        thought = thought_match.group(1).strip() if thought_match else ""
-        action = action_match.group(1).strip() if action_match else ""
-        action_input = input_match.group(1).strip() if input_match else ""
-
-        return thought, action, action_input
-
-    def _is_final_answer(self, thought: str) -> bool:
-        """Detecta se thought indica resposta final."""
-        final_indicators = [
-            "resposta final",
-            "final answer",
-            "concluí",
-            "tenho a resposta",
-            "respondido"
-        ]
-        return any(ind in thought.lower() for ind in final_indicators)
-
-    def _extract_answer(self, response: str) -> str:
-        """Extrai resposta final do response."""
-        match = re.search(r'Answer:\s*(.+)', response, re.DOTALL)
-        return match.group(1).strip() if match else response
-
-    def _update_prompt(self, question: str, history: List[str]) -> str:
-        """Reconstrói prompt com histórico completo."""
-        history_text = "\n".join(history)
-        return f"""{self._build_initial_prompt(question)}
-
-{history_text}
-
-Thought:"""
-
-# Definir ferramentas
+```python
 def calculator(expression: str) -> float:
-    """Avalia expressões matemáticas simples. Ex: calculator("2 + 3 * 4")"""
-    try:
-        # ATENÇÃO: eval é inseguro em produção! Este é apenas um exemplo.
-        return eval(expression)
-    except Exception as e:
-        return f"Erro na expressão: {e}"
+    """Avalia expressões matemáticas simples."""
+    return eval(expression)  # ATENÇÃO: inseguro em produção!
 
 def search_database(query: str) -> List[Dict]:
-    """Busca produtos no database. Ex: search_database("categoria:eletrônicos")"""
-    # Simulação - em produção seria chamada real a database
-    mock_db = {
-        "eletrônicos": [
-            {"nome": "Mouse", "preco": 50},
-            {"nome": "Teclado", "preco": 80},
-            {"nome": "Headset", "preco": 120}
-        ]
-    }
-
-    # Parse simples de query
-    if "categoria:" in query:
-        categoria = query.split("categoria:")[1].strip()
-        return mock_db.get(categoria, [])
-
-    return []
-
-# Uso
-agent = ReActAgent(tools={
-    "calculator": calculator,
-    "search_database": search_database
-})
-
-resultado = agent.run(
-    "Quanto custaria comprar 5 unidades do produto mais barato de eletrônicos?"
-)
-print(resultado)
-```
-
-**Resultado esperado:**
-
-```
-Thought 1: Preciso primeiro encontrar produtos na categoria eletrônicos
-Action 1: search_database[categoria:eletrônicos]
-Observation 1: [{'nome': 'Mouse', 'preco': 50}, {'nome': 'Teclado', 'preco': 80},
-                {'nome': 'Headset', 'preco': 120}]
-
-Thought 2: O produto mais barato é Mouse a R$50. Preciso calcular 5 unidades.
-Action 2: calculator[50 * 5]
-Observation 2: 250
-
-Thought 3: Tenho a resposta final.
-Answer: Custaria R$250 para comprar 5 unidades do produto mais barato
-        (Mouse a R$50 cada).
+    """Busca produtos no database."""
+    # Simulação - em produção seria chamada real
+    return mock_db.get(categoria, [])
 ```
 
 **Quando usar ReAct:**
 
-- **Precisa de informações externas**: APIs, databases, web search
-- **Ferramentas devem ser escolhidas dinamicamente**: não é sequência fixa de ações
-- **Resultado de uma ação influencia próxima**: decisões condicionais
-- **Debugging é importante**: histórico Thought-Action-Observation facilita diagnóstico
+Use ReAct quando precisa de informações externas (APIs, databases, web search), quando ferramentas devem ser escolhidas dinamicamente (não é sequência fixa de ações), quando o resultado de uma ação influencia a próxima (decisões condicionais), e quando debugging é importante (histórico Thought-Action-Observation facilita diagnóstico).
 
 **Limitações conhecidas:**
 
@@ -1420,81 +1058,31 @@ Final Answer: Imagine um triângulo com um canto reto (como canto de mesa).
               (3×3) + (4×4) = (5×5) → 9 + 16 = 25. Legal, né?
 ```
 
-Agora que entendemos o conceito, vamos implementar um loop de self-reflection.
+**Loop de refinamento iterativo:**
 
 ```python
-def self_reflection_loop(
-    question: str,
-    max_iterations: int = 3,
-    quality_threshold: float = 0.8
-) -> str:
-    """
-    Loop de self-reflection com refinamento iterativo.
-
-    Args:
-        question: Pergunta original
-        max_iterations: Máximo de refinamentos
-        quality_threshold: Score mínimo para aceitar resposta (0-1)
-
-    Returns:
-        Resposta final refinada
-    """
-    # Geração inicial
+def self_reflection_loop(question, max_iterations=3, quality_threshold=0.8):
+    """Loop de self-reflection com refinamento iterativo."""
     answer = llm.generate(f"Question: {question}\nAnswer:", temperature=0.7)
 
     for i in range(max_iterations):
         # Autocrítica
-        reflection_prompt = f"""
-You provided this answer:
-{answer}
-
-For the question: {question}
-
-Critically evaluate your answer:
-1. What is correct?
-2. What is wrong or missing?
-3. How could it be improved?
-4. Rate quality 0-1:
-
-Reflection:"""
-
         reflection = llm.generate(reflection_prompt, temperature=0.3)
-
-        # Extrai score de qualidade
         score = extract_quality_score(reflection)
-
+        
         if score >= quality_threshold:
-            return answer  # Resposta boa o suficiente
-
+            return answer
+        
         # Refinamento
-        refinement_prompt = f"""
-Original Question: {question}
-
-Your previous answer:
-{answer}
-
-Your self-critique:
-{reflection}
-
-Provide an improved answer addressing the issues you identified:
-
-Refined Answer:"""
-
         answer = llm.generate(refinement_prompt, temperature=0.7)
-
+    
     return answer
-
-def extract_quality_score(reflection: str) -> float:
-    """Extrai score numérico de 0-1 da reflection."""
-    # Busca por "Rate quality: 0.X" ou "Quality: X/10"
-    match = re.search(r'(?:quality|score)[:\s]+([0-9.]+)',
-                     reflection.lower())
-    if match:
-        score = float(match.group(1))
-        # Normaliza para 0-1 se necessário
-        return score if score <= 1.0 else score / 10.0
-    return 0.5  # Default se não encontrar score
 ```
+
+::: {.callout-note}
+# Implementação Completa
+Para implementação completa com prompts de reflexão estruturados e extração de scores, veja o @sec-exemplo-self-reflection.
+:::
 
 **Quando self-reflection funciona melhor:**
 
@@ -1603,11 +1191,7 @@ Answer: 2 horas
 2. **Generalização**: Em vez de memorizar exemplos fixos, modelo identifica estrutura abstrata do problema
 3. **Menos exemplos necessários**: Modelo gera as próprias analogias
 
-No paper original [@yasunaga2023large], analogical prompting superou few-shot CoT:
-
-- **GSM8K**: Few-shot CoT (87%) → Analogical (92%) (+5%)
-- **Math**: Few-shot CoT (23%) → Analogical (29%) (+6%)
-- **Com menos exemplos**: 2-3 analogias geradas vs. 8 exemplos few-shot fixos
+No paper original [@yasunaga2023large], analogical prompting superou few-shot CoT: GSM8K melhorou de 87% (few-shot CoT) para 92% (+5 pontos), Math de 23% para 29% (+6 pontos), usando apenas 2-3 analogias geradas versus 8 exemplos few-shot fixos.
 
 Vamos implementar uma função simples de analogical prompting.
 
@@ -1679,242 +1263,23 @@ Thought: [raciocínio ajustado]
 
 **Analogical + Self-Consistency:**
 
-- Gera 5 soluções usando analogias diferentes
-- Voting majoritário para resposta final
-- Combina criatividade de analogias com robustez de self-consistency
+Analogical prompting combinado com self-consistency gera 5 soluções usando analogias diferentes, aplica voting majoritário para resposta final, e combina criatividade de analogias com robustez de self-consistency.
 
 **CoT + ReAct + Reflection:**
 
-- ReAct para orquestração de ações
-- CoT para raciocínio em cada Thought
-- Reflection para avaliar se sequência de ações faz sentido
+Esta combinação usa ReAct para orquestração de ações, CoT para raciocínio em cada Thought, e Reflection para avaliar se a sequência de ações faz sentido. Estas técnicas serão fundamentais quando construirmos agentes autônomos multi-ferramenta nos próximos capítulos.
 
-Estas técnicas serão fundamentais quando construirmos agentes autônomos multi-ferramenta nos próximos capítulos.
+## Pratique o que Aprendeu
 
-## Exercícios Práticos
+Este capítulo apresentou fundamentos de prompting e raciocínio, incluindo estruturação de prompts, in-context learning, chain-of-thought e técnicas avançadas como ReAct e self-reflection.
 
-Este capítulo inclui três exercícios práticos completos, disponíveis em `sandbox/chapter-04/`. Cada exercício combina teoria com implementação executável, permitindo experimentação hands-on com as técnicas apresentadas.
+Para consolidar seu entendimento através de implementação prática, consulte os [Exercícios Práticos do Capítulo 4](exercises/04-exercises.qmd), que incluem:
 
-### Exercício 1: Few-Shot Dynamic Classifier
+1. **Few-Shot Dynamic Classifier**: Classificador com seleção dinâmica de exemplos por similaridade
+2. **Chain-of-Thought Math Solver**: Comparação entre zero-shot CoT, few-shot CoT e self-consistency
+3. **Simple ReAct Agent**: Agente básico com ferramentas (calculadora, APIs, conversores)
 
-**Arquivo:** `sandbox/chapter-04/01-few-shot-classifier.py`  
-**Dataset:** `datasets/sentiment_examples.jsonl`
-
-**Objetivo:** Implementar um classificador de sentimento usando few-shot learning com **seleção dinâmica de exemplos** baseada em similaridade semântica.
-
-**Conceitos aplicados:**
-- In-Context Learning (ICL)
-- Embeddings para seleção de exemplos relevantes
-- Comparação empírica: seleção aleatória vs. semântica
-
-**O que você vai construir:**
-
-```python
-class FewShotSelector:
-    """Seleciona dinamicamente os k exemplos mais relevantes."""
-    
-    def select_similar(self, query: str, k: int = 3) -> List[Dict]:
-        """Seleciona exemplos por similaridade de cosseno."""
-        query_emb = self.model.encode([query])[0]
-        similarities = cosine_similarity([query_emb], self.embeddings)[0]
-        top_indices = np.argsort(similarities)[-k:][::-1]
-        return [self.examples[i] for i in top_indices]
-```
-
-**Resultado esperado:**
-
-```
-Avaliação: Seleção Aleatória
-Acurácia: 65.0% (13/20)
-
-Avaliação: Seleção Semântica
-Acurácia: 85.0% (17/20)
-
-Melhoria com seleção semântica: +20.0%
-```
-
-**Desafios adicionais:**
-1. Experimente diferentes valores de `k` (3, 5, 10 exemplos)
-2. Compare modelos de embedding (all-MiniLM-L6-v2 vs. multilingual-e5-base)
-3. Implemente diversidade nos exemplos (evitar redundância)
-
-**Questões para reflexão:**
-- Por que seleção semântica supera seleção aleatória?
-- Quando seleção aleatória pode ser preferível? (dica: custo computacional)
-- Como implementar cache de embeddings para reduzir latência?
-
----
-
-### Exercício 2: Chain-of-Thought Math Solver
-
-**Arquivo:** `sandbox/chapter-04/02-cot-math-solver.py`  
-**Dataset:** `datasets/math_problems.jsonl`
-
-**Objetivo:** Implementar solver de problemas matemáticos comparando três abordagens: **zero-shot CoT**, **few-shot CoT** e **self-consistency**.
-
-**Conceitos aplicados:**
-- Zero-shot CoT: "Let's think step by step"
-- Few-shot CoT: exemplos com raciocínio explícito
-- Self-consistency: voting majoritário com múltiplas cadeias
-- Análise de trade-offs: acurácia vs. custo vs. latência
-
-**O que você vai construir:**
-
-```python
-def self_consistency_solve(
-    problem: str, 
-    n_samples: int = 5
-) -> Tuple[str, float]:
-    """
-    Gera N soluções independentes e retorna resposta por voting.
-    
-    Returns:
-        (resposta_final, confiança)
-    """
-    answers = []
-    for _ in range(n_samples):
-        reasoning = generate_cot(problem, temperature=0.7)
-        answer = extract_answer(reasoning)
-        answers.append(answer)
-    
-    # Voting majoritário
-    most_common = Counter(answers).most_common(1)[0]
-    confidence = most_common[1] / n_samples
-    
-    return most_common[0], confidence
-```
-
-**Resultado esperado:**
-
-```
-Zero-Shot CoT:
-Acurácia: 60.0% (9/15)
-Custo estimado: $0.003
-
-Few-Shot CoT:
-Acurácia: 73.3% (11/15)
-Custo estimado: $0.005
-
-Self-Consistency (N=5):
-Acurácia: 86.7% (13/15)
-Custo estimado: $0.025
-Confiança média: 0.85
-```
-
-**Desafios adicionais:**
-
-1. Implemente extração robusta de resposta numérica (regex aprimorado)
-2. Adicione detecção de contradições no raciocínio
-3. Compare "Think step by step" vs. "Solve carefully" vs. outros prompts
-4. Meça token usage real e calcule custo exato (se usar APIs)
-
-**Questões para reflexão:**
-
-- Self-consistency vale 5× no custo para seu caso de uso?
-- Como detectar quando o modelo está "adivinhando" vs. raciocinando?
-- Quando CoT piora a performance? (dica: tarefas muito simples)
-
----
-
-### Exercício 3: Simple ReAct Agent
-
-**Arquivo:** `sandbox/chapter-04/03-simple-react-agent.py`
-
-**Objetivo:** Implementar agente ReAct básico com três ferramentas: **calculadora**, **API de temperatura** e **conversor de moeda**.
-
-**Conceitos aplicados:**
-- ReAct framework (Reasoning + Acting)
-- Parsing de Pensamento/Ação/Observação
-- Tool registry e dispatching
-- Loop iterativo com limite de passos (evitar loops infinitos)
-
-**O que você vai construir:**
-
-```python
-class ReactAgent:
-    """Agente ReAct com ferramentas."""
-    
-    def run(self, question: str, max_iterations: int = 5) -> str:
-        """
-        Loop Pensamento-Ação-Observação.
-        
-        1. Gera Pensamento (reasoning)
-        2. Escolhe Ação (tool + argumentos)
-        3. Executa tool → Observação
-        4. Repete até resposta final ou limite
-        """
-        for i in range(max_iterations):
-            thought, action = self._simulate_reasoning(question, history)
-            observation = self._execute_action(action)
-            
-            if self._is_final_answer(thought):
-                return thought
-        
-        return "Limite de iterações atingido."
-```
-
-**Ferramentas implementadas:**
-
-- `calculator(expression)`: Avalia expressões matemáticas
-- `get_temperature(city)`: Retorna temperatura (mock API)
-- `convert_currency(amount, from, to)`: Converte moedas (mock API)
-
-**Resultado esperado:**
-
-```
-Pergunta: Qual a temperatura em São Paulo?
-
-[Iteração 1]
-Pensamento: Preciso obter informações sobre temperatura
-Ação: get_temperature("São Paulo")
-Observação: 28°C
-
-[Iteração 2]
-Pensamento: Tenho a informação necessária
-Resposta Final: A temperatura em São Paulo é 28°C.
-```
-
-**Desafios adicionais:**
-
-1. Adicione retry logic quando parsing de Ação falha
-2. Implemente detecção de loops (agente repete mesma ação)
-3. Adicione logging estruturado (JSON) para debugging
-4. Compare ReAct vs. raciocínio direto (sem ferramentas)
-
-**Questões para reflexão:**
-
-- Quando ReAct é superior a raciocínio direto?
-- Como lidar com ferramentas que falham intermitentemente?
-- Como escalar de 3 ferramentas para 50+? (arquitetura modular)
-
----
-
-::: {.callout-important title="Simulação vs. Produção"}
-Os exercícios usam **simulação de LLMs** para permitir execução sem API keys. 
-
-Para produção, seria necessário integrar com APIs reais. Por exemplo, para OpenAI:
-
-```python
-# Substituir simulate_llm_response() por:
-from openai import OpenAI
-
-client = OpenAI(api_key="sua-api-key")
-
-response = client.chat.completions.create(
-    model="gpt-4-turbo-preview",
-    messages=[{"role": "user", "content": prompt}],
-    temperature=0.7
-)
-
-output = response.choices[0].message.content
-```
-
-Veja `sandbox/chapter-04/README.md` para exemplos completos com OpenAI e Anthropic.
-
-Também seria possível utilizar modelos open source locais (Llama2, Falcon) via bibliotecas como `transformers`, `llama-cpp-python` ou ferramentas como Ollama e vLLM.
-:::
-
----
+Os exercícios fornecem código executável e guias passo a passo para aplicação prática dos conceitos apresentados.
 
 ## Conclusão
 
@@ -1922,55 +1287,610 @@ Neste capítulo, você dominou os fundamentos técnicos de prompting e raciocín
 
 **O que você aprendeu:**
 
-**1. Estruturação de Prompts:**
+**1. Estruturação de Prompts:** Anatomia de prompts efetivos usando ROLE, TASK, CONTEXT, FORMAT e CONSTRAINTS. Técnicas de marcação através de Markdown, XML e JSON, incluindo quando usar cada formato. Templates com Jinja2 para produção escalável.
 
-- Anatomia de prompts efetivos: ROLE, TASK, CONTEXT, FORMAT, CONSTRAINTS
-- Técnicas de marcação: Markdown, XML, JSON (e quando usar cada uma)
-- Templates com Jinja2 para produção escalável
+**2. In-Context Learning (ICL):** Zero-shot ($P(y | I, x; \theta)$) incluindo quando usar e suas limitações. Few-shot ($P(y | \mathcal{E}, x; \theta)$) com seleção dinâmica de exemplos via embeddings. Many-shot como aproximação de gradient descent com gerenciamento de context window. Trade-offs entre custo, latência e acurácia para cada estratégia.
 
-**2. In-Context Learning (ICL):**
+**3. Chain-of-Thought (CoT):** Zero-shot CoT usando "Let's think step by step" para raciocínio emergente. Few-shot CoT com exemplos demonstrando raciocínio explícito. Self-consistency através de voting majoritário para maior robustez (+5-15% acurácia, 5× custo). Quando CoT funciona (raciocínio matemático, planejamento) e quando falha.
 
-- **Zero-shot**: $P(y | I, x; \theta)$ - quando usar e limitações
-- **Few-shot**: $P(y | \mathcal{E}, x; \theta)$ - seleção dinâmica de exemplos via embeddings
-- **Many-shot**: Aproximação de gradient descent, gerenciamento de context window
-- Trade-offs: custo, latência, acurácia para cada estratégia
+**4. ReAct Framework:** Padrão Pensamento-Ação-Observação para agentes autônomos. Integração de ferramentas externas (calculadora, APIs, databases). Fundamentos para sistemas multi-agentes (Parte II do livro).
 
-**3. Chain-of-Thought (CoT):**
-
-- Zero-shot CoT: "Let's think step by step" para raciocínio emergente
-- Few-shot CoT: exemplos com raciocínio explícito
-- Self-consistency: voting majoritário para maior robustez (+5-15% acurácia, 5× custo)
-- Quando CoT funciona (raciocínio matemático, planejamento) e quando falha
-
-**4. ReAct Framework:**
-
-- Padrão Pensamento-Ação-Observação para agentes autônomos
-- Integração de ferramentas externas (calculadora, APIs, databases)
-- Fundamentos para sistemas multi-agentes (Parte II do livro)
-
-**Implementações práticas:**
-
-- **Exercício 1**: Classificador few-shot com seleção dinâmica (+20% acurácia)
-- **Exercício 2**: Math solver com CoT e self-consistency (86% acurácia)
-- **Exercício 3**: Agente ReAct básico com três ferramentas
-
----
+**Implementações práticas:** Exercício 1 demonstra classificador few-shot com seleção dinâmica (+20% acurácia). Exercício 2 implementa math solver com CoT e self-consistency (86% acurácia). Exercício 3 constrói agente ReAct básico com três ferramentas.
 
 **Próximos passos:**
 
-Estas técnicas formam a **base conceitual** para todos os sistemas de agentes que construiremos nas próximas partes do livro:
+Estas técnicas formam a base conceitual para todos os sistemas de agentes que construiremos nas próximas partes do livro.
 
-- **Capítulo 5 (Dominando LLMs na Prática)**: Configurações avançadas (temperature, top-p), otimização de context window, estratégias de custo/latência para produção
-- **Parte II (Construindo Sistemas de Agentes)**: RAG, tool calling, orquestração, comunicação multi-agente
-- **Parte III (Arquitetura e Produção)**: Verificação, guardrails, segurança, deployment, avaliação
-
-::: {.callout-tip title="Aprofundamento"}
-Para dominar prompting além do essencial:
-
-1. **Experimente os exercícios**: Código executável em `sandbox/chapter-04/`
-2. **Leia os papers citados**: Brown et al. 2020 (GPT-3), Wei et al. 2022 (CoT), Yao et al. 2022 (ReAct)
-3. **Teste em seu domínio**: Adapte exemplos para suas aplicações específicas
-4. **Meça sistematicamente**: Acurácia, custo, latência - optimize com dados, não intuição
-:::
+Capítulo 5 (Dominando LLMs na Prática) explora configurações avançadas (temperature, top-p), otimização de context window, e estratégias de custo/latência para produção. Parte II (Construindo Sistemas de Agentes) cobre RAG, tool calling, orquestração e comunicação multi-agente. Parte III (Arquitetura e Produção) aborda verificação, guardrails, segurança, deployment e avaliação.
 
 Prompting é a **linguagem de comunicação** com LLMs. Dominar essa linguagem não é opcional para quem constrói agentes de IA - é a diferença entre sistemas que funcionam ocasionalmente e sistemas que operam com confiabilidade em produção.
+
+## Exemplos Completos de Código
+
+Esta seção apresenta implementações completas e executáveis dos conceitos principais discutidos no capítulo. Cada exemplo é standalone e pode ser executado diretamente.
+
+### Exemplo 1: Few-Shot Selector com Embeddings {#sec-exemplo-few-shot-selector}
+
+Implementação completa de seletor dinâmico de exemplos baseado em similaridade semântica para in-context learning.
+
+```python
+# uv pip install sentence-transformers scikit-learn numpy
+
+from sentence_transformers import SentenceTransformer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+from typing import List, Dict
+
+class FewShotSelector:
+    """
+    Seletor dinâmico de exemplos few-shot baseado em similaridade semântica.
+    """
+    
+    def __init__(self, example_bank: List[Dict], k: int = 5):
+        """
+        Args:
+            example_bank: Lista de dicts com 'input' e 'output'
+            k: Número de exemplos a selecionar
+        """
+        self.example_bank = example_bank
+        self.k = k
+        self.encoder = SentenceTransformer('all-MiniLM-L6-v2')
+        
+        # Pré-computar embeddings
+        inputs = [ex['input'] for ex in example_bank]
+        self.embeddings = self.encoder.encode(inputs)
+    
+    def select_examples(self, query: str) -> List[Dict]:
+        """
+        Seleciona k exemplos mais similares ao query.
+        
+        Args:
+            query: Input atual para classificar
+        
+        Returns:
+            Lista de k exemplos mais relevantes
+        """
+        query_embedding = self.encoder.encode([query])
+        similarities = cosine_similarity(query_embedding, self.embeddings)[0]
+        
+        # Top-k índices
+        top_k_indices = np.argsort(similarities)[-self.k:][::-1]
+        
+        return [self.example_bank[i] for i in top_k_indices]
+    
+    def build_prompt(self, query: str, task_description: str) -> str:
+        """
+        Constrói prompt few-shot com exemplos selecionados.
+        """
+        examples = self.select_examples(query)
+        
+        prompt_parts = [task_description, ""]
+        
+        for ex in examples:
+            prompt_parts.append(f"Input: {ex['input']}")
+            prompt_parts.append(f"Output: {ex['output']}")
+            prompt_parts.append("")
+        
+        prompt_parts.append(f"Input: {query}")
+        prompt_parts.append("Output:")
+        
+        return "\n".join(prompt_parts)
+
+# Exemplo de uso
+bank = [
+    {"input": "Produto excelente!", "output": "POSITIVO"},
+    {"input": "Péssima qualidade.", "output": "NEGATIVO"},
+    {"input": "Produto ok.", "output": "NEUTRO"},
+    {"input": "Melhor compra que fiz!", "output": "POSITIVO"},
+    {"input": "Não recomendo.", "output": "NEGATIVO"},
+    {"input": "Funciona bem mas poderia ser melhor.", "output": "NEUTRO"},
+    {"input": "Adorei! Superou expectativas!", "output": "POSITIVO"},
+    {"input": "Horrível, total desperdício.", "output": "NEGATIVO"}
+]
+
+selector = FewShotSelector(bank, k=3)
+prompt = selector.build_prompt(
+    query="Adorei a qualidade!",
+    task_description="Classifique o sentimento como POSITIVO, NEGATIVO ou NEUTRO:"
+)
+
+print("Prompt gerado:")
+print(prompt)
+```
+
+**Resultados esperados:**
+
+**Características principais:**
+
+Este exemplo demonstra seleção automática dos 3 exemplos mais similares semanticamente, oferece performance superior à seleção aleatória (~20% de melhoria em acurácia), e utiliza embeddings pré-computados para eficiência.
+
+### Exemplo 2: Many-Shot Prompt Builder {#sec-exemplo-many-shot-builder}
+
+Sistema de construção de prompts many-shot com gerenciamento inteligente de context window.
+
+```python
+# uv pip install tiktoken
+
+import tiktoken
+from typing import List, Dict, Tuple
+
+class ManyShotPromptBuilder:
+    """
+    Construtor de prompts many-shot com gerenciamento de context window.
+    """
+    
+    def __init__(self, max_tokens: int = 100_000):
+        """
+        Args:
+            max_tokens: Limite máximo de tokens (ex: 128k para Claude 3.5)
+        """
+        self.max_tokens = max_tokens
+    
+    def build_prompt(
+        self,
+        examples: List[Dict],
+        query: str,
+        task_description: str,
+        tokenizer
+    ) -> Tuple[str, int]:
+        """
+        Constrói prompt many-shot respeitando limite de tokens.
+        
+        Args:
+            examples: Lista completa de exemplos disponíveis
+            query: Input atual
+            task_description: Descrição da tarefa
+            tokenizer: Tokenizer para contagem de tokens
+        
+        Returns:
+            (prompt_final, n_exemplos_incluídos)
+        """
+        # Tokens reservados para task description e query
+        overhead = len(tokenizer.encode(task_description + query)) + 100
+        available_tokens = self.max_tokens - overhead
+        
+        # Adicionar exemplos até preencher context window
+        selected_examples = []
+        current_tokens = 0
+        
+        for ex in examples:
+            ex_text = f"Input: {ex['input']}\nOutput: {ex['output']}\n\n"
+            ex_tokens = len(tokenizer.encode(ex_text))
+            
+            if current_tokens + ex_tokens > available_tokens:
+                break
+            
+            selected_examples.append(ex_text)
+            current_tokens += ex_tokens
+        
+        # Construir prompt final
+        prompt = task_description + "\n\n"
+        prompt += "".join(selected_examples)
+        prompt += f"Input: {query}\nOutput:"
+        
+        return prompt, len(selected_examples)
+
+# Exemplo de uso
+builder = ManyShotPromptBuilder(max_tokens=128_000)
+
+# Simular banco grande de exemplos
+large_example_bank = [
+    {"input": f"Exemplo {i}", "output": f"Resultado {i}"}
+    for i in range(500)
+]
+
+tokenizer = tiktoken.get_encoding("cl100k_base")
+
+prompt, n_examples = builder.build_prompt(
+    examples=large_example_bank,
+    query="Novo input para classificar",
+    task_description="Classifique documentos legais nas categorias...",
+    tokenizer=tokenizer
+)
+
+print(f"Prompt construído com {n_examples} exemplos")
+print(f"Total de tokens: {len(tokenizer.encode(prompt))}")
+```
+
+**Características:**
+
+O sistema preenche automaticamente o context window com o máximo de exemplos possível, respeita limite de tokens do modelo, e é útil para aproximar performance de fine-tuning sem treinar.
+
+### Exemplo 3: Self-Consistency com Voting {#sec-exemplo-self-consistency}
+
+Implementação de self-consistency para melhorar robustez através de múltiplas cadeias de raciocínio.
+
+```python
+# uv pip install collections
+
+from collections import Counter
+import re
+from typing import Tuple, List
+
+def self_consistency_cot(problema: str, n_samples: int = 5) -> Tuple[int, float]:
+    """
+    Gera múltiplas cadeias de raciocínio e retorna resposta por voting.
+    
+    Args:
+        problema: Problema a resolver
+        n_samples: Número de cadeias independentes a gerar
+    
+    Returns:
+        (resposta_final, confiança)
+    """
+    prompt_base = f"{problema}\n\nLet's think step by step."
+    
+    respostas = []
+    raciocinios = []
+    
+    for i in range(n_samples):
+        print(f"\n{'='*60}")
+        print(f"Cadeia {i+1}/{n_samples}")
+        print(f"{'='*60}")
+        
+        # Gera cadeia de raciocínio com temperatura > 0 para diversidade
+        output = llm.generate(prompt_base, temperature=0.7)
+        
+        print(output)
+        
+        # Extrai apenas a resposta final (número, categoria, etc.)
+        resposta = extrair_numero_final(output)
+        
+        if resposta is not None:
+            respostas.append(resposta)
+            raciocinios.append(output)
+            print(f"\nResposta extraída: {resposta}")
+        else:
+            print("\n⚠️ Falha ao extrair resposta desta cadeia")
+    
+    if not respostas:
+        return None, 0.0
+    
+    # Voting majoritário
+    contagem = Counter(respostas)
+    resposta_final, votos = contagem.most_common(1)[0]
+    confianca = votos / len(respostas)
+    
+    print(f"\n{'='*60}")
+    print("RESULTADO FINAL")
+    print(f"{'='*60}")
+    print(f"Distribuição de votos: {dict(contagem)}")
+    print(f"Resposta escolhida: {resposta_final}")
+    print(f"Confiança: {confianca:.1%} ({votos}/{len(respostas)} votos)")
+    
+    return resposta_final, confianca
+
+def extrair_numero_final(texto: str) -> int:
+    """Extrai número da resposta final."""
+    # Procura por "Resposta: X" ou "Answer: X"
+    match = re.search(r'(?:Resposta|Answer):\s*(\d+)', texto, re.IGNORECASE)
+    if match:
+        return int(match.group(1))
+    
+    # Fallback: último número encontrado
+    numeros = re.findall(r'\d+', texto)
+    return int(numeros[-1]) if numeros else None
+
+# Exemplo de uso
+problema = """
+Roger tem 5 bolas de tênis. Ele compra 2 latas com 3 bolas cada.
+Quantas bolas ele tem agora?
+"""
+
+resposta, confianca = self_consistency_cot(problema, n_samples=5)
+
+if resposta:
+    print(f"\nResposta final: {resposta} bolas (confiança: {confianca:.1%})")
+```
+
+**Melhorias esperadas:**
+
+No benchmark GSM8K, self-consistency oferece +6% de acurácia versus CoT simples, filtra erros aleatórios através de voting, e fornece medida de confiança através da proporção de votos.
+
+### Exemplo 4: ReAct Agent Completo {#sec-exemplo-react-agent}
+
+Agente ReAct com registry de ferramentas e loop Thought-Action-Observation.
+
+```python
+# uv pip install re typing
+
+from typing import Dict, Callable, List, Tuple
+import re
+
+class ReActAgent:
+    """
+    Agente ReAct com registry de ferramentas.
+    """
+
+    def __init__(self, tools: Dict[str, Callable]):
+        """
+        Args:
+            tools: Dicionário {nome_ferramenta: função_executável}
+        """
+        self.tools = tools
+        self.history = []
+
+    def run(self, question: str, max_iterations: int = 7) -> str:
+        """
+        Loop Thought-Action-Observation até resposta final.
+
+        Args:
+            question: Pergunta do usuário
+            max_iterations: Limite de iterações para evitar loops infinitos
+
+        Returns:
+            Resposta final ou mensagem de timeout
+        """
+        prompt = self._build_initial_prompt(question)
+
+        for i in range(max_iterations):
+            print(f"\n{'='*60}")
+            print(f"Iteração {i+1}")
+            print(f"{'='*60}")
+            
+            # Gera Thought + Action
+            response = llm.generate(prompt, temperature=0.0)
+
+            # Parse do output
+            thought, action, action_input = self._parse_response(response)
+
+            # Registra thought
+            self.history.append(f"Thought {i+1}: {thought}")
+            print(f"Thought: {thought}")
+
+            # Verifica se é resposta final
+            if self._is_final_answer(thought):
+                answer = self._extract_answer(response)
+                print(f"\n✅ Resposta Final: {answer}")
+                return answer
+
+            # Executa ação
+            if action not in self.tools:
+                observation = f"Erro: ferramenta '{action}' não existe"
+            else:
+                try:
+                    observation = self.tools[action](action_input)
+                except Exception as e:
+                    observation = f"Erro ao executar {action}: {str(e)}"
+
+            # Registra ação e observação
+            self.history.append(f"Action {i+1}: {action}[{action_input}]")
+            self.history.append(f"Observation {i+1}: {observation}")
+            
+            print(f"Action: {action}[{action_input}]")
+            print(f"Observation: {observation}")
+
+            # Atualiza prompt com nova observação
+            prompt = self._update_prompt(question, self.history)
+
+        return "Limite de iterações atingido sem resposta final."
+
+    def _build_initial_prompt(self, question: str) -> str:
+        """Constrói prompt inicial com descrição de ferramentas."""
+        tools_desc = "\n".join([
+            f"- {name}: {func.__doc__}"
+            for name, func in self.tools.items()
+        ])
+
+        return f"""Answer the following question using available tools.
+
+Available Tools:
+{tools_desc}
+
+Use this format:
+Thought: [your reasoning about next step]
+Action: [tool_name]
+Action Input: [input for the tool]
+Observation: [result will be provided]
+... (repeat Thought/Action/Observation as needed)
+Thought: [final reasoning]
+Answer: [final answer to the user]
+
+Question: {question}
+
+Thought:"""
+
+    def _parse_response(self, response: str) -> Tuple[str, str, str]:
+        """
+        Extrai Thought, Action e Action Input do response.
+
+        Returns:
+            (thought, action_name, action_input)
+        """
+        thought_match = re.search(r'Thought:\s*(.+?)(?=\nAction:|\nAnswer:|$)',
+                                 response, re.DOTALL)
+        action_match = re.search(r'Action:\s*(\w+)', response)
+        input_match = re.search(r'Action Input:\s*(.+?)(?=\n|$)', response)
+
+        thought = thought_match.group(1).strip() if thought_match else ""
+        action = action_match.group(1).strip() if action_match else ""
+        action_input = input_match.group(1).strip() if input_match else ""
+
+        return thought, action, action_input
+
+    def _is_final_answer(self, thought: str) -> bool:
+        """Detecta se thought indica resposta final."""
+        final_indicators = [
+            "resposta final",
+            "final answer",
+            "concluí",
+            "tenho a resposta",
+            "respondido"
+        ]
+        return any(ind in thought.lower() for ind in final_indicators)
+
+    def _extract_answer(self, response: str) -> str:
+        """Extrai resposta final do response."""
+        match = re.search(r'Answer:\s*(.+)', response, re.DOTALL)
+        return match.group(1).strip() if match else response
+
+    def _update_prompt(self, question: str, history: List[str]) -> str:
+        """Reconstrói prompt com histórico completo."""
+        history_text = "\n".join(history)
+        return f"""{self._build_initial_prompt(question)}
+
+{history_text}
+
+Thought:"""
+
+# Definir ferramentas
+def calculator(expression: str) -> float:
+    """Avalia expressões matemáticas simples. Ex: calculator("2 + 3 * 4")"""
+    try:
+        # ATENÇÃO: eval é inseguro em produção! Este é apenas um exemplo.
+        return eval(expression)
+    except Exception as e:
+        return f"Erro na expressão: {e}"
+
+def search_database(query: str) -> List[Dict]:
+    """Busca produtos no database. Ex: search_database("categoria:eletrônicos")"""
+    # Simulação - em produção seria chamada real a database
+    mock_db = {
+        "eletrônicos": [
+            {"nome": "Mouse", "preco": 50},
+            {"nome": "Teclado", "preco": 80},
+            {"nome": "Headset", "preco": 120}
+        ]
+    }
+
+    # Parse simples de query
+    if "categoria:" in query:
+        categoria = query.split("categoria:")[1].strip()
+        return mock_db.get(categoria, [])
+
+    return []
+
+# Exemplo de uso
+agent = ReActAgent(tools={
+    "calculator": calculator,
+    "search_database": search_database
+})
+
+resultado = agent.run(
+    "Quanto custaria comprar 5 unidades do produto mais barato de eletrônicos?"
+)
+
+print(f"\n{'='*60}")
+print(f"RESULTADO FINAL: {resultado}")
+print(f"{'='*60}")
+```
+
+**Funcionalidades:**
+
+O agente implementa loop iterativo com ferramentas externas, parsing robusto de Thought/Action/Observation, detecção automática de resposta final, e histórico completo para debugging.
+
+### Exemplo 5: Self-Reflection Loop {#sec-exemplo-self-reflection}
+
+Sistema de autocorreção com refinamento iterativo baseado em autocrítica.
+
+```python
+# uv pip install re
+
+import re
+
+def self_reflection_loop(
+    question: str,
+    max_iterations: int = 3,
+    quality_threshold: float = 0.8
+) -> str:
+    """
+    Loop de self-reflection com refinamento iterativo.
+
+    Args:
+        question: Pergunta original
+        max_iterations: Máximo de refinamentos
+        quality_threshold: Score mínimo para aceitar resposta (0-1)
+
+    Returns:
+        Resposta final refinada
+    """
+    # Geração inicial
+    print(f"{'='*60}")
+    print("GERAÇÃO INICIAL")
+    print(f"{'='*60}\n")
+    
+    answer = llm.generate(f"Question: {question}\nAnswer:", temperature=0.7)
+    print(f"Resposta inicial:\n{answer}\n")
+
+    for i in range(max_iterations):
+        print(f"{'='*60}")
+        print(f"ITERAÇÃO {i+1} - REFLEXÃO E REFINAMENTO")
+        print(f"{'='*60}\n")
+        
+        # Autocrítica
+        reflection_prompt = f"""
+You provided this answer:
+{answer}
+
+For the question: {question}
+
+Critically evaluate your answer:
+1. What is correct?
+2. What is wrong or missing?
+3. How could it be improved?
+4. Rate quality 0-1:
+
+Reflection:"""
+
+        reflection = llm.generate(reflection_prompt, temperature=0.3)
+        print(f"Autocrítica:\n{reflection}\n")
+
+        # Extrai score de qualidade
+        score = extract_quality_score(reflection)
+        print(f"Score de qualidade: {score:.2f}")
+
+        if score >= quality_threshold:
+            print(f"\nQualidade satisfatória alcançada!")
+            return answer
+
+        # Refinamento
+        print(f"\nRefinando resposta...")
+        
+        refinement_prompt = f"""
+Original Question: {question}
+
+Your previous answer:
+{answer}
+
+Your self-critique:
+{reflection}
+
+Provide an improved answer addressing the issues you identified:
+
+Refined Answer:"""
+
+        answer = llm.generate(refinement_prompt, temperature=0.7)
+        print(f"\nResposta refinada:\n{answer}\n")
+
+    print(f"\n⚠️ Limite de iterações atingido")
+    return answer
+
+def extract_quality_score(reflection: str) -> float:
+    """Extrai score numérico de 0-1 da reflection."""
+    # Busca por "Rate quality: 0.X" ou "Quality: X/10"
+    match = re.search(r'(?:quality|score)[:\s]+([0-9.]+)',
+                     reflection.lower())
+    if match:
+        score = float(match.group(1))
+        # Normaliza para 0-1 se necessário
+        return score if score <= 1.0 else score / 10.0
+    return 0.5  # Default se não encontrar score
+
+# Exemplo de uso
+pergunta = "Explique o teorema de Pitágoras para uma criança de 10 anos."
+
+resposta_final = self_reflection_loop(
+    question=pergunta,
+    max_iterations=3,
+    quality_threshold=0.8
+)
+
+print(f"\n{'='*60}")
+print("RESPOSTA FINAL")
+print(f"{'='*60}\n")
+print(resposta_final)
+```
+
+**Benefícios:**
+
+O sistema melhora qualidade através de autocrítica iterativa, utiliza score de qualidade para decisão de quando parar, e é ideal para tarefas criativas ou com critérios subjetivos.
