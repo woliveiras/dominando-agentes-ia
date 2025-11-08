@@ -1162,7 +1162,9 @@ model.fit(
 
 ### Few-Shot Fine-Tuning com Dados Sintéticos
 
-O maior obstáculo ao fine-tuning é coleta de dados de treinamento. **Synthetic data generation** com LLMs resolve isso. A técnica: usar um LLM forte (GPT-4) para gerar queries sintéticas dado um documento:
+O maior obstáculo ao fine-tuning de embeddings é prático: **coleta de dados de treinamento de qualidade**. Você precisa de milhares de exemplos rotulados de pares (query, documento) ou triplets (anchor, positive, negative), onde a relevância foi validada manualmente ou através de sinais comportamentais reais. Empresas com produtos estabelecidos podem extrair esses dados de logs de busca e cliques de usuários, mas startups, pesquisadores, ou equipes trabalhando em domínios novos enfrentam um dilema: como obter 10K+ exemplos de treinamento quando não há histórico de uso real? Contratar anotadores humanos para criar pares manualmente é caro (centenas de dólares por hora de trabalho especializado), lento (semanas ou meses para datasets grandes), e sujeito a viés e inconsistência entre anotadores.
+
+**Synthetic data generation** com LLMs resolve esse obstáculo de forma elegante e economicamente viável. A técnica central é inverter o problema: ao invés de ter queries e buscar documentos relevantes, você parte dos documentos que já possui e usa um LLM forte (GPT-4, Claude) para gerar queries sintéticas que usuários fariam para encontrar cada documento. Isso transforma a tarefa cara de "dado documento, encontre queries relevantes" em uma tarefa automática de geração de texto que LLMs executam excepcionalmente bem:
 
 ```python
 def generate_synthetic_queries(document, num_queries=5):
