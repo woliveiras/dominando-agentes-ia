@@ -12,11 +12,7 @@ O pré-treinamento é onde a "mágica" acontece. É aqui que o modelo desenvolve
 
 Pense no pré-treinamento como expor uma criança a milhões de livros, artigos, conversas e códigos. A criança não recebe instruções explícitas sobre gramática ou fatos, mas através da exposição massiva, começa a reconhecer padrões, entender estruturas linguísticas e absorver conhecimento implícito.
 
-Durante o pré-treinamento, o modelo é exposto a um corpus **gigantesco** de texto não-anotado:
-
-- **Escala**: Centenas de gigabytes a terabytes de texto
-- **Diversidade**: Web pages, livros, código, artigos científicos, fóruns
-- **Quantidade**: Trilhões de palavras (tokens) — equivalente a milhares de anos de leitura humana
+Durante o pré-treinamento, o modelo é exposto a um corpus **gigantesco** de texto não-anotado. A escala dos dados varia de centenas de gigabytes a terabytes de texto, abrangendo uma diversidade significativa de fontes: web pages, livros, código-fonte, artigos científicos e fóruns de discussão. Em termos quantitativos, isso representa trilhões de palavras (tokens), equivalente a milhares de anos de leitura humana contínua.
 
 A tarefa de aprendizado é **auto-supervisionada**, ou seja, os dados criam seus próprios "rótulos" automaticamente, sem necessidade de anotação humana. Não há humanos rotulando "esta frase é sobre medicina" ou "este código está correto". O modelo simplesmente observa padrões em dados brutos e aprende a modelar a **distribuição estatística** da linguagem natural.
 
@@ -30,34 +26,28 @@ P(x_t | x_1, x_2, ..., x_{t-1})
 
 Dado um corpus de texto, simplesmente "escondemos" o próximo token e treinamos o modelo para prevê-lo. Não requer anotação humana, cada posição na sequência se torna automaticamente um exemplo de treinamento.
 
-Esta tarefa aparentemente simples força o modelo a aprender representações extremamente ricas. Para prever o próximo token com precisão, o modelo precisa:
+Esta tarefa aparentemente simples força o modelo a aprender representações extremamente ricas. Para prever o próximo token com precisão, o modelo precisa dominar múltiplas dimensões da linguagem. Primeiro, deve entender **sintaxe**, ou seja, a estrutura gramatical necessária para gerar continuações sintaticamente corretas. Segundo, precisa compreender **semântica**, capturando o significado para produzir continuações coerentes. Terceiro, deve adquirir **conhecimento factual**, memorizando informações sobre o mundo presentes nos dados de treinamento. Por fim, necessita desenvolver capacidades de **raciocínio**, realizando inferências lógicas para gerar continuações consistentes com o contexto.
 
-1. **Sintaxe**: Entender estrutura gramatical para gerar continuações sintaticamente corretas
-1. **Semântica**: Compreender significado para gerar continuações semanticamente coerentes
-1. **Conhecimento Factual**: Memorizar fatos sobre o mundo presentes nos dados de treinamento
-1. **Raciocínio**: Realizar inferências lógicas para gerar continuações consistentes
-
-Esta é uma das descobertas mais legais da era dos LLMs: uma tarefa de treinamento simples (next token prediction) em dados massivos resulta em capacidades emergentes complexas.
+Esta é uma das descobertas mais notáveis da era dos LLMs: uma tarefa de treinamento simples (next token prediction) em dados massivos resulta em capacidades emergentes complexas.
 
 #### A Loss Function: Medindo o Aprendizado
 
 Agora que entendemos **o que** o modelo aprende (prever o próximo token), precisamos entender **como medimos** se ele está aprendendo bem. Durante o treinamento, precisamos de uma forma matemática de dizer "essa previsão foi boa" ou "essa previsão foi ruim". É aí que entra a **loss function** (função de perda).
 
-**Intuição: O Jogo de Adivinhação**
+**Intuição: Quantificando a Qualidade das Previsões**
 
-Imagine um jogo onde você precisa adivinhar a próxima palavra de uma frase. Você tem três opções e atribui probabilidades a cada uma:
+Considere o problema de prever a próxima palavra em uma sequência. Dado o contexto, o modelo atribui probabilidades a cada candidato possível:
 
 ```
-Frase: "O gato está dormindo no..."
+Contexto: "O gato está dormindo no..."
 
-Suas apostas:
-
-- "sofá": 70% de certeza
-- "chão": 20% de certeza
-- "teto": 10% de certeza
+Distribuição de probabilidades:
+- "sofá": 70%
+- "chão": 20%
+- "teto": 10%
 ```
 
-Se a resposta correta for "sofá", você foi bem! Se for "teto", você errou feio. A loss function quantifica exatamente isso: **quão surpreendente foi a resposta correta dado o que você previu**.
+Se a palavra real for "sofá", a previsão foi bem-sucedida. Se for "teto", a previsão foi deficiente. A loss function quantifica matematicamente esse grau de acerto: **quão surpreendente foi a resposta correta dada a distribuição de probabilidades predita**.
 
 **Cross-Entropy: A Matemática da Surpresa**
 
@@ -180,7 +170,7 @@ Isso já era perceptível antes dos LLMs, quando modelos de reconhecimento de fa
 
 **Por que dados importam tanto?**
 
-Diferente de sistemas programados tradicionalmente, onde você especifica explicitamente o comportamento desejado, LLMs **aprendem por imitação estatística**. Eles absorvem padrões, conhecimento factual, estilo de escrita, vieses e até raciocínio dos dados que observam. Se o modelo nunca viu discussões sobre medicina nos dados de treinamento, ele não "saberá" medicina e vai dizer que vacinas causam autismo, não importa quão grande seja o dataset.
+Diferente de sistemas programados tradicionalmente, onde você especifica explicitamente o comportamento desejado, LLMs **aprendem por imitação estatística**. Eles absorvem padrões, conhecimento factual, estilo de escrita, vieses e até raciocínio dos dados que observam. Se o modelo nunca foi exposto a discussões médicas nos dados de treinamento, não desenvolverá conhecimento adequado sobre medicina e poderá gerar respostas factualmente incorretas sobre tópicos especializados, não importa quão grande seja o dataset.
 
 Considere estas implicações práticas:
 
@@ -279,7 +269,7 @@ Um exemplo concreto do que você encontra:
 </article>
 ```
 
-Você já deve ter reparado que boa parte do conteúdo web que você tenta ler é **ruído**. Muito texto repetitivo, vazio, inútil, de baixa qualidade, anúncios, spam, etc. Modelos treinados nesses dados **aprendem esses padrões ruins** e acabam reproduzindo-os.
+Uma proporção significativa do conteúdo disponível na web constitui **ruído**: texto repetitivo, vazio, de baixa qualidade, anúncios, spam, etc. Modelos treinados nesses dados **aprendem esses padrões ruins** e acabam reproduzindo-os.
 
 Além disso, você encontra:
 
@@ -426,6 +416,8 @@ Para o exemplo completo com explicação detalhada do algoritmo MinHash e LSH, v
 Usando regex patterns e NER (Named Entity Recognition):
 
 ```python
+import re
+
 patterns = {
     'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
     'phone': r'\b\d{3}[-.]?\d{3}[-.]?\d{4}\b',
@@ -441,11 +433,7 @@ NER detecta nomes de pessoas, organizações, localizações e os redacta ou con
 
 **Estágio 5: Toxicity Filtering**
 
-Usa modelos treinados para detectar conteúdo tóxico:
-
-- **Perspective API** (Google): Score de toxicidade 0-1
-- **Detoxify**: Modelo open-source para hate speech
-- **Custom filters**: Listas de palavras ofensivas
+Usa modelos treinados para detectar conteúdo tóxico. Ferramentas comuns incluem a Perspective API do Google, que fornece scores de toxicidade entre 0 e 1, o Detoxify (modelo open-source especializado em hate speech), e filtros customizados baseados em listas de palavras ofensivas.
 
 ::: {.callout-warning title="Dilema Ético: Over-Filtering vs Under-Filtering"}
 
@@ -470,18 +458,13 @@ Textos médicos, históricos ou jornalísticos sobre tópicos sensíveis podem s
 
 **Abordagens Recomendadas:**
 
-1. **Filtros Contextuais**: Use modelos que entendem contexto (ex: Perspective API com context awareness), não apenas keywords
+A implementação responsável de filtros de toxicidade requer uma abordagem multifacetada. Primeiramente, é fundamental utilizar **filtros contextuais** baseados em modelos que compreendem o contexto (como a Perspective API com context awareness), em vez de sistemas simplistas baseados apenas em keywords. Essa abordagem reduz falsos positivos significativamente.
 
-2. **Allowlists Educacionais**: Mantenha listas de termos técnicos, médicos e acadêmicos permitidos
+Em segundo lugar, recomenda-se manter **allowlists educacionais** contendo termos técnicos, médicos e acadêmicos que devem ser preservados mesmo quando aparecem em contextos sensíveis. Isso garante que conteúdo educacional legítimo não seja removido inadvertidamente.
 
-3. **Documentação Transparente**: Publique estatísticas de filtragem para auditoria externa
-   - Quantos textos foram removidos?
-   - Quais categorias foram mais afetadas?
-   - Como isso afeta representação de grupos minoritários?
+A **documentação transparente** também é essencial: as organizações devem publicar estatísticas detalhadas de filtragem para permitir auditoria externa. Essas estatísticas devem responder a questões críticas como quantos textos foram removidos, quais categorias foram mais afetadas, e como a filtragem impacta a representação de grupos minoritários nos dados finais.
 
-4. **Avaliação de Viés**: Teste se filtering afeta desproporcionalmente certos grupos
-   - Compare taxas de remoção entre textos sobre diferentes comunidades
-   - Meça representação pré e pós-filtragem
+Por fim, é crucial realizar **avaliação sistemática de viés**, testando se os processos de filtragem afetam desproporcionalmente certos grupos demográficos. Isso inclui comparar taxas de remoção entre textos sobre diferentes comunidades e medir a representação antes e após a filtragem para identificar e corrigir disparidades.
 
 **Referência**: Ver discussão em @dodge2021documenting sobre documentação ética de corpus.
 
@@ -633,38 +616,37 @@ dvc run -n clean_data \
 
 **Checksum e Hashing**
 
-- Hash cada estágio do pipeline (MD5, SHA256)
-- Detectar mudanças inesperadas nos dados
-- Garantir que experimentos sejam reproduzíveis
+Uma prática essencial é aplicar hashing (MD5 ou SHA256) a cada estágio do pipeline de processamento. Isso permite detectar mudanças inesperadas nos dados e garantir que experimentos sejam reproduzíveis ao longo do tempo.
 
 **Data Lineage Tracking**
 
-- Documentar proveniência: de onde cada dado veio
-- Rastrear transformações aplicadas em cada estágio
-- Ferramentas: Apache Atlas, Marquez, OpenLineage
+O rastreamento da linhagem de dados é fundamental para auditabilidade e debugging. Isso envolve documentar a proveniência (de onde cada dado veio) e rastrear todas as transformações aplicadas em cada estágio do pipeline. Ferramentas como Apache Atlas, Marquez e OpenLineage facilitam essa tarefa em ambientes de produção.
 
 **3. Métricas de Qualidade Objetivas**
 
 Não confie em intuição. Defina métricas quantitativas:
 
 ```python
+import numpy as np
+from collections import Counter
+
 def compute_quality_metrics(dataset):
     """Métricas objetivas de qualidade do dataset"""
     metrics = {
         # Diversidade vocabular
         "unique_tokens": len(set(dataset.split())),
         "type_token_ratio": len(set(dataset.split())) / len(dataset.split()),
-        
+
         # Comprimento
         "avg_doc_length": np.mean([len(doc.split()) for doc in dataset]),
         "median_doc_length": np.median([len(doc.split()) for doc in dataset]),
-        
+
         # Duplicação
         "duplicate_rate": count_near_duplicates(dataset) / len(dataset),
-        
+
         # Qualidade
         "avg_quality_score": np.mean([quality_score(doc) for doc in dataset]),
-        
+
         # Cobertura de domínios
         "domain_distribution": Counter([extract_domain(doc) for doc in dataset])
     }
@@ -678,6 +660,10 @@ cleaned_metrics = compute_quality_metrics(cleaned_data)
 assert cleaned_metrics["duplicate_rate"] < raw_metrics["duplicate_rate"]
 assert cleaned_metrics["avg_quality_score"] > raw_metrics["avg_quality_score"]
 ```
+
+::: {.callout-note}
+As funções auxiliares `count_near_duplicates`, `quality_score` e `extract_domain` estão implementadas no @sec-exemplo-quality-metrics.
+:::
 
 **4. Handling de Edge Cases**
 
@@ -701,15 +687,11 @@ def handle_multilingual(text, threshold=0.8):
 
 **Código Mixed com Prosa**
 
-- Documentos técnicos frequentemente misturam código e texto
-- Decisão: separar, manter junto, ou processar diferentemente?
-- Estratégia: detectar blocos de código (indentação, syntax highlighting) e marcar
+Documentos técnicos frequentemente misturam código-fonte e texto explicativo. A decisão de como processar esses documentos (separar, manter junto, ou processar diferentemente) depende dos objetivos do modelo. Uma estratégia comum é detectar blocos de código através de indentação ou syntax highlighting e marcá-los explicitamente para processamento diferenciado.
 
 **Tabelas e Listas**
 
-- HTML tables, markdown tables, bullet points
-- Podem ser valiosos (dados estruturados) ou ruído (nav bars)
-- Heurísticas: tamanho da tabela, contexto, conteúdo das células
+Elementos estruturados como HTML tables, markdown tables e bullet points apresentam um desafio particular: podem conter informação valiosa (dados estruturados) ou constituir ruído (navigation bars). A classificação apropriada requer heurísticas baseadas no tamanho da tabela, contexto em que aparece, e análise do conteúdo das células.
 
 **5. Monitoramento Contínuo**
 
@@ -856,9 +838,7 @@ Modelos baseados em caracteres historicamente apresentam performance inferior a 
 
 **Quando Faz Sentido:**
 
-- Tasks onde morfologia é crítica: correção ortográfica, transliteração
-- Idiomas com morfologia rica (ex: Turco, Finlandês)
-- Quando você precisa de robustez absoluta a typos e OOV
+Tokenização character-level é adequada para cenários específicos. Tasks onde a morfologia é crítica (como correção ortográfica e transliteração) se beneficiam dessa granularidade. Idiomas com morfologia rica, como Turco e Finlandês, também podem se beneficiar da abordagem. Finalmente, aplicações que requerem robustez absoluta a typos e palavras fora do vocabulário podem justificar o overhead computacional adicional.
 
 #### Tokenização por Palavras: O Extremo Lexical
 
@@ -872,16 +852,9 @@ Parece natural: palavras são unidades semânticas, certo? Em inglês, talvez. M
 
 Vocabulário real de inglês: ~170K palavras ativas, ~470K no total incluindo jargões técnicos.
 
-Agora adicione:
+A complexidade aumenta consideravelmente quando consideramos inflexões (run, runs, running, ran exigem 4 tokens diferentes), variantes ortográficas regionais (color/colour, organize/organise), compostos com múltiplas grafias ("machine learning", "machine-learning", "machinelearning"), milhões de nomes próprios (pessoas, lugares, empresas), a questão de como tratar números (cada número é uma "palavra" diferente?), e typos comuns que aparecem frequentemente em dados reais ("teh", "recieve", etc.).
 
-- Inflexões: run, runs, running, ran (4 tokens)
-- Variantes: color/colour, organize/organise
-- Compostos: "machine learning", "machine-learning", "machinelearning"
-- Nomes próprios: Milhões de entidades (pessoas, lugares, empresas)
-- Números: Cada número é uma "palavra" diferente?
-- Typos comuns: "teh", "recieve", etc.
-
-Resultado: Vocabulário realista de **500K-1M+ tokens** para cobertura *razoável*.
+O resultado é um vocabulário realista de **500K-1M+ tokens** para cobertura *razoável*.
 
 **Custo Computacional:**
 
@@ -1144,7 +1117,7 @@ Isso permite processar qualquer idioma (incluindo idiomas sem espaços como Chin
 
 #### Como Treinar Seu Próprio Tokenizer
 
-Até agora exploramos como tokenizers funcionam. Mas como você realmente treina um tokenizer customizado para seu domínio? Precisamos praticar para realmente entender como as coisas funcionam.
+Até agora exploramos como tokenizers funcionam. Mas como você realmente treina um tokenizer customizado para seu domínio? A implementação prática é essencial para consolidar a compreensão dos conceitos apresentados.
 
 **Quando Treinar um Tokenizer Customizado:**
 
