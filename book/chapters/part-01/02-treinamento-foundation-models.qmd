@@ -103,8 +103,6 @@ Perplexidade pode ser interpretada como **"o número efetivo de escolhas que o m
 - **Modelo aleatório**: Perplexidade igual ao tamanho do vocabulário (**~50.000**)
   - Completamente perdido, cada palavra é igualmente provável
 
-**Por que isso importa?**
-
 Perplexidade nos dá uma forma intuitiva de avaliar e comparar modelos. Se você está treinando um modelo e vê a perplexidade cair de 100 para 10 e depois para 5, você sabe que o modelo está ficando progressivamente mais confiante e preciso nas suas previsões. É um indicador direto de que o modelo está realmente aprendendo a modelar a linguagem.
 
 **Limitações Importantes da Perplexidade**
@@ -167,8 +165,6 @@ Esta seção explora um dos aspectos mais subestimados, porém críticos, do des
 O ditado "garbage in, garbage out" nunca foi tão verdadeiro. A qualidade, diversidade e escala dos dados de pré-treinamento determinam **fundamentalmente** as capacidades do modelo final.
 
 Isso já era perceptível antes dos LLMs, quando modelos de reconhecimento de fala ou visão computacional dependiam fortemente dos datasets usados. Com LLMs, essa dependência é ainda mais crítica devido à natureza estatística do aprendizado de linguagem.
-
-**Por que dados importam tanto?**
 
 Diferente de sistemas programados tradicionalmente, onde você especifica explicitamente o comportamento desejado, LLMs **aprendem por imitação estatística**. Eles absorvem padrões, conhecimento factual, estilo de escrita, vieses e até raciocínio dos dados que observam. Se o modelo nunca foi exposto a discussões médicas nos dados de treinamento, não desenvolverá conhecimento adequado sobre medicina e poderá gerar respostas factualmente incorretas sobre tópicos especializados, não importa quão grande seja o dataset.
 
@@ -512,11 +508,13 @@ Estes casos estabelecerão precedentes importantes para a indústria.
 Além de copyright, há questões de privacidade de dados pessoais:
 
 **GDPR (Europa) - Implicações para LLMs:**
+
 - **Direito ao esquecimento**: Como "remover" dados de um modelo já treinado?
 - **Consentimento**: Dados pessoais requerem consentimento explícito para processamento
 - **Transparência**: Usuários têm direito de saber se seus dados foram usados
 
 **LGPD (Brasil) - Considerações similares:**
+
 - **Base legal**: Treinar em dados pessoais sem consentimento viola LGPD Art. 7°
 - **Dados sensíveis**: Informações sobre saúde, orientação sexual, etc. requerem proteções adicionais
 - **Responsabilização**: Quem é responsável se o modelo vazar PII?
@@ -539,7 +537,8 @@ A realidade é que os limites legais ainda estão sendo definidos pelos tribunai
 
 **Resultado Final**
 
-Após todos esses estágios:
+Após todos esses estágios, o resultado típico é:
+
 - **Entrada**: 100TB de Common Crawl raw
 - **Saída**: 5-10TB de texto limpo e de qualidade
 - **Taxa de rejeição**: **~90-95%**
@@ -1208,7 +1207,7 @@ tokenizer.save("my_tokenizer.json")
 # - 10B tokens: ~3-6 horas
 ```
 
-**Pre-Tokenization Rules:**
+**Regras de Pre-Tokenization:**
 
 Pre-tokenização define como dividir texto **antes** de aplicar BPE.
 
@@ -1372,8 +1371,6 @@ model = GPT2LMHeadModel(config)
 
 ## Representações Contextualizadas: O que Está Dentro dos Vetores
 
-**Da Ambiguidade à Precisão Semântica**
-
 Um dos avanços dos Transformers em relação a word embeddings estáticos (como word2vec e GloVe) é que eles produzem **representações contextualizadas**. *Embeddings* estáticos atribuem um único vetor fixo para cada palavra, independente do contexto, "bank" sempre tem a mesma representação, seja "bank of the river" (margem) ou "bank is closed" (banco financeiro).
 
 Transformers resolvem isso computando representações dinamicamente para cada ocorrência:
@@ -1466,11 +1463,7 @@ No Capítulo 4, você aprenderá como usar cada variante efetivamente, incluindo
 
 ### Chain-of-Thought: Raciocínio Explícito Passo-a-Passo
 
-**O que é CoT?**
-
 Chain-of-Thought (CoT) é a capacidade de resolver problemas complexos através de raciocínio passo-a-passo explícito [@wei2022chain]. Em vez de gerar a resposta final diretamente, o modelo "mostra o trabalho"—decompondo o problema em etapas intermediárias verificáveis.
-
-**O Problema do Raciocínio Direto**
 
 LLMs são treinados para prever o próximo token. Para problemas simples que podem ser "memorizados" isso funciona (`"2 + 2 =" → "4"`). Mas para problemas que requerem múltiplos passos de raciocínio, gerar a resposta diretamente frequentemente falha.
 
@@ -1507,17 +1500,13 @@ No Capítulo 4, você dominará técnicas práticas de CoT: zero-shot vs. few-sh
 
 ### Instruction Following: Execução de Instruções Complexas
 
-**O que é Instruction Following?**
-
 Instruction Following é a capacidade de interpretar e executar instruções complexas em linguagem natural, incluindo:
 
 - Instruções multi-etapa ("Primeiro faça X, depois Y, então Z")
 - Condicionais ("Se houver erro, reporte; caso contrário, aprove")
 - Restrições de formato ("Responda em JSON", "Use no máximo 3 frases")
 
-**Por que é surpreendente?**
-
-O modelo foi treinado apenas em next-token prediction—nunca foi explicitamente ensinado a:
+Isso é surpreendente porque o modelo foi treinado apenas em next-token prediction—nunca foi explicitamente ensinado a:
 
 - Decompor instruções complexas em sub-tarefas
 - Executar condicionais ("se X então Y, senão Z")
@@ -1544,7 +1533,7 @@ Neste capítulo você compreendeu **o que** são capacidades emergentes e **por 
 
 Este capítulo apresentou conceitos fundamentais sobre treinamento de foundation models, incluindo pré-treinamento, curadoria de dados, tokenização e capacidades emergentes.
 
-Para consolidar seu entendimento através de implementação prática, consulte os [**Exercícios Práticos do Capítulo 2**](exercises/02-chapter-02-exercicios.qmd), que incluem:
+Para consolidar seu entendimento através de implementação prática, consulte os [Exercícios Práticos do Capítulo 2](exercises/02-exercises.qmd), que incluem:
 
 1. **Análise de Eficiência de Tokenização**: Compare tokenização entre idiomas e calcule custos de API
 2. **Data Cleaning Pipeline**: Implemente pipeline completo de limpeza de dados
