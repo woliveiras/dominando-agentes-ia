@@ -401,6 +401,45 @@ MultiHead(Q, K, V) = Concat(head_1, ..., head_h) W^O
 onde head_i = Attention(QW^Q_i, KW^K_i, VW^V_i)
 ```
 
+```{mermaid}
+%%| label: fig-multi-head-attention
+%%| fig-cap: "Visualização do Multi-Head Attention: a entrada é dividida, processada por múltiplos heads de atenção em paralelo, e os resultados são concatenados e projetados."
+%%| fig-width: 100%
+graph TD
+    A["Input (Q, K, V)"] --> H1["Head 1:<br/>Linear Projections<br/>W_q1, W_k1, W_v1"]
+    A --> H2["Head 2:<br/>Linear Projections<br/>W_q2, W_k2, W_v2"]
+    A --> H3["Head 3:<br/>Linear Projections<br/>W_q3, W_k3, W_v3"]
+    A --> HD["..."]
+    A --> Hn["Head h:<br/>Linear Projections<br/>W_qh, W_kh, W_vh"]
+    
+    H1 --> S1["Scaled Dot-Product<br/>Attention 1"]
+    H2 --> S2["Scaled Dot-Product<br/>Attention 2"]
+    H3 --> S3["Scaled Dot-Product<br/>Attention 3"]
+    Hn --> Sn["Scaled Dot-Product<br/>Attention h"]
+    
+    S1 --> C["Concatenate"]
+    S2 --> C
+    S3 --> C
+    HD -.-> C
+    Sn --> C
+    
+    C --> F["Linear Projection W^O"]
+    F --> O["Output"]
+
+    style A fill:#e1f5ff
+    style H1 fill:#fff4e1
+    style H2 fill:#fff4e1
+    style H3 fill:#fff4e1
+    style Hn fill:#fff4e1
+    style S1 fill:#ffe1e1
+    style S2 fill:#ffe1e1
+    style S3 fill:#ffe1e1
+    style Sn fill:#ffe1e1
+    style C fill:#e1ffe1
+    style F fill:#f0f0f0
+    style O fill:#e1f5ff
+```
+
 Cada "head" aprende a focar em diferentes tipos de relações. Por exemplo, um head pode aprender a identificar relações sujeito-verbo, outro pode focar em resolver pronomes, e outro pode capturar relações de longo alcance como correspondências entre abertura e fechamento de parênteses. Esta decomposição é aprendida automaticamente durante o treinamento, não é necessário especificar explicitamente o que cada head deve fazer.
 
 O número de heads é um hiperparâmetro importante. Modelos modernos como GPT-4 usam dezenas de attention heads por camada. Mais heads permitem modelar mais tipos de relações, mas também **aumentam o custo computacional** e podem levar a *overfitting* se não houver dados suficientes.
