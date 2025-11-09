@@ -1,0 +1,273 @@
+name: 📚 Book CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'book/**'
+      - '.github/workflows/**'
+      - 'pyproject.toml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'book/**'
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.13.5'
+  UV_VERSION: '0.9.5'
+  QUARTO_VERSION: '1.8.25'
+
+jobs:
+  # ========================================
+  # 1. VALIDAÇÃO DE MARKDOWN E QUARTO
+  # ========================================
+  validate-markdown:
+    name: 📝 Validate Markdown & Quarto
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          
+      - name: Install markdown linters
+        run: |
+          npm install -g markdownlint-cli
+          npm install -g markdown-link-check
+          
+      - name: Run markdownlint
+        run: |
+          echo "🔍 Checking markdown formatting..."
+          markdownlint book/**/*.qmd book/**/*.md \
+            --config .markdownlint.json \
+            --ignore book/_book \
+            || echo "::warning::Markdown linting issues found"
+            
+      - name: Check markdown links
+        run: |
+          echo "🔗 Checking links..."
+          find book -name "*.qmd" -o -name "*.md" | \
+            grep -v "_book" | \
+            xargs -I {} markdown-link-check {} \
+            --config .markdown-link-check.json \
+            || echo "::warning::Some links may be broken"
+            
+      - name: Validate Quarto syntax
+        run: |
+          echo "📋 Validating Quarto files..."
+          for file in $(find book -name "*.qmd" | grep -v "_book"); do
+            echo "Checking: $file"
+            # Verifica sintaxe básica do YAML front matter
+            head -20 "$file" | grep -E "^(---|#)" || echo "::warning::Possible YAML issue in $file"
+          done
+
+  # ========================================
+  # 2. TESTE DE CÓDIGO PYTHON
+  # ========================================
+  test-python-code:
+    name: 🐍 Test Python Code
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+        
+      - name: Install dependencies
+        run: |
+          echo "📦 Installing Python dependencies..."
+          uv sync --all-extras --dev
+          
+      - name: Extract and test code blocks
+        run: |
+          echo "🧪 Extracting and testing Python code blocks..."
+          python .github/scripts/extract_test_code.py
+          
+      - name: Run code quality checks
+        run: |
+          echo "🎨 Running code quality checks..."
+          uv run ruff check book/
+          uv run black --check book/
+          
+      - name: Test example notebooks
+        if: hashFiles('book/sandbox/**/*.py') != ''
+        run: |
+          echo "📓 Testing example scripts..."
+          for script in $(find book/sandbox -name "*.py"); do
+            echo "Testing: $script"
+            timeout 30 uv run python "$script" --test-mode || \
+              echo "::warning::Script failed or timed out: $script"
+          done
+          
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: python-test-results
+          path: |
+            test-results/
+            .coverage
+
+  # ========================================
+  # 3. VALIDAÇÃO DE REFERÊNCIAS
+  # ========================================
+  validate-references:
+    name: 📚 Validate References
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          
+      - name: Install validation tools
+        run: |
+          pip install bibtexparser pyyaml
+          
+      - name: Validate bibliography
+        run: |
+          echo "📖 Validating references.bib..."
+          python .github/scripts/validate_bibliography.py
+          
+      - name: Check citation consistency
+        run: |
+          echo "🔍 Checking citation consistency..."
+          python .github/scripts/check_citations.py
+
+  # ========================================
+  # 4. BUILD DO LIVRO
+  # ========================================
+  build-book:
+    name: 📖 Build Book
+    runs-on: ubuntu-latest
+    needs: [validate-markdown, test-python-code, validate-references]
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          version: ${{ env.UV_VERSION }}
+          
+      - name: Set up Python
+        run: uv python install ${{ env.PYTHON_VERSION }}
+        
+      - name: Setup Quarto
+        uses: quarto-dev/quarto-actions/setup@v2
+        with:
+          version: ${{ env.QUARTO_VERSION }}
+          
+      - name: Install LaTeX
+        run: |
+          echo "📦 Installing TinyTeX for PDF generation..."
+          quarto install tinytex
+          
+      - name: Install Python dependencies
+        run: uv sync
+        
+      - name: Build HTML version
+        run: |
+          echo "🌐 Building HTML version..."
+          cd book
+          quarto render --to html
+          
+      - name: Build PDF version
+        run: |
+          echo "📄 Building PDF version..."
+          cd book
+          quarto render --to pdf
+          
+      - name: Build EPUB version
+        run: |
+          echo "📱 Building EPUB version..."
+          cd book
+          quarto render --to epub
+          
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: book-builds
+          path: |
+            book/_book/
+            
+      - name: Check build sizes
+        run: |
+          echo "📊 Build statistics:"
+          du -sh book/_book/*.html
+          du -sh book/_book/*.pdf
+          du -sh book/_book/*.epub
+
+  # ========================================
+  # 5. ANÁLISE DE QUALIDADE
+  # ========================================
+  quality-report:
+    name: 📊 Quality Report
+    runs-on: ubuntu-latest
+    needs: [build-book]
+    if: always()
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        
+      - name: Download artifacts
+        uses: actions/download-artifact@v6
+        
+      - name: Generate quality report
+        run: |
+          echo "📈 Generating quality report..."
+          python .github/scripts/generate_quality_report.py
+          
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('quality-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  # TODO: Deploy Preview for PRs
+  # ========================================
+  # 6. DEPLOY PREVIEW (PRs)
+  # ========================================
+  # deploy-preview:
+  #   name: 🚀 Deploy Preview
+  #   runs-on: ubuntu-latest
+  #   needs: [build-book]
+  #   if: github.event_name == 'pull_request'
+  #   steps:
+  #     - name: Download book artifacts
+  #       uses: actions/download-artifact@v6
+  #       with:
+  #         name: book-builds
+  #         path: book/_book
+          
+  #     - name: Deploy to Netlify
+  #       uses: nwtgck/actions-netlify@v2.0
+  #       with:
+  #         publish-dir: 'book/_book'
+  #         production-deploy: false
+  #         github-token: ${{ secrets.GITHUB_TOKEN }}
+  #         deploy-message: "Preview for PR #${{ github.event.pull_request.number }}"
+  #       env:
+  #         NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+  #         NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
