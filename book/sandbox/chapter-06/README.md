@@ -2,7 +2,34 @@
 
 Este diretório contém exemplos práticos do **Capítulo 6** do livro "Dominando Agentes de IA", focando em embeddings, semantic search, vector databases e chunking strategies.
 
-## 📚 Tópicos Abordados
+## � Exemplos Disponíveis
+
+### 01-embedding-visualization.py
+
+Visualização de embeddings usando t-SNE para redução de dimensionalidade. Demonstra como frases semanticamente similares se agrupam em clusters no espaço vetorial.
+
+**Conceitos abordados:**
+
+- Geração de embeddings com Sentence Transformers
+- Redução de dimensionalidade com t-SNE
+- Visualização de clusters semânticos
+- Análise de coesão de clusters
+
+**Como executar:**
+```bash
+# Instalar dependências
+uv pip install sentence-transformers scikit-learn matplotlib numpy
+
+# Executar o script
+python 01-embedding-visualization.py
+```
+
+**Saída esperada:**
+- Gráfico 2D mostrando três clusters distintos (Animais, Frutas, Tecnologia)
+- Imagem salva como `embedding_visualization.png`
+- Análise estatística dos clusters no terminal
+
+## �📚 Tópicos Abordados
 
 - **Fundamentos de Embeddings**:
   - De texto para vetores densos

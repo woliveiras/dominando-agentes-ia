@@ -46,6 +46,137 @@ similarity = np.dot(result, queen) / (np.linalg.norm(result) * np.linalg.norm(qu
 print(f"Similaridade: {similarity:.4f}")  # Tipicamente > 0.7
 ```
 
+Vamos visualizar essa propriedade com um diagrama para facilitar a compreensão:
+
+```{mermaid}
+---
+config:
+  flowchart:
+    padding: 20
+---
+%%| label: fig-embedding-space
+%%| fig-cap: "Visualização conceitual de um espaço de embedding 2D. Palavras e frases semanticamente similares (como 'rei', 'rainha', 'monarca') se agrupam, enquanto conceitos distintos ('carro', 'banana') ficam distantes. A relação entre 'rei' e 'rainha' é similar à de 'homem' e 'mulher'."
+%%| fig-width: 100%
+graph TD
+    A["rei"]
+    B["rainha"]
+    C["homem"]
+    D["mulher"]
+    E["monarca"]
+    F["príncipe"]
+    G["princesa"]
+    
+    H["carro"]
+    I["veículo"]
+    J["motor"]
+    
+    K["banana"]
+    L["fruta"]
+    M["maçã"]
+
+    style A fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style B fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style C fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style D fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style E fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style F fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style G fill:#e1f5ff,stroke:#333,stroke-width:2px
+
+    style H fill:#ffe1e1,stroke:#333,stroke-width:2px
+    style I fill:#ffe1e1,stroke:#333,stroke-width:2px
+    style J fill:#ffe1e1,stroke:#333,stroke-width:2px
+
+    style K fill:#e1ffe1,stroke:#333,stroke-width:2px
+    style L fill:#e1ffe1,stroke:#333,stroke-width:2px
+    style M fill:#e1ffe1,stroke:#333,stroke-width:2px
+
+    A -- "similar" --> B
+    A -- "related" --> E
+    C -- "similar" --> D
+    F -- "related" --> G
+    A -- "gender" --> C
+    B -- "gender" --> D
+    
+    H -- "related" --> I
+    I -- "part-of" --> J
+    
+    K -- "is-a" --> L
+    M -- "is-a" --> L
+```
+
+### Visualizando o Espaço de Embedding: Um Exemplo Prático
+
+Para tornar o conceito de "espaço semântico" mais concreto, podemos usar técnicas de redução de dimensionalidade como t-SNE (t-Distributed Stochastic Neighbor Embedding) [@vandermaaten2008visualizing] para visualizar embeddings de alta dimensão em um gráfico 2D.
+
+O código abaixo gera embeddings para um conjunto de frases, reduz suas dimensões para 2D usando t-SNE, e plota o resultado. Você verá visualmente como frases semanticamente similares se agrupam.
+
+```python
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+
+# 1. Frases de exemplo com clusters semânticos claros
+frases = [
+    # Cluster 1: Animais
+    "O leão é o rei da selva.",
+    "Gatos são animais de estimação populares.",
+    "Cachorros são conhecidos por sua lealdade.",
+    "Elefantes são os maiores mamíferos terrestres.",
+
+    # Cluster 2: Frutas
+    "Maçãs são frutas saudáveis.",
+    "Bananas são ricas em potássio.",
+    "Laranjas são uma ótima fonte de vitamina C.",
+    "Morangos são deliciosos em sobremesas.",
+
+    # Cluster 3: Tecnologia
+    "Python é uma linguagem de programação versátil.",
+    "Inteligência artificial está transformando o mundo.",
+    "A computação em nuvem oferece escalabilidade.",
+    "Blockchain é a tecnologia por trás do Bitcoin."
+]
+
+# Mapeamento de cores para os clusters
+cores = ['r'] * 4 + ['g'] * 4 + ['b'] * 4
+labels = ['Animal'] * 4 + ['Fruta'] * 4 + ['Tecnologia'] * 4
+
+# 2. Gerar embeddings
+model = SentenceTransformer('all-MiniLM-L6-v2')
+embeddings = model.encode(frases)
+
+# 3. Redução de dimensionalidade com t-SNE
+tsne = TSNE(n_components=2, perplexity=5, random_state=42, init='random', learning_rate=200)
+embeddings_2d = tsne.fit_transform(embeddings)
+
+# 4. Plotar o resultado
+plt.figure(figsize=(12, 8))
+for i, (x, y) in enumerate(embeddings_2d):
+    plt.scatter(x, y, c=cores[i], label=labels[i] if i % 4 == 0 else "")
+    plt.annotate(frases[i].split()[0], (x, y), textcoords="offset points", xytext=(5,2), ha='right')
+
+# Criar legenda única
+handles, labels_legend = plt.gca().get_legend_handles_labels()
+by_label = dict(zip(labels_legend, handles))
+plt.legend(by_label.values(), by_label.keys(), title="Clusters Semânticos")
+
+plt.title("Visualização 2D de Embeddings de Frases com t-SNE")
+plt.xlabel("Dimensão 1 (t-SNE)")
+plt.ylabel("Dimensão 2 (t-SNE)")
+plt.grid(True)
+plt.show()
+# plt.savefig('embedding_visualization.png') # Salvar a imagem
+```
+
+![Visualização 2D de embeddings de frases. Três clusters distintos são visíveis: um para animais (vermelho), um para frutas (verde) e um para tecnologia (azul). Frases dentro de cada cluster estão próximas, enquanto os clusters estão distantes uns dos outros.](./images/embedding_visualization.png "Visualização de Embeddings com t-SNE")
+
+**Análise da Visualização:**
+
+O gráfico gerado (representado pela imagem acima) mostra claramente três agrupamentos distintos, correspondendo exatamente aos nossos clusters semânticos: animais, frutas e tecnologia. Frases como "O leão é o rei da selva" e "Cachorros são conhecidos por sua lealdade" aparecem próximas no cluster de animais, enquanto estão distantes de frases como "Python é uma linguagem de programação".
+
+Esta visualização demonstra de forma impactante a principal propriedade dos embeddings: eles organizam o conhecimento de forma que a distância geométrica reflete a similaridade semântica.
+
 Outras relações emergentes incluem geografia ("Paris" - "França" + "Itália" ≈ "Roma"), tempo verbal, plural/singular, e até relações mais abstratas como intensidade emocional.
 
 ### Dimensionalidade e Trade-offs
