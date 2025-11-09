@@ -909,7 +909,7 @@ Esta escolha é elegante porque (1) é determinística (não requer aprendizado)
 
 #### Attention with Linear Biases (ALiBi)
 
-ALiBi [@press2021alibi] não adiciona embeddings posicionais às entradas. Em vez disso, adiciona um viés aos attention scores proporcionalmente à distância entre tokens:
+ALiBi [@press2021train] não adiciona embeddings posicionais às entradas. Em vez disso, adiciona um viés aos attention scores proporcionalmente à distância entre tokens:
 
 ```
 score_ij = QK^T / √d_k - λ|i-j|
