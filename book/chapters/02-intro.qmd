@@ -24,7 +24,7 @@ Exemplos notáveis dessa era incluem o HEARSAY-II para reconhecimento de fala e 
 
 A jornada dos agentes autônomos ganhou momentum nos anos 1990 com o aumento das capacidades computacionais, levando ao desenvolvimento de *sistemas multi-agentes* que podiam operar independentemente enquanto coordenavam com outros agentes [@nurix2024evolution]. Em 1988, Sutton e Barto desenvolveram o *temporal difference learning*, um método fundamental de aprendizado por reforço que permitiu aos agentes aprenderem com experiências ao longo do tempo [@ema2024history].
 
-Durante esse período, Russell e Norvig (1995) estabeleceram definições fundamentais que ainda guiam o campo hoje. Eles definiram um agente como "qualquer coisa que pode ser vista como percebendo seu ambiente através de sensores e agindo sobre esse ambiente através de atuadores" [@russellandnorvig1995]. Essa definição estabeleceu o *ciclo percepção-ação* fundamental que caracteriza sistemas de agentes [@arxiv2024agents].
+Durante esse período, Russell e Norvig (1995) estabeleceram definições fundamentais que ainda guiam o campo hoje. Eles definiram um agente como "qualquer coisa que pode ser vista como percebendo seu ambiente através de sensores e agindo sobre esse ambiente através de atuadores" [@russell1995artificial]. Essa definição estabeleceu o *ciclo percepção-ação* fundamental que caracteriza sistemas de agentes [@arxiv2024agents].
 
 **Era Moderna: Deep Learning e LLMs (2010-presente)**
 
@@ -105,13 +105,13 @@ Após explorarmos a evolução histórica dos agentes de IA, é fundamental esta
 
 **Definição Fundamental**
 
-Russell e Norvig estabeleceram a definição clássica que permanece como fundamento do campo: "um agente é qualquer coisa que pode ser vista como percebendo seu ambiente através de *sensores* e agindo sobre esse ambiente através de *atuadores*" [@russellandnorvig1995]. Essa definição, aparentemente simples, encapsula uma ideia profunda: *agentes são entidades que mantêm uma relação dinâmica e bidirecional com seu ambiente*.
+Russell e Norvig estabeleceram a definição clássica que permanece como fundamento do campo: "um agente é qualquer coisa que pode ser vista como percebendo seu ambiente através de *sensores* e agindo sobre esse ambiente através de *atuadores*" [@russell1995artificial]. Essa definição, aparentemente simples, encapsula uma ideia profunda: *agentes são entidades que mantêm uma relação dinâmica e bidirecional com seu ambiente*.
 
 Em termos contemporâneos, podemos expandir essa definição para algo como: **um agente de IA é um programa de software projetado para interagir com seu ambiente, perceber os dados que recebe e tomar ações baseadas nesses dados para alcançar objetivos específicos** [@simform2024agents].
 
 **O Conceito de Agente Racional**
 
-Russell e Norvig introduziram um conceito crucial: o *agente racional*. Para cada sequência possível de percepções, um agente racional deve selecionar uma ação que se espera maximize sua medida de desempenho, dada a evidência fornecida pela sequência de percepções e qualquer conhecimento interno que o agente possua [@russellandnorvig2003].
+Russell e Norvig introduziram um conceito crucial: o *agente racional*. Para cada sequência possível de percepções, um agente racional deve selecionar uma ação que se espera maximize sua medida de desempenho, dada a evidência fornecida pela sequência de percepções e qualquer conhecimento interno que o agente possua [@russell2003artificial].
 
 Um agente é racional na medida em que age para maximizar sua medida de desempenho esperada, dadas as restrições externas, incluindo que informações o agente percebe e que ações o agente é capaz de executar [@drake2024rational]. Essa noção de racionalidade fornece um critério objetivo para avaliar o comportamento de agentes.
 
@@ -128,7 +128,7 @@ Este framework ajuda as pessoas desenvolvedoras do agente a considerarem sistema
 
 **Propriedades do Ambiente**
 
-Os ambientes onde agentes operam podem ser categorizados segundo várias dimensões [@russellandnorvig2003]:
+Os ambientes onde agentes operam podem ser categorizados segundo várias dimensões [@russell2003artificial]:
 
 - **Observabilidade**: Totalmente observável, parcialmente observável ou não observável
 - **Agentes**: Um único agente ou multi-agente (que pode ser competitivo ou cooperativo)
@@ -425,11 +425,11 @@ Existem múltiplas formas de categorizar agentes — por sua arquitetura interna
 
 ### Classificação Clássica de Russell e Norvig
 
-Russell e Norvig (2003) agruparam agentes em cinco classes baseadas em seu grau de inteligência percebida e capacidade [@russellandnorvig2003; @wikipedia2024agents]. Esta classificação permanece fundamental para compreender a evolução da complexidade em agentes.
+Russell e Norvig (2003) agruparam agentes em cinco classes baseadas em seu grau de inteligência percebida e capacidade [@russell2003artificial; @wikipedia2024agents]. Esta classificação permanece fundamental para compreender a evolução da complexidade em agentes.
 
 **1. Agentes Reflexivos Simples (*Simple Reflex Agents*)**
 
-Agentes reflexivos simples agem apenas com base na percepção atual, ignorando o resto do histórico de percepções [@russellandnorvig2003]. A função do agente é baseada em regras *condition-action*: "se condição, então ação" [@wikipedia2024agents].
+Agentes reflexivos simples agem apenas com base na percepção atual, ignorando o resto do histórico de percepções [@russell2003artificial]. A função do agente é baseada em regras *condition-action*: "se condição, então ação" [@wikipedia2024agents].
 
 **Características:**
 
@@ -439,13 +439,13 @@ Agentes reflexivos simples agem apenas com base na percepção atual, ignorando 
 - Sem memória ou capacidade de aprendizado [@medium2024taxonomy]
 
 **Limitações:**
-Esta função de agente só tem sucesso quando o ambiente é totalmente observável [@russellandnorvig2003]. Em ambientes parcialmente observáveis, agentes reflexivos simples podem falhar ou comportar-se de forma subótima.
+Esta função de agente só tem sucesso quando o ambiente é totalmente observável [@russell2003artificial]. Em ambientes parcialmente observáveis, agentes reflexivos simples podem falhar ou comportar-se de forma subótima.
 
 **Exemplo prático:** Um termostato simples que liga o aquecedor quando a temperatura cai abaixo de um limiar e o desliga quando excede outro.
 
 **2. Agentes Reflexivos Baseados em Modelo (*Model-Based Reflex Agents*)**
 
-Um agente reflexivo baseado em modelo deve manter algum tipo de modelo interno que depende do histórico de percepções e, portanto, reflete pelo menos alguns dos aspectos não observados do estado atual [@russellandnorvig2003]. Um agente baseado em modelo pode lidar com ambientes parcialmente observáveis [@wikipedia2024agents].
+Um agente reflexivo baseado em modelo deve manter algum tipo de modelo interno que depende do histórico de percepções e, portanto, reflete pelo menos alguns dos aspectos não observados do estado atual [@russell2003artificial]. Um agente baseado em modelo pode lidar com ambientes parcialmente observáveis [@wikipedia2024agents].
 
 **Avanços sobre agentes simples:**
 
@@ -458,7 +458,7 @@ Um agente reflexivo baseado em modelo deve manter algum tipo de modelo interno q
 
 **3. Agentes Baseados em Objetivos (*Goal-Based Agents*)**
 
-Agentes baseados em objetivos expandem ainda mais as capacidades dos agentes baseados em modelo, usando informação de "objetivo" [@russellandnorvig2003]. Informação de objetivo descreve situações que são desejáveis. Isso fornece ao agente uma forma de escolher entre múltiplas possibilidades, selecionando aquela que alcança um estado de objetivo [@wikipedia2024agents].
+Agentes baseados em objetivos expandem ainda mais as capacidades dos agentes baseados em modelo, usando informação de "objetivo" [@russell2003artificial]. Informação de objetivo descreve situações que são desejáveis. Isso fornece ao agente uma forma de escolher entre múltiplas possibilidades, selecionando aquela que alcança um estado de objetivo [@wikipedia2024agents].
 
 **Capacidades distintivas:**
 

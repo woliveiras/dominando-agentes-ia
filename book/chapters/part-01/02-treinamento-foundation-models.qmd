@@ -245,7 +245,7 @@ Para engenheiros construindo sistemas de produção, isso significa que **escolh
 Modelos modernos não são treinados em um único tipo de dados. Em vez disso, usam uma **mixture cuidadosamente balanceada** de múltiplas fontes, cada uma contribuindo diferentes tipos de conhecimento e capacidades [@gao2020pile; @dodge2021documenting].
 
 ::: {.callout-note title="Sobre as Escalas Reportadas na Tabela" appearance="simple"}
-Os números de tokens na tabela são **estimativas aproximadas** baseadas em informações divulgadas em papers como The Pile [@gao2020pile], GPT-3 [@brown2020language], e LLaMA [@touvron2023llama; @dubey2024llama3]. Datasets diferentes e versões de modelos usam proporções variadas, mas estes valores representam ordens de magnitude típicas em modelos state-of-the-art.
+Os números de tokens na tabela são **estimativas aproximadas** baseadas em informações divulgadas em papers como The Pile [@gao2020pile], GPT-3 [@brown2020language], e LLaMA [@touvron2023llama; @dubey2024llama]. Datasets diferentes e versões de modelos usam proporções variadas, mas estes valores representam ordens de magnitude típicas em modelos state-of-the-art.
 :::
 
 | Fonte | Escala (estimada) | O que contribui | Trade-offs |
@@ -283,7 +283,7 @@ A mistura dessas fontes não é arbitrária, é uma das decisões mais important
 
 **Mixture Real (LLaMA 3 como exemplo):**
 
-Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama3] com uma mixture aproximadamente assim:
+Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama] com uma mixture aproximadamente assim:
 
 - Common Crawl filtrado: ~45%
 - Código: ~30-35%
@@ -292,7 +292,7 @@ Modelos como LLaMA 3 foram treinados em ~15 trilhões de tokens [@dubey2024llama
 - Papers Acadêmicos: ~5%
 
 ::: {.callout-warning title="Estimativas Não-Oficiais" appearance="simple"}
-As proporções acima são **estimativas aproximadas** baseadas em análises da comunidade e inferências de papers relacionados, **não informações oficiais divulgadas pela Meta**. O paper do LLaMA 3 [@dubey2024llama3] confirma o volume total de ~15T tokens mas não detalha a composição exata do dataset de treinamento. Diferentes versões e variantes do modelo podem usar mixtures distintas.
+As proporções acima são **estimativas aproximadas** baseadas em análises da comunidade e inferências de papers relacionados, **não informações oficiais divulgadas pela Meta**. O paper do LLaMA 3 [@dubey2024llama] confirma o volume total de ~15T tokens mas não detalha a composição exata do dataset de treinamento. Diferentes versões e variantes do modelo podem usar mixtures distintas.
 :::
 
 Esta proporção foi determinada através de extensos experimentos empíricos, treinando modelos menores com diferentes mixtures e avaliando performance em benchmarks diversos. Não há fórmula teórica que diga "a mixture perfeita é X% código, Y% web", é um trabalho extenso baseado em tentativa, erro e muitos testes.
@@ -309,7 +309,7 @@ Um modelo treinado em dados até 2021 literalmente não "sabe" nada sobre evento
 
 #### Data Cleaning: Transformando Lixo em Ouro
 
-Se você baixar Common Crawl raw — um snapshot da web pública — terá dezenas de terabytes de... lixo. Literalmente 90%+ é inutilizável para treinar um modelo de qualidade [@luccioni2021s]. Data cleaning é o processo meticuloso de transformar esse oceano de sujeira em algo valioso [@dodge2021documenting; @raffel2019c4].
+Se você baixar Common Crawl raw — um snapshot da web pública — terá dezenas de terabytes de... lixo. Literalmente 90%+ é inutilizável para treinar um modelo de qualidade [@luccioni2021s]. Data cleaning é o processo meticuloso de transformar esse oceano de sujeira em algo valioso [@dodge2021documenting; @raffel2020exploring].
 
 **Por que raw Common Crawl é inutilizável?**
 
