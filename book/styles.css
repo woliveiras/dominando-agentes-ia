@@ -9,6 +9,10 @@
   margin-bottom: 40px;
 }
 
+.cell-output-display {
+  text-align: center;
+}
+
 pre {
   overflow-x: auto;
 }
