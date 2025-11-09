@@ -811,7 +811,7 @@ Isso significa
 
 **Performance Real:**
 
-Modelos baseados em caracteres historicamente apresentam performance inferior a modelos baseados em subwords. Por exemplo, o paper de Kawakami et al. (2017) [@kawakami2017learning] reporta que modelos character-level atingem perplexidades significativamente maiores (piores) em benchmarks padrão. Modelos modernos character-level como ByT5 [@xue2021byt5] melhoraram essa lacuna, mas ainda requerem arquiteturas mais profundas e treinamento mais custoso para alcançar performance comparável a modelos subword-based. O problema fundamental é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional em padrões de baixo nível.
+Modelos baseados em caracteres historicamente apresentam performance inferior a modelos baseados em subwords. Por exemplo, o paper de Kawakami et al. (2017) [@kawakami2017learning] reporta que modelos character-level atingem perplexidades significativamente maiores (piores) em benchmarks padrão. Modelos modernos character-level como ByT5 [@xue2022byt5] melhoraram essa lacuna, mas ainda requerem arquiteturas mais profundas e treinamento mais custoso para alcançar performance comparável a modelos subword-based. O problema fundamental é que forçar o modelo a "redescobrir" palavras a partir de caracteres desperdiça sua capacidade representacional em padrões de baixo nível.
 
 **Quando Faz Sentido:**
 
