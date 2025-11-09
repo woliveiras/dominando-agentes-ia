@@ -7,4 +7,5 @@ requires-python = ">=3.13"
 dependencies = [
     "bibtexparser>=1.4.3",
     "jupyter>=1.1.1",
+    "pyyaml>=6.0.3",
 ]

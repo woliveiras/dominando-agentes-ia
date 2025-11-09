@@ -11,6 +11,43 @@ from typing import Set, List, Dict
 class CitationChecker:
     """Verifica consistência de citações"""
     
+    # Termos que devem ser ignorados (não são referências bibliográficas)
+    # Inclui: decoradores Python, números, palavras especiais em exemplos
+    IGNORED_TERMS = {
+        # Números (usados em exemplos de código ou matemática)
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+        '11', '12', '13', '14', '15', '16', '17', '18', '19', '20',
+        # Decoradores Python (usados em código)
+        'dataclass', 'classmethod', 'staticmethod', 'property',
+        'contextmanager', 'wraps', 'lru_cache', 'abstractmethod',
+        # Palavras especiais usadas em exemplos de código/texto
+        'example', 'app', 'user', 'test', 'k', 'K', 'N', 'M',
+        'TODO', 'FIXME', 'NOTE', 'WARNING',
+    }
+    
+    # Padrões regex que devem ser ignorados (cross-references do Quarto, labels, etc)
+    IGNORED_PATTERNS = [
+        r'^sec-.*',           # Seções: @sec-exemplo-*, @sec-introducao
+        r'^fig-.*',           # Figuras: @fig-diagram-*, @fig-plot-*
+        r'^tbl-.*',           # Tabelas: @tbl-results-*, @tbl-comparison-*
+        r'^eq-.*',            # Equações: @eq-formula-*, @eq-loss-*
+        r'^lst-.*',           # Listings/código: @lst-code-*
+        r'^exm-.*',           # Exemplos: @exm-example-*
+        r'^thm-.*',           # Teoremas: @thm-theorem-*
+        r'^lem-.*',           # Lemas: @lem-lemma-*
+        r'^prp-.*',           # Proposições: @prp-proposition-*
+        r'^cnj-.*',           # Conjecturas: @cnj-conjecture-*
+        r'^def-.*',           # Definições: @def-definition-*
+    ]
+    
+    @staticmethod
+    def is_ignored_pattern(citation: str) -> bool:
+        """Verifica se a citação corresponde a algum padrão ignorado"""
+        for pattern in CitationChecker.IGNORED_PATTERNS:
+            if re.match(pattern, citation):
+                return True
+        return False
+    
     def __init__(self, book_dir: str = "book", bib_file: str = "book/references.bib"):
         self.book_dir = Path(book_dir)
         self.bib_file = Path(bib_file)
@@ -30,7 +67,11 @@ class CitationChecker:
         pattern = r'@([a-zA-Z0-9_\-]+)'
         matches = re.findall(pattern, content)
         
-        citations.update(matches)
+        # Filtra termos ignorados e padrões ignorados
+        for match in matches:
+            if match not in self.IGNORED_TERMS and not self.is_ignored_pattern(match):
+                citations.add(match)
+        
         return citations
     
     def extract_references_from_bib(self) -> Set[str]:
