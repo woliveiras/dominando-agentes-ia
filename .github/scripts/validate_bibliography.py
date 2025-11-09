@@ -55,8 +55,9 @@ class BibliographyValidator:
                 if field not in entry or not entry[field].strip():
                     errors.append(f"Entry '{entry_id}': campo obrigatório '{field}' faltando")
         
-        # Verifica formato do ID (sobrenome+ano+palavra)
-        if not re.match(r'^[a-z]+\d{4}[a-z]+$', entry_id.lower()):
+        # Verifica formato do ID (sobrenome+ano+palavra, aceita números em nomes de modelos)
+        # Padrão: letras + 4 dígitos (ano) + letras/números (palavra pode ter números para modelos)
+        if not re.match(r'^[a-z]+\d{4}[a-z0-9]+$', entry_id.lower()):
             warnings.append(f"Entry '{entry_id}': ID não segue padrão 'sobrenome+ano+palavra'")
         
         # Verifica URL
@@ -116,6 +117,7 @@ class BibliographyValidator:
         for entry in entries:
             entry_id = entry.get('ID', '')
             title = entry.get('title', '').lower().strip()
+            entry_type = entry.get('ENTRYTYPE', '').lower()
             
             # Verifica ID duplicado
             if entry_id in seen_ids:
@@ -123,11 +125,23 @@ class BibliographyValidator:
             seen_ids.add(entry_id)
             
             # Verifica título similar (pode ser duplicata)
-            for seen_title, seen_id in seen_titles.items():
+            for seen_title, (seen_id, seen_entry_type, seen_entry) in seen_titles.items():
                 if self.similar_titles(title, seen_title):
+                    # Se for livro, verifica se são edições diferentes
+                    if entry_type == 'book' and seen_entry_type == 'book':
+                        entry_edition = entry.get('edition', '').lower()
+                        seen_edition = seen_entry.get('edition', '').lower()
+                        entry_year = entry.get('year', '')
+                        seen_year = seen_entry.get('year', '')
+                        
+                        # Se têm edições diferentes ou anos diferentes, não é duplicata
+                        if (entry_edition and seen_edition and entry_edition != seen_edition) or \
+                           (entry_year != seen_year and abs(int(entry_year) - int(seen_year)) > 1):
+                            continue  # Não marca como duplicata
+                    
                     duplicates.append(f"Possível duplicata: '{entry_id}' e '{seen_id}' têm títulos similares")
             
-            seen_titles[title] = entry_id
+            seen_titles[title] = (entry_id, entry_type, entry)
             
         return duplicates
     
