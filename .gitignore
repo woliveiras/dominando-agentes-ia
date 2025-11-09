@@ -36,5 +36,14 @@ env/
 *.html
 !index.html
 
+# Environment files
+.envrc
 .env
 todo.md
+
+# Test files
+/tests/output/
+/tests/_build/
+gpt2-tech-translator-lora/
+models
+test-results
