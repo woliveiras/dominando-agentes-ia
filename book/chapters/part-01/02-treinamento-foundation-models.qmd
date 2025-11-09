@@ -1675,6 +1675,7 @@ print(f"Texto spam: {is_high_quality(text_bad_spam)}")  # False
 Implementação completa de deduplicação eficiente usando MinHash e Locality-Sensitive Hashing.
 
 ```python
+# uv pip install datasketch
 from datasketch import MinHash, MinHashLSH
 
 def get_minhash(text, num_perm=128):

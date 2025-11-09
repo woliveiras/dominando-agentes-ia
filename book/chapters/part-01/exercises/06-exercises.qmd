@@ -242,7 +242,7 @@ print(f"Queries testadas: {metrics['num_queries']}")
 **Código:**
 
 ```python
-# uv pip install sentence-transformers torch openai
+# uv pip install sentence-transformers torch openai numpy
 
 from sentence_transformers import SentenceTransformer, losses, InputExample
 from torch.utils.data import DataLoader
@@ -459,7 +459,7 @@ metrics = compare_models(
 **Código:**
 
 ```python
-# uv pip install sentence-transformers faiss-cpu rank-bm25
+# uv pip install sentence-transformers faiss-cpu rank-bm25 numpy
 
 from sentence_transformers import SentenceTransformer
 import faiss

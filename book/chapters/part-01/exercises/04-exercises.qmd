@@ -207,6 +207,7 @@ Os exercícios usam **simulação de LLMs** para permitir execução sem API key
 Para produção, seria necessário integrar com APIs reais. Por exemplo, para OpenAI:
 
 ```python
+# uv pip install openai
 # Substituir simulate_llm_response() por:
 from openai import OpenAI
 

@@ -1435,6 +1435,7 @@ print(f"\nEficiência: Inglês usa ~{len(tokens_pt)/len(tokens_en):.2f}x menos t
 Implementação completa do mecanismo de self-attention com matrizes de projeção aprendidas.
 
 ```python
+# uv pip install torch
 import torch
 import torch.nn as nn
 
@@ -1577,6 +1578,7 @@ for _ in range(max_new_tokens):
 Implementação de máscara causal que impede atenção em tokens futuros.
 
 ```python
+# uv pip install torch
 import torch
 
 def create_causal_mask(seq_len):

@@ -16,7 +16,7 @@ Agora que você compreende como foundation models são treinados, tokenização 
 **Passo a Passo:**
 
 ```python
-# Instalação necessária: pip install tiktoken transformers
+# uv pip install tiktoken
 
 import tiktoken
 
@@ -146,7 +146,7 @@ print(f"  Custo economizado: ${saved_cost:.2f}")
 **Passo a Passo:**
 
 ```python
-# Instalação: pip install datasets
+# uv pip install datasets
 
 from datasets import load_dataset
 from collections import Counter
@@ -295,6 +295,7 @@ print("""
 **Objetivo:** Comparar comportamento de diferentes estratégias de tokenização.
 
 ```python
+# uv pip install transformers
 from transformers import AutoTokenizer
 
 # Carregar diferentes tokenizers
