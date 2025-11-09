@@ -1466,40 +1466,99 @@ async def process_with_concurrency_limit(
 
 #### Estratégia 4: Load Balancing e Redundância
 
-Para sistemas críticos, implemente load balancing entre múltiplos providers e fallbacks automáticos.
+Para sistemas críticos, implemente load balancing entre múltiplos providers e fallbacks automáticos. Isso aumenta a resiliência, otimiza custos e melhora a latência.
+
+O exemplo abaixo mostra uma implementação mais concreta de um `LLMLoadBalancer` que pode usar provedores reais (como OpenAI e Anthropic) ou mocks para demonstração.
 
 ```python
 import asyncio
-from typing import List, Optional, Protocol
+import time
+import random
+from typing import List, Optional, Protocol, Dict, Any
 from dataclasses import dataclass
 from enum import Enum
+import openai
+import anthropic
+
+# --- Interfaces e Configurações ---
 
 class LLMProvider(Protocol):
-    """Interface para providers de LLM"""
+    """Interface que todos os provedores de LLM devem seguir."""
+    name: str
     async def generate(self, prompt: str, timeout: float) -> str: ...
-    @property
-    def name(self) -> str: ...
 
 @dataclass
 class ProviderConfig:
-    """Configuração de um provider"""
+    """Configuração para um provedor no load balancer."""
     provider: LLMProvider
-    priority: int  # 0 = mais prioritário
-    max_retries: int = 2
+    priority: int  # 0 = mais alta
     timeout_seconds: float = 10.0
 
 class LoadBalancingStrategy(Enum):
-    """Estratégias de balanceamento"""
-    ROUND_ROBIN = "round_robin"        # Alterna entre providers
-    PRIORITY = "priority"               # Usa provider de maior prioridade primeiro
-    FASTEST_FIRST = "fastest_first"     # Usa provider mais rápido historicamente
+    """Estratégias de balanceamento de carga."""
+    PRIORITY = "priority"  # Sempre tenta o de maior prioridade primeiro
+    ROUND_ROBIN = "round_robin" # Alterna entre os provedores
+
+# --- Implementações Concretas de Provedores ---
+# (Requerem API keys configuradas como variáveis de ambiente)
+
+class OpenAIProvider:
+    """Implementação concreta para a API da OpenAI."""
+    name = "openai"
+    def __init__(self, model: str = "gpt-4-turbo"):
+        self.model = model
+        # O cliente async da OpenAI lê a key de OPENAI_API_KEY
+        self.client = openai.AsyncOpenAI()
+
+    async def generate(self, prompt: str, timeout: float) -> str:
+        response = await self.client.chat.completions.create(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=timeout,
+        )
+        return response.choices[0].message.content
+
+class AnthropicProvider:
+    """Implementação concreta para a API da Anthropic."""
+    name = "anthropic"
+    def __init__(self, model: str = "claude-3-5-sonnet-20240620"):
+        self.model = model
+        # O cliente async da Anthropic lê a key de ANTHROPIC_API_KEY
+        self.client = anthropic.AsyncAnthropic()
+
+    async def generate(self, prompt: str, timeout: float) -> str:
+        response = await self.client.messages.create(
+            model=self.model,
+            max_tokens=1024,
+            messages=[{"role": "user", "content": prompt}],
+            timeout=timeout,
+        )
+        return response.content[0].text
+
+# --- Implementação do Load Balancer ---
+
+@dataclass
+class ProviderStats:
+    """Estatísticas de uso para um provedor."""
+    calls: int = 0
+    failures: int = 0
+    total_latency: float = 0.0
+
+    @property
+    def success_rate(self) -> float:
+        if self.calls == 0: return 1.0
+        return (self.calls - self.failures) / self.calls
+
+    @property
+    def avg_latency(self) -> float:
+        if self.calls == 0: return 0.0
+        return self.total_latency / self.calls
 
 class LLMLoadBalancer:
     """
-    Load balancer inteligente para múltiplos providers de LLM.
-    Fornece fallback automático e distribuição de carga.
+    Load balancer inteligente para múltiplos provedores de LLM.
+    Oferece fallback automático e distribuição de carga.
     """
-
     def __init__(
         self,
         providers: List[ProviderConfig],
@@ -1508,127 +1567,107 @@ class LLMLoadBalancer:
         self.providers = sorted(providers, key=lambda p: p.priority)
         self.strategy = strategy
         self.current_index = 0
-        self.provider_stats = {p.provider.name: {"calls": 0, "failures": 0} for p in providers}
+        self.stats: Dict[str, ProviderStats] = {
+            p.provider.name: ProviderStats() for p in self.providers
+        }
 
-    async def generate(
-        self,
-        prompt: str,
-        max_attempts: Optional[int] = None
-    ) -> dict:
-        """
-        Gera resposta com fallback automático entre providers.
-
-        Args:
-            prompt: Texto do prompt
-            max_attempts: Máximo de tentativas (default: tenta todos os providers)
-
-        Returns:
-            Dict com 'response', 'provider_used', 'attempt_count'
-
-        Raises:
-            Exception: Se todos os providers falharem
-        """
-        max_attempts = max_attempts or len(self.providers) * 2
-        attempts = 0
+    async def generate(self, prompt: str) -> Dict[str, Any]:
+        """Gera uma resposta com fallback automático entre provedores."""
         last_error = None
+        provider_order = self._get_provider_order()
 
-        for attempt in range(max_attempts):
-            attempts += 1
-
-            # Seleciona provider baseado na estratégia
-            if self.strategy == LoadBalancingStrategy.ROUND_ROBIN:
-                provider_config = self.providers[self.current_index % len(self.providers)]
-                self.current_index += 1
-            else:  # PRIORITY
-                provider_config = self.providers[attempt % len(self.providers)]
-
-            provider = provider_config.provider
-            self.provider_stats[provider.name]["calls"] += 1
+        for attempt, config in enumerate(provider_order):
+            provider = config.provider
+            stats = self.stats[provider.name]
+            stats.calls += 1
+            start_time = time.time()
 
             try:
-                print(f"Tentativa {attempts}: usando {provider.name}")
-
+                print(f"Tentativa {attempt + 1}: Usando {provider.name}...")
                 response = await asyncio.wait_for(
-                    provider.generate(prompt, timeout=provider_config.timeout_seconds),
-                    timeout=provider_config.timeout_seconds + 1.0  # +1s de buffer
+                    provider.generate(prompt, timeout=config.timeout_seconds),
+                    timeout=config.timeout_seconds + 0.5
                 )
-
-                print(f"✓ Sucesso com {provider.name}")
-
+                latency = time.time() - start_time
+                stats.total_latency += latency
+                print(f"✓ Sucesso com {provider.name} em {latency:.2f}s")
                 return {
                     "response": response,
                     "provider_used": provider.name,
-                    "attempt_count": attempts
+                    "attempt": attempt + 1,
                 }
-
-            except asyncio.TimeoutError:
-                last_error = f"Timeout com {provider.name}"
-                print(f"✗ {last_error}")
-                self.provider_stats[provider.name]["failures"] += 1
-
             except Exception as e:
-                last_error = f"Erro com {provider.name}: {str(e)}"
-                print(f"✗ {last_error}")
-                self.provider_stats[provider.name]["failures"] += 1
+                latency = time.time() - start_time
+                stats.total_latency += latency
+                stats.failures += 1
+                last_error = e
+                print(f"✗ Falha com {provider.name}: {e.__class__.__name__}")
+                await asyncio.sleep(0.1)
 
-            # Pequeno delay antes de tentar próximo provider
-            await asyncio.sleep(0.1)
+        raise Exception(f"Todos os provedores falharam. Último erro: {last_error}")
 
-        # Todos os providers falharam
-        raise Exception(
-            f"Todos os providers falharam após {attempts} tentativas. "
-            f"Último erro: {last_error}"
-        )
+    def _get_provider_order(self) -> List[ProviderConfig]:
+        if self.strategy == LoadBalancingStrategy.ROUND_ROBIN:
+            # Rotaciona a lista de provedores
+            order = self.providers[self.current_index:] + self.providers[:self.current_index]
+            self.current_index = (self.current_index + 1) % len(self.providers)
+            return order
+        return self.providers # Estratégia PRIORITY
 
-    def get_stats(self) -> dict:
-        """Retorna estatísticas de uso dos providers"""
-        return {
-            name: {
-                **stats,
-                "success_rate": (
-                    (stats["calls"] - stats["failures"]) / stats["calls"]
-                    if stats["calls"] > 0 else 0
-                )
-            }
-            for name, stats in self.provider_stats.items()
-        }
+    def print_stats(self):
+        """Imprime as estatísticas de uso dos provedores."""
+        print("\n--- Estatísticas Finais ---")
+        for name, s in self.stats.items():
+            print(
+                f"- {name}: "
+                f"Chamadas={s.calls}, Falhas={s.failures}, "
+                f"Sucesso={s.success_rate:.1%}, "
+                f"Latência Média={s.avg_latency * 1000:.0f}ms"
+            )
 
-# Exemplo de uso
+# --- Exemplo de Uso ---
 async def main():
-    # Configuração de providers (mock para exemplo)
+    # Para usar provedores reais, descomente e configure suas API keys
+    # Ex: export OPENAI_API_KEY="..."
+    # Ex: export ANTHROPIC_API_KEY="..."
+    
+    # Usaremos mocks para a demonstração ser executável por todos.
+    class MockProvider:
+        def __init__(self, name, min_delay, max_delay, fail_rate):
+            self.name = name
+            self._min_delay = min_delay
+            self._max_delay = max_delay
+            self._fail_rate = fail_rate
+        async def generate(self, prompt: str, timeout: float) -> str:
+            delay = random.uniform(self._min_delay, self._max_delay)
+            if delay > timeout: raise asyncio.TimeoutError(f"{self.name} timeout")
+            if random.random() < self._fail_rate: raise ConnectionError(f"{self.name} API error")
+            await asyncio.sleep(delay)
+            return f"Resposta de {self.name}: {prompt[:20]}..."
+
     providers = [
-        ProviderConfig(
-            provider=OpenAIProvider(api_key="..."),
-            priority=0,  # Prioridade alta
-            timeout_seconds=8.0
-        ),
-        ProviderConfig(
-            provider=AnthropicProvider(api_key="..."),
-            priority=1,  # Prioridade média
-            timeout_seconds=10.0
-        ),
-        ProviderConfig(
-            provider=GoogleProvider(api_key="..."),
-            priority=2,  # Backup
-            timeout_seconds=12.0
-        ),
+        ProviderConfig(provider=MockProvider("OpenAI", 0.5, 1.5, 0.1), priority=0, timeout_seconds=1.0),
+        ProviderConfig(provider=MockProvider("Anthropic", 1.0, 2.5, 0.05), priority=1, timeout_seconds=2.0),
+        ProviderConfig(provider=MockProvider("Google", 1.5, 3.0, 0.02), priority=2, timeout_seconds=3.0),
     ]
 
     balancer = LLMLoadBalancer(providers, strategy=LoadBalancingStrategy.PRIORITY)
 
-    # Chamada com fallback automático
-    result = await balancer.generate("Explique machine learning")
+    print("--- Executando 10 chamadas de teste ---")
+    for i in range(10):
+        print(f"\n--- Chamada {i+1} ---")
+        try:
+            result = await balancer.generate(f"Prompt de teste {i+1}")
+            print(f"--> Resposta obtida de: {result['provider_used']}")
+        except Exception as e:
+            print(f"!! CHAMADA FALHOU: {e}")
 
-    print(f"Resposta obtida de: {result['provider_used']}")
-    print(f"Tentativas necessárias: {result['attempt_count']}")
+    balancer.print_stats()
 
-    # Estatísticas
-    stats = balancer.get_stats()
-    print("\nEstatísticas dos providers:")
-    for name, data in stats.items():
-        print(f"{name}: {data['calls']} calls, {data['success_rate']:.1%} success rate")
-
-# asyncio.run(main())
+if __name__ == "__main__":
+    # Para rodar: salve como um arquivo .py e execute `python nome_do_arquivo.py`
+    # Lembre-se de instalar as dependências: uv pip install openai anthropic
+    asyncio.run(main())
 ```
 
 **Benefícios do load balancing**:
