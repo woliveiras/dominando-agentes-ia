@@ -371,6 +371,52 @@ prompt = build_analysis_prompt(
 )
 ```
 
+### Nuances de Prompting para Diferentes Modelos
+
+Embora os princípios de prompting sejam universais, diferentes famílias de modelos têm "personalidades" e vieses distintos que afetam como eles respondem a certos estilos de prompt. Entender essas nuances pode melhorar significativamente a performance.
+
+| Modelo | Estilo de Prompt Preferido | Pontos Fortes | Pontos Fracos |
+| :--- | :--- | :--- | :--- |
+| **GPT (OpenAI)** | Instruções diretas e detalhadas. Funciona bem com `system` prompts para definir comportamento. | Raciocínio complexo, criatividade, geração de código, segue instruções complexas. | Pode ser "preguiçoso" ou recusar-se a responder a certas perguntas. |
+| **Claude (Anthropic)** | Prefere prompts conversacionais e contextuais. Usa XML para estrutura. | Excelente em tarefas de escrita longa, sumarização, e análise de personalidade. Mais "ético" e seguro. | Menos propenso a gerar conteúdo controverso, o que pode ser uma limitação em certos casos de uso. |
+| **LLaMA (Meta)** | Funciona bem com uma variedade de estilos, mas beneficia-se de exemplos claros (few-shot). | Bom equilíbrio entre performance e custo (especialmente em self-hosting). Altamente customizável via fine-tuning. | Modelos menores podem ter dificuldade com raciocínio muito complexo. |
+| **Gemini (Google)** | Otimizado para multimodalidade (texto, imagem, áudio). | Integração nativa com ecossistema Google. Forte em tarefas que combinam diferentes tipos de dados. | Performance em texto puro pode ser comparável, mas não necessariamente superior, a modelos especializados. |
+
+**Exemplo Prático:**
+
+*   **Para GPT-4:** Use um `system` prompt claro: `{"role": "system", "content": "Você é um assistente de programação."}`.
+*   **Para Claude 3:** Envolva o prompt em tags XML: `<prompt><task>Analise este texto...</task></prompt>`.
+*   **Para LLaMA 3:** Forneça 2-3 exemplos (few-shot) para guiar o formato da resposta.
+
+### Anti-Padrões de Prompting: O Que Não Fazer
+
+Tão importante quanto saber o que fazer é saber o que evitar. Aqui estão alguns anti-padrões comuns que degradam a performance do modelo.
+
+1.  **Prompts Vagos ou Abertos Demais**
+    *   **Ruim:** "Fale sobre marketing."
+    *   **Bom:** "Descreva três estratégias de marketing digital para uma startup B2B com orçamento limitado."
+    *   **Por quê?** Prompts abertos levam a respostas genéricas. Especificidade guia o modelo para a resposta que você realmente precisa.
+
+2.  **Assumir Conhecimento Implícito**
+    *   **Ruim:** "Resuma nosso último relatório."
+    *   **Bom:** "Resuma o seguinte relatório financeiro do Q3 da PoneyCorp: [texto do relatório]."
+    *   **Por quê?** O modelo não tem acesso a informações privadas ou recentes. Sempre forneça todo o contexto necessário.
+
+3.  **Instruções Contraditórias**
+    *   **Ruim:** "Seja conciso e detalhado."
+    *   **Bom:** "Forneça um resumo de três frases, seguido por uma análise detalhada em bullet points."
+    *   **Por quê?** Instruções contraditórias confundem o modelo. Decomponha a tarefa em partes claras e não conflitantes.
+
+4.  **Falta de Estrutura de Saída**
+    *   **Ruim:** "Extraia o nome, a empresa e o cargo."
+    *   **Bom:** "Extraia as informações e formate a saída como um objeto JSON com as chaves 'nome', 'empresa' e 'cargo'."
+    *   **Por quê?** Sem um formato de saída definido, o modelo pode retornar os dados em uma variedade de formatos, dificultando o parsing.
+
+5.  **Uso de Negações Complexas**
+    *   **Ruim:** "Não inclua nada que não seja sobre vendas, a menos que seja sobre marketing."
+    *   **Bom:** "Inclua apenas informações sobre vendas e marketing."
+    *   **Por quê?** Modelos de linguagem têm dificuldade em processar negações complexas e duplas negativas. Prefira instruções afirmativas e diretas.
+
 ## In-Context Learning: Adaptação sem Atualização de Pesos
 
 In-Context Learning (ICL) representa uma das capacidades emergentes mais significativas de Large Language Models [@brown2020language]. Conforme discutido no Capítulo 2, ICL permite que modelos adaptem seu comportamento para novas tarefas através de exemplos fornecidos no prompt, sem necessidade de *gradient descent* ou atualização de parâmetros.
