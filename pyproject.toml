@@ -6,6 +6,13 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "bibtexparser>=1.4.3",
+    "faiss-cpu>=1.12.0",
     "jupyter>=1.1.1",
+    "nltk>=3.9.2",
+    "openai>=2.7.1",
     "pyyaml>=6.0.3",
+    "rank-bm25>=0.2.2",
+    "scikit-learn>=1.7.2",
+    "sentence-transformers>=5.1.2",
+    "torch>=2.9.0",
 ]

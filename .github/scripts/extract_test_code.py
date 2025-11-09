@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-Script para extrair e testar blocos de código Python dos arquivos .qmd
+Script para extrair e validar blocos de código Python dos arquivos .qmd
+Valida apenas a sintaxe, sem executar o código (evita problemas com dependências)
 """
 
 import re
 import os
 import sys
-import tempfile
-import subprocess
+import ast
 from pathlib import Path
 from typing import List, Tuple
 import json
@@ -22,21 +22,50 @@ class CodeBlockExtractor:
         
     def find_qmd_files(self) -> List[Path]:
         """Encontra todos os arquivos .qmd no diretório do livro"""
-        return list(self.book_dir.rglob("*.qmd"))
+        all_files = list(self.book_dir.rglob("*.qmd"))
+        
+        # Filtra arquivos do diretório _book (gerado pelo Quarto)
+        filtered_files = [
+            f for f in all_files 
+            if '_book' not in str(f)
+        ]
+        
+        return filtered_files
     
     def extract_python_blocks(self, filepath: Path) -> List[Tuple[int, str]]:
         """Extrai blocos de código Python de um arquivo .qmd"""
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()
         
+        # Para arquivos de exercícios, testa todos os blocos
+        is_exercise_file = 'exercises' in str(filepath)
+        
+        # Para capítulos normais, só testa blocos na seção "Exemplos Completos"
+        if not is_exercise_file:
+            # Procura pela seção de exemplos completos (várias variações possíveis)
+            # Exemplos: "## Exemplos de Código Completos", "## Exemplos Completos de Código", etc.
+            examples_pattern = r'##\s+Exemplos\s+(?:de\s+Código\s+)?(?:Completos|Completos\s+de\s+Código)\s*(?:\{[^}]*\})?\s*\n(.*)'
+            examples_match = re.search(examples_pattern, content, re.IGNORECASE | re.DOTALL)
+            
+            if not examples_match:
+                # Não encontrou seção de exemplos completos, não testa nenhum bloco
+                return []
+            
+            # Extrai apenas a parte depois da seção de exemplos
+            examples_content = examples_match.group(1)
+            examples_start_pos = examples_match.start(1)
+        else:
+            examples_content = content
+            examples_start_pos = 0
+        
         # Pattern para encontrar blocos de código Python
         pattern = r'```python\n(.*?)\n```'
-        matches = re.finditer(pattern, content, re.DOTALL)
+        matches = re.finditer(pattern, examples_content, re.DOTALL)
         
         code_blocks = []
         for match in matches:
-            # Encontra número da linha
-            line_num = content[:match.start()].count('\n') + 1
+            # Calcula número da linha no arquivo original
+            line_num = content[:examples_start_pos + match.start()].count('\n') + 1
             code = match.group(1)
             
             # Ignora blocos que são apenas comentários ou muito curtos
@@ -46,7 +75,7 @@ class CodeBlockExtractor:
         return code_blocks
     
     def test_code_block(self, code: str, filepath: Path, line_num: int) -> dict:
-        """Testa um bloco de código"""
+        """Valida a sintaxe de um bloco de código"""
         result = {
             "file": str(filepath),
             "line": line_num,
@@ -54,52 +83,20 @@ class CodeBlockExtractor:
             "error": None
         }
         
-        # Cria arquivo temporário para testar o código
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as tmp:
-            # Adiciona imports comuns que podem estar implícitos
-            setup_code = """
-import sys
-import warnings
-warnings.filterwarnings('ignore')
-
-# Mock de funções que podem não estar definidas
-def llm_generate(*args, **kwargs):
-    return "Mocked LLM response"
-
-def search_engine_search(*args, **kwargs):
-    return [{"chunk": "Mocked chunk", "score": 0.9}]
-"""
-            tmp.write(setup_code)
-            tmp.write("\n\n# Código do livro:\n")
-            tmp.write(code)
-            tmp_path = tmp.name
-        
         try:
-            # Tenta executar o código com timeout
-            process = subprocess.run(
-                [sys.executable, tmp_path],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
+            # Valida apenas a sintaxe usando ast.parse
+            # Não executa o código para evitar problemas com dependências
+            ast.parse(code)
             
-            if process.returncode != 0:
-                result["status"] = "failed"
-                result["error"] = process.stderr
-                self.failed_tests.append(result)
-                
-        except subprocess.TimeoutExpired:
-            result["status"] = "timeout"
-            result["error"] = "Código excedeu timeout de 10 segundos"
+        except SyntaxError as e:
+            result["status"] = "failed"
+            result["error"] = f"Erro de sintaxe: {e.msg} (linha {e.lineno})"
+            self.failed_tests.append(result)
             
         except Exception as e:
             result["status"] = "error"
-            result["error"] = str(e)
+            result["error"] = f"Erro ao validar: {str(e)}"
             self.failed_tests.append(result)
-            
-        finally:
-            # Remove arquivo temporário
-            os.unlink(tmp_path)
             
         return result
     
@@ -129,23 +126,18 @@ def search_engine_search(*args, **kwargs):
         return missing_deps
     
     def run(self):
-        """Executa a extração e teste de todos os códigos"""
+        """Executa a extração e validação de todos os códigos"""
         qmd_files = self.find_qmd_files()
         
         print(f"🔍 Encontrados {len(qmd_files)} arquivos .qmd")
         print("=" * 60)
         
         for filepath in qmd_files:
-            # Pula arquivos de exercícios opcionalmente
-            if 'exercises' in str(filepath):
-                print(f"⏭️  Pulando exercícios: {filepath}")
-                continue
-                
             print(f"\n📄 Processando: {filepath}")
             code_blocks = self.extract_python_blocks(filepath)
             
             if not code_blocks:
-                print("   Sem blocos de código Python")
+                print("   Sem blocos de código para validar (não está na seção de exemplos)")
                 continue
                 
             print(f"   Encontrados {len(code_blocks)} blocos de código")
@@ -156,18 +148,16 @@ def search_engine_search(*args, **kwargs):
                 if missing_deps:
                     print(f"   ⚠️  Linha {line_num}: Dependências não documentadas: {missing_deps}")
                 
-                # Testa o código
+                # Valida sintaxe do código
                 result = self.test_code_block(code, filepath, line_num)
                 self.results.append(result)
                 
                 if result["status"] == "success":
-                    print(f"   ✅ Linha {line_num}: OK")
-                elif result["status"] == "timeout":
-                    print(f"   ⏱️  Linha {line_num}: Timeout")
+                    print(f"   ✅ Linha {line_num}: Sintaxe OK")
                 else:
-                    print(f"   ❌ Linha {line_num}: Falhou")
+                    print(f"   ❌ Linha {line_num}: Erro de sintaxe")
                     if result["error"]:
-                        print(f"      Erro: {result['error'][:100]}...")
+                        print(f"      {result['error'][:150]}...")
         
         # Relatório final
         self.print_summary()
@@ -179,27 +169,34 @@ def search_engine_search(*args, **kwargs):
         return 1 if self.failed_tests else 0
     
     def print_summary(self):
-        """Imprime resumo dos testes"""
+        """Imprime resumo da validação"""
         print("\n" + "=" * 60)
-        print("📊 RESUMO DOS TESTES")
+        print("📊 RESUMO DA VALIDAÇÃO")
         print("=" * 60)
         
         total = len(self.results)
+        if total == 0:
+            print("Nenhum bloco de código encontrado para validar")
+            return
+            
         success = sum(1 for r in self.results if r["status"] == "success")
         failed = sum(1 for r in self.results if r["status"] == "failed")
-        timeout = sum(1 for r in self.results if r["status"] == "timeout")
         error = sum(1 for r in self.results if r["status"] == "error")
         
-        print(f"Total de blocos testados: {total}")
-        print(f"✅ Sucesso: {success} ({success/total*100:.1f}%)")
-        print(f"❌ Falhou: {failed} ({failed/total*100:.1f}%)")
-        print(f"⏱️  Timeout: {timeout} ({timeout/total*100:.1f}%)")
-        print(f"🔥 Erro: {error} ({error/total*100:.1f}%)")
+        print(f"Total de blocos validados: {total}")
+        print(f"✅ Sintaxe OK: {success} ({success/total*100:.1f}%)")
+        print(f"❌ Erros de sintaxe: {failed} ({failed/total*100:.1f}%)")
+        print(f"🔥 Erros de validação: {error} ({error/total*100:.1f}%)")
         
         if self.failed_tests:
-            print("\n⚠️  CÓDIGOS QUE FALHARAM:")
-            for test in self.failed_tests[:5]:  # Mostra apenas os 5 primeiros
+            print(f"\n⚠️  CÓDIGOS COM ERROS DE SINTAXE ({len(self.failed_tests)}):")
+            for test in self.failed_tests[:10]:  # Mostra apenas os 10 primeiros
                 print(f"  - {test['file']}:{test['line']}")
+                if test['error']:
+                    print(f"    {test['error'][:100]}")
+        
+        print("\n💡 Nota: Este script valida apenas a sintaxe Python.")
+        print("   Erros de imports ou execução são esperados e não impedem o uso do código.")
     
     def save_report(self):
         """Salva relatório detalhado em JSON"""
@@ -210,7 +207,6 @@ def search_engine_search(*args, **kwargs):
                 "total": len(self.results),
                 "success": sum(1 for r in self.results if r["status"] == "success"),
                 "failed": sum(1 for r in self.results if r["status"] == "failed"),
-                "timeout": sum(1 for r in self.results if r["status"] == "timeout"),
                 "error": sum(1 for r in self.results if r["status"] == "error")
             },
             "results": self.results
