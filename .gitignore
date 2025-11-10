@@ -35,6 +35,7 @@ env/
 *.pdf
 *.html
 !index.html
+*_files
 
 # Environment files
 .envrc

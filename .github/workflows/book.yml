@@ -220,21 +220,25 @@ jobs:
             A[Test] --> B[Diagram]
           EOF
           
-          # Tenta renderizar com config customizado
-          mmdc -i /tmp/test-diagram.mmd -o /tmp/test-diagram.png \
-            -b transparent \
-            -p puppeteer-config.json || {
-            echo "::warning::Mermaid test failed"
-            exit 1
-          }
-          
-          if [ -f /tmp/test-diagram.png ]; then
-            echo "✅ Mermaid rendering working!"
-            ls -lh /tmp/test-diagram.png
+          # Tenta renderizar
+          if mmdc -i /tmp/test-diagram.mmd -o /tmp/test-output.png -b transparent; then
+            echo "✅ Mermaid rendering successful"
+            ls -lh /tmp/test-output.png
           else
-            echo "❌ Mermaid rendering failed!"
+            echo "❌ Mermaid rendering failed"
             exit 1
           fi
+          
+      - name: Install image conversion tools
+        run: |
+          echo "🖼️  Installing image conversion tools..."
+          sudo apt-get update
+          sudo apt-get install -y librsvg2-bin imagemagick poppler-utils
+          
+          # Verify installations
+          rsvg-convert --version
+          convert --version | head -3
+          pdftoppm -v
           
       - name: Install LaTeX
         run: |
@@ -300,83 +304,16 @@ jobs:
           quarto render --to html
           
       - name: Build PDF version
-        id: pdf-build
-        continue-on-error: true
         timeout-minutes: 30
         run: |
-          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          
-          # Configuração do Chrome para Mermaid (variáveis de ambiente)
-          export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
-          export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
-          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
-          export PUPPETEER_TIMEOUT=60000
-          
-          # Otimizações para Mermaid CLI
-          export MERMAID_PUPPETEER_TIMEOUT=60000
-          export MERMAID_WIDTH=1200
-          export MERMAID_HEIGHT=800
-          export CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
-          
-          # Cria config do Puppeteer no diretório do projeto
-          cat > puppeteer-config.json << EOF
-          {
-            "executablePath": "${{ steps.setup-chrome.outputs.chrome-path }}",
-            "timeout": 60000,
-            "args": [
-              "--no-sandbox",
-              "--disable-setuid-sandbox",
-              "--disable-dev-shm-usage",
-              "--disable-gpu",
-              "--disable-software-rasterizer",
-              "--disable-extensions",
-              "--disable-background-networking",
-              "--disable-sync"
-            ]
-          }
-          EOF
-          
           echo "📄 Building PDF version..."
-          echo "Chrome: $CHROME_BIN"
-          echo "TinyTeX: $(which pdflatex)"
-          echo "Quarto: $(quarto --version)"
-          echo "Puppeteer config:"
-          cat puppeteer-config.json
-          
           cd book
-          # Passa config do Puppeteer para o Quarto
-          QUARTO_CHROME_PATH="${{ steps.setup-chrome.outputs.chrome-path }}" \
-          MERMAID_PUPPETEER_CONFIG="../puppeteer-config.json" \
-          quarto render --to pdf --verbose 2>&1 | tee ../pdf-build.log || {
-            echo "::warning::PDF build failed"
-            echo "Last 100 lines:"
-            tail -100 ../pdf-build.log
-            exit 0
-          }
           
-      - name: Verify PDF output
-        if: steps.pdf-build.outcome == 'success'
-        run: |
-          if [ -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
-            echo "✅ PDF generated successfully!"
-            ls -lh book/_book/Dominando-Agentes-de-IA.pdf
-            
-            PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
-            if [ $PDF_SIZE -lt 102400 ]; then
-              echo "⚠️ Warning: PDF very small ($PDF_SIZE bytes)"
-            fi
-          else
-            echo "⚠️ PDF not found"
-            ls -la book/_book/
-          fi
+          # Set Chrome path for Quarto
+          export CHROME_PATH=${{ steps.setup-chrome.outputs.chrome-path }}
+          export PUPPETEER_EXECUTABLE_PATH=${{ steps.setup-chrome.outputs.chrome-path }}
           
-      - name: Upload PDF build logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: pdf-build-logs
-          path: pdf-build.log
-          if-no-files-found: ignore
+          quarto render --to pdf
           
       - name: Build EPUB version
         continue-on-error: true

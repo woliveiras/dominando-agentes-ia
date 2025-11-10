@@ -79,6 +79,7 @@ format:
     mermaid:
       theme: default
       timeout: 60000
+    mermaid-format: png
     fig-dpi: 150
     fig-format: png
   epub:
