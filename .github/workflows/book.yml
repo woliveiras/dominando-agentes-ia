@@ -148,6 +148,7 @@ jobs:
     name: 📖 Build Book
     runs-on: ubuntu-latest
     needs: [validate-markdown, test-python-code, validate-references]
+    timeout-minutes: 45
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
@@ -165,16 +166,129 @@ jobs:
         with:
           version: ${{ env.QUARTO_VERSION }}
           
+      - name: Setup Chrome for Mermaid diagrams
+        uses: browser-actions/setup-chrome@v2
+        id: setup-chrome
+        with:
+          chrome-version: stable
+          
+      - name: Verify Chrome installation
+        run: |
+          echo "Chrome path: ${{ steps.setup-chrome.outputs.chrome-path }}"
+          ${{ steps.setup-chrome.outputs.chrome-path }} --version
+          
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          
+      - name: Install Mermaid CLI
+        run: |
+          npm install -g @mermaid-js/mermaid-cli
+          mmdc --version
+          
+      - name: Configure Puppeteer for Mermaid
+        run: |
+          # Configura Puppeteer para usar o Chrome instalado
+          echo "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true" >> $GITHUB_ENV
+          echo "PUPPETEER_EXECUTABLE_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
+          
+          # Cria config do Puppeteer
+          mkdir -p ~/.config/mermaid
+          cat > ~/.config/mermaid/config.json << EOF
+          {
+            "puppeteerConfig": {
+              "executablePath": "${{ steps.setup-chrome.outputs.chrome-path }}",
+              "args": [
+                "--no-sandbox",
+                "--disable-setuid-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"
+              ]
+            }
+          }
+          EOF
+          
+          echo "Mermaid config created:"
+          cat ~/.config/mermaid/config.json
+          
+      - name: Test Mermaid rendering
+        run: |
+          echo "🧪 Testing Mermaid rendering..."
+          
+          # Cria diagrama de teste
+          cat > /tmp/test-diagram.mmd << EOF
+          graph LR
+            A[Test] --> B[Diagram]
+          EOF
+          
+          # Tenta renderizar
+          mmdc -i /tmp/test-diagram.mmd -o /tmp/test-diagram.png -b transparent || {
+            echo "::warning::Mermaid test failed"
+            exit 1
+          }
+          
+          if [ -f /tmp/test-diagram.png ]; then
+            echo "✅ Mermaid rendering working!"
+            ls -lh /tmp/test-diagram.png
+          else
+            echo "❌ Mermaid rendering failed!"
+            exit 1
+          fi
+          
       - name: Install LaTeX
         run: |
           echo "📦 Installing TinyTeX for PDF generation..."
           quarto install tinytex
           
+      - name: Configure TinyTeX
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          
+          # Atualiza repositório para mirror confiável
+          tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
+          
+          # Tenta atualizar tlmgr (com retry)
+          for i in {1..3}; do
+            echo "Tentativa $i de atualizar tlmgr..."
+            if tlmgr update --self --all; then
+              echo "✓ tlmgr atualizado com sucesso"
+              break
+            fi
+            echo "✗ Falhou, aguardando ${i}0s..."
+            sleep $((i*10))
+          done
+          
+      - name: Install LaTeX packages
+        run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          
+          # Instala pacotes necessários (com retry)
+          for i in {1..3}; do
+            echo "Tentativa $i de instalar pacotes LaTeX..."
+            tlmgr install \
+              babel-portuges \
+              hyphen-portuguese \
+              collection-langportuguese \
+              koma-script \
+              fancyvrb \
+              framed \
+              tcolorbox \
+              environ \
+              trimspaces \
+              pgf \
+              booktabs && break || {
+                echo "Falha, aguardando 10s..."
+                sleep 10
+              }
+          done
+          
       - name: Verify LaTeX installation
         run: |
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           echo "🔍 Verifying LaTeX installation..."
-          tlmgr --version || echo "tlmgr not found"
-          which pdflatex || echo "pdflatex not found"
+          tlmgr --version
+          pdflatex --version
           
       - name: Install Python dependencies
         run: uv sync
@@ -190,15 +304,42 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         run: |
-          echo "📄 Building PDF version (with debug output)..."
+          export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
+          
+          # Configuração do Chrome para Mermaid
+          export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
+          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
+          export PUPPETEER_TIMEOUT=30000
+          
+          echo "📄 Building PDF version..."
+          echo "Chrome: $CHROME_BIN"
+          echo "TinyTeX: $(which pdflatex)"
+          echo "Quarto: $(quarto --version)"
+          
           cd book
-          # Renderiza apenas alguns capítulos para debug
           quarto render --to pdf --verbose 2>&1 | tee ../pdf-build.log || {
             echo "::warning::PDF build failed"
-            echo "Last 50 lines of output:"
+            echo "Last 50 lines:"
             tail -50 ../pdf-build.log
             exit 0
           }
+          
+      - name: Verify PDF output
+        if: steps.pdf-build.outcome == 'success'
+        run: |
+          if [ -f "book/_book/Dominando-Agentes-de-IA.pdf" ]; then
+            echo "✅ PDF generated successfully!"
+            ls -lh book/_book/Dominando-Agentes-de-IA.pdf
+            
+            PDF_SIZE=$(stat -c%s book/_book/Dominando-Agentes-de-IA.pdf)
+            if [ $PDF_SIZE -lt 102400 ]; then
+              echo "⚠️ Warning: PDF very small ($PDF_SIZE bytes)"
+            fi
+          else
+            echo "⚠️ PDF not found"
+            ls -la book/_book/
+          fi
           
       - name: Upload PDF build logs
         if: always()
