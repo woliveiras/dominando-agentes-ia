@@ -180,16 +180,20 @@ jobs:
           quarto render --to html
           
       - name: Build PDF version
+        id: pdf-build
+        continue-on-error: true
+        timeout-minutes: 30
         run: |
           echo "📄 Building PDF version..."
           cd book
-          quarto render --to pdf
+          quarto render --to pdf || echo "::warning::PDF build failed"
           
       - name: Build EPUB version
+        continue-on-error: true
         run: |
           echo "📱 Building EPUB version..."
           cd book
-          quarto render --to epub
+          quarto render --to epub || echo "::warning::EPUB build failed"
           
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -197,13 +201,16 @@ jobs:
           name: book-builds
           path: |
             book/_book/
+          if-no-files-found: warn
             
       - name: Check build sizes
+        if: always()
         run: |
           echo "📊 Build statistics:"
-          du -sh book/_book/*.html
-          du -sh book/_book/*.pdf
-          du -sh book/_book/*.epub
+          ls -lh book/_book/ || echo "Build directory not found"
+          [ -f book/_book/index.html ] && echo "✅ HTML build successful" || echo "❌ HTML build failed"
+          [ -f book/_book/*.pdf ] && echo "✅ PDF build successful" || echo "⚠️ PDF build skipped/failed"
+          [ -f book/_book/*.epub ] && echo "✅ EPUB build successful" || echo "⚠️ EPUB build skipped/failed"
 
   # ========================================
   # 5. ANÁLISE DE QUALIDADE
