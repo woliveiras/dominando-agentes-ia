@@ -273,25 +273,20 @@ jobs:
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
           
-          # Instala pacotes necessários (com retry)
-          for i in {1..3}; do
-            echo "Tentativa $i de instalar pacotes LaTeX..."
-            tlmgr install \
-              babel-portuges \
-              hyphen-portuguese \
-              collection-langportuguese \
-              koma-script \
-              fancyvrb \
-              framed \
-              tcolorbox \
-              environ \
-              trimspaces \
-              pgf \
-              booktabs && break || {
-                echo "Falha, aguardando 10s..."
-                sleep 10
-              }
-          done
+                    # Instala pacotes LaTeX necessários
+          tlmgr install collection-fontsrecommended \
+            collection-latex \
+            collection-latexrecommended \
+            amsmath \
+            amssymb \
+            fancyvrb \
+            textcomp \
+            inputenc \
+            fontenc \
+            babel-portuges \
+            hyphen-portuguese
+          
+          # Atualiza tlmgr
           
       - name: Verify LaTeX installation
         run: |

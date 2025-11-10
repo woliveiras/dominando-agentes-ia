@@ -68,6 +68,9 @@ format:
         \usepackage{textcomp}
         \usepackage[utf8]{inputenc}
         \usepackage[T1]{fontenc}
+        \usepackage{amsmath}
+        \usepackage{amssymb}
+        \DeclareUnicodeCharacter{221A}{\ensuremath{\sqrt{}}}
     execute:
       enabled: false
       echo: false
