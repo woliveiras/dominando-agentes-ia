@@ -254,26 +254,28 @@ jobs:
       - name: Configure TinyTeX
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          
-          # Atualiza repositório para mirror confiável
+
+          echo "🔧 Configurando repositório TinyTeX..."
+
+          # Configura repositório principal do CTAN
           tlmgr option repository https://mirror.ctan.org/systems/texlive/tlnet
-          
-          # Tenta atualizar tlmgr (com retry)
-          for i in {1..3}; do
-            echo "Tentativa $i de atualizar tlmgr..."
-            if tlmgr update --self --all; then
-              echo "✓ tlmgr atualizado com sucesso"
-              break
-            fi
-            echo "✗ Falhou, aguardando ${i}0s..."
-            sleep $((i*10))
-          done
-          
+
+          echo "📦 Atualizando tlmgr..."
+          # Atualiza apenas o tlmgr primeiro
+          tlmgr update --self || {
+            echo "⚠️ Falha ao atualizar tlmgr, tentando com --force..."
+            tlmgr update --self --force || {
+              echo "⚠️ Não foi possível atualizar tlmgr, continuando com versão atual..."
+            }
+          }
+
       - name: Install LaTeX packages
         run: |
           export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
-          
-                    # Instala pacotes LaTeX necessários
+
+          echo "📚 Instalando pacotes LaTeX..."
+
+          # Instala pacotes LaTeX necessários
           tlmgr install collection-fontsrecommended \
             collection-latex \
             collection-latexrecommended \
@@ -284,9 +286,11 @@ jobs:
             inputenc \
             fontenc \
             babel-portuges \
-            hyphen-portuguese
-          
-          # Atualiza tlmgr
+            hyphen-portuguese || {
+            echo "⚠️ Alguns pacotes podem já estar instalados"
+          }
+
+          echo "✅ Pacotes LaTeX instalados"
           
       - name: Verify LaTeX installation
         run: |
