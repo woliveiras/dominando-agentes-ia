@@ -170,6 +170,12 @@ jobs:
           echo "📦 Installing TinyTeX for PDF generation..."
           quarto install tinytex
           
+      - name: Verify LaTeX installation
+        run: |
+          echo "🔍 Verifying LaTeX installation..."
+          tlmgr --version || echo "tlmgr not found"
+          which pdflatex || echo "pdflatex not found"
+          
       - name: Install Python dependencies
         run: uv sync
         
@@ -184,9 +190,23 @@ jobs:
         continue-on-error: true
         timeout-minutes: 30
         run: |
-          echo "📄 Building PDF version..."
+          echo "📄 Building PDF version (with debug output)..."
           cd book
-          quarto render --to pdf || echo "::warning::PDF build failed"
+          # Renderiza apenas alguns capítulos para debug
+          quarto render --to pdf --verbose 2>&1 | tee ../pdf-build.log || {
+            echo "::warning::PDF build failed"
+            echo "Last 50 lines of output:"
+            tail -50 ../pdf-build.log
+            exit 0
+          }
+          
+      - name: Upload PDF build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pdf-build-logs
+          path: pdf-build.log
+          if-no-files-found: ignore
           
       - name: Build EPUB version
         continue-on-error: true

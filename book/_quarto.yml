@@ -59,15 +59,26 @@ format:
   pdf:
     documentclass: scrreprt
     keep-tex: false
-    html-math-method: mathjax
+    keep-md: false
+    pdf-engine: pdflatex
+    cite-method: biblatex
     include-in-header:
       text: |
         \usepackage{fancyvrb}
         \usepackage{textcomp}
-    filters:
-      - quarto
-    quiet: true
+        \usepackage[utf8]{inputenc}
+        \usepackage[T1]{fontenc}
+    execute:
+      enabled: false
+      echo: false
+      warning: false
+    fig-pos: 'H'
+    toc: true
+    toc-depth: 3
+    number-sections: true
   epub:
     mermaid-format: svg
     toc: true
     epub-cover-image: cover.png
+    execute:
+      enabled: false
