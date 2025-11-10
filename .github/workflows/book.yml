@@ -193,7 +193,7 @@ jobs:
           echo "PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true" >> $GITHUB_ENV
           echo "PUPPETEER_EXECUTABLE_PATH=${{ steps.setup-chrome.outputs.chrome-path }}" >> $GITHUB_ENV
           
-          # Cria config do Puppeteer (para Mermaid CLI usar)
+          # Cria config do Puppeteer para Mermaid CLI
           cat > puppeteer-config.json << EOF
           {
             "executablePath": "${{ steps.setup-chrome.outputs.chrome-path }}",
@@ -202,13 +202,19 @@ jobs:
               "--disable-setuid-sandbox",
               "--disable-dev-shm-usage",
               "--disable-gpu",
-              "--disable-software-rasterizer"
-            ]
+              "--disable-software-rasterizer",
+              "--disable-extensions",
+              "--disable-background-networking"
+            ],
+            "timeout": 60000
           }
           EOF
           
           echo "Puppeteer config created:"
           cat puppeteer-config.json
+          
+          # Define variável para mmdc usar
+          echo "PUPPETEER_CONFIG_PATH=$(pwd)/puppeteer-config.json" >> $GITHUB_ENV
           
       - name: Test Mermaid rendering
         run: |
@@ -220,8 +226,8 @@ jobs:
             A[Test] --> B[Diagram]
           EOF
           
-          # Tenta renderizar
-          if mmdc -i /tmp/test-diagram.mmd -o /tmp/test-output.png -b transparent; then
+          # Tenta renderizar com configuração do Puppeteer
+          if mmdc -i /tmp/test-diagram.mmd -o /tmp/test-output.png -p puppeteer-config.json -b transparent; then
             echo "✅ Mermaid rendering successful"
             ls -lh /tmp/test-output.png
           else
