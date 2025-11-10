@@ -309,19 +309,29 @@ jobs:
           # Configuração do Chrome para Mermaid (variáveis de ambiente)
           export PUPPETEER_EXECUTABLE_PATH="${{ steps.setup-chrome.outputs.chrome-path }}"
           export CHROME_BIN="${{ steps.setup-chrome.outputs.chrome-path }}"
-          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu"
-          export PUPPETEER_TIMEOUT=30000
+          export PUPPETEER_ARGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
+          export PUPPETEER_TIMEOUT=60000
+          
+          # Otimizações para Mermaid CLI
+          export MERMAID_PUPPETEER_TIMEOUT=60000
+          export MERMAID_WIDTH=1200
+          export MERMAID_HEIGHT=800
+          export CHROMIUM_FLAGS="--no-sandbox --disable-setuid-sandbox --disable-dev-shm-usage --disable-gpu --disable-software-rasterizer"
           
           # Cria config do Puppeteer no diretório do projeto
           cat > puppeteer-config.json << EOF
           {
             "executablePath": "${{ steps.setup-chrome.outputs.chrome-path }}",
+            "timeout": 60000,
             "args": [
               "--no-sandbox",
               "--disable-setuid-sandbox",
               "--disable-dev-shm-usage",
               "--disable-gpu",
-              "--disable-software-rasterizer"
+              "--disable-software-rasterizer",
+              "--disable-extensions",
+              "--disable-background-networking",
+              "--disable-sync"
             ]
           }
           EOF
@@ -334,12 +344,13 @@ jobs:
           cat puppeteer-config.json
           
           cd book
-          # Passa config do Puppeteer para o Quarto via variável
+          # Passa config do Puppeteer para o Quarto
+          QUARTO_CHROME_PATH="${{ steps.setup-chrome.outputs.chrome-path }}" \
           MERMAID_PUPPETEER_CONFIG="../puppeteer-config.json" \
           quarto render --to pdf --verbose 2>&1 | tee ../pdf-build.log || {
             echo "::warning::PDF build failed"
-            echo "Last 50 lines:"
-            tail -50 ../pdf-build.log
+            echo "Last 100 lines:"
+            tail -100 ../pdf-build.log
             exit 0
           }
           

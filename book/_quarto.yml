@@ -76,6 +76,11 @@ format:
     toc: true
     toc-depth: 3
     number-sections: true
+    mermaid:
+      theme: default
+      timeout: 60000
+    fig-dpi: 150
+    fig-format: png
   epub:
     mermaid-format: svg
     toc: true
